@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>myFPV</title>
+    <title>myFPV - Combat Mission v4.3</title>
     <style>
         * { 
             margin: 0; padding: 0; 
@@ -22,7 +22,7 @@
             border: 1px solid rgba(0,255,0,0.2);
         }
 
-        #osd-left { left: 20px; height: 60px; }
+        #osd-left { left: 20px; min-width: 150px; }
         #osd-right { right: 20px; width: 120px; height: 60px; }
 
         #minimap-container { position: relative; width: 100%; height: 100%; overflow: hidden; }
@@ -54,6 +54,8 @@
             white-space: nowrap; font-weight: bold;
         }
 
+        #mission-info { margin-top: 8px; border-top: 1px dashed #00ff00; padding-top: 5px; color: #ffff00; }
+
         #crosshair {
             position: absolute; top: 50%; left: 50%;
             width: 40px; height: 40px;
@@ -81,7 +83,13 @@
         #static-noise {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: url('https://upload.wikimedia.org/wikipedia/commons/5/5a/Static_noise.gif');
-            opacity: 0.2; pointer-events: none; display: none;
+            opacity: 0.4; pointer-events: none; display: none; z-index: 900;
+        }
+
+        #radio-log {
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            color: #ff0000; font-size: 12px; font-weight: bold; text-shadow: 0 0 5px #000;
+            pointer-events: none; z-index: 15; text-transform: uppercase;
         }
 
         .screen-content {
@@ -98,14 +106,31 @@
         
         .success { color: #00ff00; border-color: #00ff00 !important; }
         .success button { background: #00ff00; color: black; }
+
+        #start-prompt {
+            position: absolute; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.9); z-index: 2000; display: flex;
+            justify-content: center; align-items: center; color: #00ff00;
+        }
     </style>
 </head>
 <body>
+    <div id="start-prompt">
+        <div style="text-align:center;">
+            <h2>SYSTEM READY</h2>
+            <button onclick="initAudio(); this.parentElement.parentElement.style.display='none'">INITIALIZE LINK</button>
+        </div>
+    </div>
+
     <div id="osd-left" class="osd-panel">
-        <div>FPV-Drone Flying System</div>
+        <div>FPV-DRONE v4.3 (LIVE)</div>
         <div id="alt">ALT: 0.0m</div>
         <div id="spd">SPD: 0km/h</div>
-        <div id="status" style="margin-top:5px; color:#00ff00;">Online Mode</div>
+        <div id="mission-info">
+            OBJ: SEARCHING...<br>
+            DST: ---
+        </div>
+        <div id="status" style="margin-top:5px; color:#00ff00;">LINK: STABLE</div>
     </div>
 
     <div id="osd-right" class="osd-panel">
@@ -120,11 +145,12 @@
     <div id="joystick-left"></div>
     <div id="joystick-right"></div>
     <div id="static-noise"></div>
+    <div id="radio-log"></div>
 
     <div id="restart-screen">
         <div class="screen-content" id="screen-box">
             <h1 id="res-msg">LOST TELEMETRY</h1>
-            <button onclick="location.reload()">RE-START</button>
+            <button onclick="location.reload()">RE-START SYSTEM</button>
         </div>
     </div>
 
@@ -132,9 +158,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.9.0/nipplejs.min.js"></script>
 
     <script>
-        const PHYSICS = { acceleration: 75.0, friction: 0.97, rotationSpeed: 3.5, tiltMax: 0.7, lift: 50.0 };
+        const PHYSICS = { acceleration: 80.0, friction: 0.97, rotationSpeed: 3.5, tiltMax: 0.7, lift: 52.0 };
         const CHUNK_SIZE = 200;
-        const TRACER_SPEED = 160;
+        const TRACER_SPEED = 180;
 
         const scene = new THREE.Scene();
         scene.fog = new THREE.FogExp2(0x020202, 0.008); 
@@ -146,14 +172,78 @@
 
         const clock = new THREE.Clock();
         let isGameOver = false;
+        let isStaticActive = false;
+        let currentMissionTarget = null;
 
         const droneState = { pos: new THREE.Vector3(0, 15, 0), vel: new THREE.Vector3(0, 0, 0), rotY: 0, tiltX: 0, tiltZ: 0 };
-        let droneGroup, props = [];
+        let droneGroup, payloadGroup, props = [];
         const entities = [];
         const staticObstacles = [];
-        const enemyDrones = [];
         const tracers = [];
         const activeChunks = new Set();
+        const particles = [];
+
+        // Audio System
+        let audioCtx, droneOsc, droneGain;
+        function initAudio() {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            droneOsc = audioCtx.createOscillator();
+            droneOsc.type = 'sawtooth';
+            droneGain = audioCtx.createGain();
+            droneGain.gain.value = 0.05;
+            const lpf = audioCtx.createBiquadFilter();
+            lpf.type = 'lowpass'; lpf.frequency.value = 800;
+            droneOsc.connect(lpf); lpf.connect(droneGain); droneGain.connect(audioCtx.destination);
+            droneOsc.start();
+        }
+
+        function playGunshot() {
+            if(!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            osc.type = Math.random() > 0.5 ? 'square' : 'triangle';
+            const freq = 120 + Math.random() * 60;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.15);
+            g.gain.setValueAtTime(0.08, audioCtx.currentTime);
+            g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15);
+            osc.connect(g); g.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+        }
+
+        function playStaticGlitch() {
+            if(!audioCtx) return;
+            const bufferSize = audioCtx.sampleRate * 2;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
+            const ng = audioCtx.createGain();
+            ng.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            ng.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 2);
+            noise.connect(ng); ng.connect(audioCtx.destination);
+            noise.start();
+        }
+
+        // Particle System for Explosion
+        function createExplosion(pos) {
+            const count = 40;
+            const geo = new THREE.BoxGeometry(0.3, 0.3, 0.3);
+            for(let i=0; i<count; i++) {
+                const mat = new THREE.MeshBasicMaterial({ color: Math.random() > 0.5 ? 0xffaa00 : 0xff0000 });
+                const p = new THREE.Mesh(geo, mat);
+                p.position.copy(pos);
+                const vel = new THREE.Vector3((Math.random()-0.5)*25, Math.random()*20, (Math.random()-0.5)*25);
+                particles.push({ mesh: p, vel: vel, life: 1.0 + Math.random() });
+                scene.add(p);
+            }
+        }
+
+        const pathLineGeo = new THREE.BufferGeometry();
+        const pathLineMat = new THREE.LineDashedMaterial({ color: 0xffff00, dashSize: 2, gapSize: 2 });
+        const pathLine = new THREE.Line(pathLineGeo, pathLineMat);
+        scene.add(pathLine);
 
         const mCanvas = document.getElementById('minimap-canvas');
         const mCtx = mCanvas.getContext('2d');
@@ -179,45 +269,34 @@
             scene.add(new THREE.Mesh(geo, mat));
         }
 
-        function createDroneModel() {
+        function createDetailedDrone() {
             droneGroup = new THREE.Group();
-            const bodyGeo = new THREE.BoxGeometry(0.5, 0.2, 0.8);
-            const bodyMat = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
-            droneGroup.add(new THREE.Mesh(bodyGeo, bodyMat));
-            
-            const frameMat = new THREE.LineBasicMaterial({ color: 0x00ff00 });
-            const points = [
-                new THREE.Vector3(-0.8, 0, -0.8), new THREE.Vector3(0.8, 0, 0.8),
-                new THREE.Vector3(0.8, 0, -0.8), new THREE.Vector3(-0.8, 0, 0.8)
-            ];
-            const frameGeo = new THREE.BufferGeometry().setFromPoints(points);
-            droneGroup.add(new THREE.LineSegments(frameGeo, frameMat));
+            const mat = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
+            const armGeo = new THREE.BoxGeometry(1.6, 0.05, 0.05);
+            const arm1 = new THREE.Mesh(armGeo, mat); arm1.rotation.y = Math.PI/4;
+            const arm2 = new THREE.Mesh(armGeo, mat); arm2.rotation.y = -Math.PI/4;
+            droneGroup.add(arm1, arm2);
+            const bodyGeo = new THREE.BoxGeometry(0.4, 0.25, 0.5);
+            droneGroup.add(new THREE.Mesh(bodyGeo, mat));
 
-            const propGeo = new THREE.BoxGeometry(0.7, 0.02, 0.06);
-            const propMat = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-            [[-0.8,0.1,-0.8], [0.8,0.1,-0.8], [0.8,0.1,0.8], [-0.8,0.1,0.8]].forEach(p => {
-                const prop = new THREE.Mesh(propGeo, propMat);
-                prop.position.set(...p);
-                props.push(prop);
-                droneGroup.add(prop);
+            payloadGroup = new THREE.Group();
+            const mineBody = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.6, 8), mat);
+            mineBody.rotation.x = Math.PI/2;
+            const mineNose = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.08, 0.2, 8), mat);
+            mineNose.position.z = -0.4; mineNose.rotation.x = Math.PI/2;
+            payloadGroup.add(mineBody, mineNose);
+            payloadGroup.position.y = -0.25;
+            droneGroup.add(payloadGroup);
+
+            const propGeo = new THREE.BoxGeometry(0.7, 0.01, 0.08);
+            const pPositions = [[0.55, 0.1, 0.55], [-0.55, 0.1, 0.55], [0.55, 0.1, -0.55], [-0.55, 0.1, -0.55]];
+            pPositions.forEach(pos => {
+                const p = new THREE.Mesh(propGeo, mat);
+                p.position.set(...pos);
+                props.push(p);
+                droneGroup.add(p);
             });
             scene.add(droneGroup);
-        }
-
-        function createEnemyDrone(x, z) {
-            const group = new THREE.Group();
-            const body = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.2, 0.6), new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true }));
-            group.add(body);
-            const eProps = [];
-            [[-0.5,0.1,-0.5], [0.5,0.1,-0.5], [0.5,0.1,0.5], [-0.5,0.1,0.5]].forEach(p => {
-                const prop = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.02, 0.05), new THREE.MeshBasicMaterial({ color: 0xff0000 }));
-                prop.position.set(...p);
-                eProps.push(prop);
-                group.add(prop);
-            });
-            group.position.set(x, getTerrainHeight(x, z) + 10 + Math.random()*10, z);
-            scene.add(group);
-            enemyDrones.push({ mesh: group, props: eProps, vel: new THREE.Vector3((Math.random()-0.5)*10, 0, (Math.random()-0.5)*10), nextChange: 0, radius: 1.5 });
         }
 
         function spawnObject(type, x, z) {
@@ -229,17 +308,18 @@
             else if(type === 'house') { size = [12+Math.random()*10, 15+Math.random()*40, 12+Math.random()*10]; color = 0x00ff00; }
             else if(type === 'trench') { size = [4, 2.5, 25]; color = 0x555555; }
             
-            const mesh = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(...size)), new THREE.LineBasicMaterial({ color: color, transparent: true, opacity: 0.5 }));
-            group.add(mesh);
-            
+            const mat = new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.5 });
+            if(type === 'car' || type === 'human') {
+                group.add(new THREE.Mesh(new THREE.BoxGeometry(...size), mat));
+            } else {
+                group.add(new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(...size)), new THREE.LineBasicMaterial({ color: color, transparent: true, opacity: 0.5 })));
+            }
+
             if(type === 'trench') {
                 group.position.set(x, groundY - size[1]/3, z);
                 group.rotation.y = Math.random() * Math.PI;
                 scene.add(group);
-                for(let i=0; i<3; i++) {
-                    const offset = (Math.random() - 0.5) * 18;
-                    spawnSoldierInTrench(x, z, group.rotation.y, offset);
-                }
+                for(let i=0; i<3; i++) spawnSoldierInTrench(x, z, group.rotation.y, (Math.random()-0.5)*18);
             } else {
                 group.position.set(x, groundY + size[1]/2, z);
                 scene.add(group);
@@ -252,24 +332,22 @@
             const size = [0.5, 1.7, 0.5];
             const groundY = getTerrainHeight(tx, tz);
             const group = new THREE.Group();
-            const mesh = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(...size)), new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.8 }));
+            const mesh = new THREE.Mesh(new THREE.BoxGeometry(...size), new THREE.MeshBasicMaterial({ color: 0xffffff }));
             group.add(mesh);
             const localPos = new THREE.Vector3(0, 0, offset).applyAxisAngle(new THREE.Vector3(0, 1, 0), angle);
             group.position.set(tx + localPos.x, groundY + size[1]/2 - 0.8, tz + localPos.z);
             scene.add(group);
-            entities.push({ mesh: group, type: 'soldier', radius: 0.7, height: 1.7, speed: 0, lastFire: 0 });
+            entities.push({ mesh: group, type: 'soldier', radius: 0.7, height: 1.7, speed: 0, lastFire: 0, spotted: false });
         }
 
         function createTracer(start, target) {
-            // Трассеры теперь чисто визуальные
-            const geo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,-3)]);
+            const geo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,-4)]);
             const mat = new THREE.LineBasicMaterial({ color: 0xffaa00, transparent: true, opacity: 0.8 });
             const line = new THREE.Line(geo, mat);
-            line.position.copy(start);
-            line.lookAt(target);
+            line.position.copy(start); line.lookAt(target);
             scene.add(line);
-            const dir = target.clone().sub(start).normalize();
-            tracers.push({ mesh: line, dir: dir, life: 1.5 });
+            tracers.push({ mesh: line, dir: target.clone().sub(start).normalize(), life: 1.5 });
+            playGunshot();
         }
 
         function updateChunks() {
@@ -290,57 +368,77 @@
                 spawnObject('car', ox + (Math.random()-0.5)*CHUNK_SIZE, oz + (Math.random()-0.5)*CHUNK_SIZE);
                 spawnObject('human', ox + (Math.random()-0.5)*CHUNK_SIZE, oz + (Math.random()-0.5)*CHUNK_SIZE);
             }
-            if(Math.random() > 0.4) createEnemyDrone(ox + (Math.random()-0.5)*CHUNK_SIZE, oz + (Math.random()-0.5)*CHUNK_SIZE);
+        }
+
+        function updateMission() {
+            if (!currentMissionTarget || entities.indexOf(currentMissionTarget) === -1) {
+                const potential = entities.filter(e => e.type !== 'soldier');
+                if (potential.length > 0) currentMissionTarget = potential[Math.floor(Math.random() * potential.length)];
+            }
+            if (currentMissionTarget) {
+                const dist = droneState.pos.distanceTo(currentMissionTarget.mesh.position);
+                document.getElementById('mission-info').innerHTML = `OBJ: DESTROY ${currentMissionTarget.type.toUpperCase()}<br>DST: ${dist.toFixed(0)}m`;
+                pathLineGeo.setFromPoints([ droneState.pos.clone().setY(droneState.pos.y - 1), currentMissionTarget.mesh.position.clone().setY(getTerrainHeight(currentMissionTarget.mesh.position.x, currentMissionTarget.mesh.position.z) + 0.5)]);
+                pathLine.computeLineDistances();
+            }
         }
 
         function updateMinimap() {
             mCtx.clearRect(0, 0, mCanvas.width, mCanvas.height);
             mCtx.save(); mCtx.translate(mCanvas.width/2, mCanvas.height/2); mCtx.rotate(droneState.rotY);
-            [...entities, ...enemyDrones].forEach(ent => {
+            entities.forEach(ent => {
                 const dx = (ent.mesh.position.x - droneState.pos.x) * 0.5, dz = (ent.mesh.position.z - droneState.pos.z) * 0.5;
                 if(Math.abs(dx) < 60 && Math.abs(dz) < 60) {
-                    mCtx.fillStyle = ent.vel ? '#ff00ff' : (ent.type === 'soldier' ? '#ffffff' : (ent.type === 'car' ? '#ff3300' : '#ffcc00'));
-                    mCtx.fillRect(dx - 1.5, dz - 1.5, 3, 3);
+                    mCtx.fillStyle = (ent === currentMissionTarget) ? '#ffff00' : (ent.type === 'soldier' ? '#ffffff' : '#ff3300');
+                    mCtx.fillRect(dx - 2, dz - 2, 4, 4);
                 }
             });
             mCtx.restore();
         }
 
         function endGame(success = false) {
-            if (isGameOver) return;
-            isGameOver = true;
-            document.getElementById('restart-screen').style.display = 'block';
+            if (isGameOver || isStaticActive) return;
+            isStaticActive = true;
+            
+            if(success) createExplosion(droneState.pos);
+
             document.getElementById('static-noise').style.display = 'block';
-            const box = document.getElementById('screen-box');
-            const msg = document.getElementById('res-msg');
-            if(success) {
-                box.className = "screen-content success";
-                msg.innerText = "GREAT! TARGET DESTROYED";
-            } else {
-                box.className = "screen-content";
-                msg.innerText = "LOST TELEMETRY";
-            }
+            if(droneGain) droneGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.05);
+            playStaticGlitch();
+
+            setTimeout(() => {
+                isGameOver = true;
+                document.getElementById('restart-screen').style.display = 'block';
+                const msg = document.getElementById('res-msg');
+                if(success) {
+                    document.getElementById('screen-box').className = "screen-content success";
+                    msg.innerText = "MISSION SUCCESS: TARGET NEUTRALIZED";
+                } else {
+                    document.getElementById('screen-box').className = "screen-content";
+                    msg.innerText = "LOST TELEMETRY: IMPACT DETECTED";
+                }
+            }, 1800);
         }
 
         function updateSeeker() {
-            let bestTarget = null; let minDist = 150;
+            let bestTarget = null; let minDist = 180;
             const targetUI = document.getElementById('target-ui');
             const targetLabel = document.getElementById('target-label');
-            [...entities, ...enemyDrones].forEach(en => {
+            entities.forEach(en => {
                 const dist = droneState.pos.distanceTo(en.mesh.position);
                 if (dist < minDist) {
                     const screenPos = en.mesh.position.clone().project(camera);
                     if (Math.abs(screenPos.z) < 1 && Math.abs(screenPos.x) < 0.8 && Math.abs(screenPos.y) < 0.8) {
                         minDist = dist;
-                        bestTarget = { x: (screenPos.x * 0.5 + 0.5) * window.innerWidth, y: (screenPos.y * -0.5 + 0.5) * window.innerHeight, dist: dist, type: en.type, isEnemy: !!en.vel };
+                        bestTarget = { x: (screenPos.x * 0.5 + 0.5) * window.innerWidth, y: (screenPos.y * -0.5 + 0.5) * window.innerHeight, dist: dist, type: en.type, ref: en };
                     }
                 }
             });
             if (bestTarget) {
                 targetUI.style.display = 'block';
                 targetUI.style.left = bestTarget.x + 'px'; targetUI.style.top = bestTarget.y + 'px';
-                let tag = bestTarget.isEnemy ? 'ENY_DRN' : (bestTarget.type === 'soldier' ? 'INFANTRY' : 'TRGT');
-                targetUI.style.borderColor = bestTarget.isEnemy ? '#ff00ff' : '#ff0000';
+                let tag = (bestTarget.ref === currentMissionTarget) ? 'PRIORITY' : (bestTarget.type === 'soldier' ? 'INFANTRY' : 'TARGET');
+                targetUI.style.borderColor = (bestTarget.ref === currentMissionTarget) ? '#ffff00' : '#ff0000';
                 targetLabel.innerText = `${tag} [${bestTarget.dist.toFixed(1)}m]`;
                 targetLabel.style.color = targetUI.style.borderColor;
             } else targetUI.style.display = 'none';
@@ -352,17 +450,22 @@
         nipplejs.create({ zone: document.getElementById('joystick-right'), mode: 'static', position: {left: '50%', top: '50%'}, color: 'white' })
             .on('move', (e, d) => input.right = d.vector).on('end', () => input.right = {x:0, y:0});
 
-        createGround(); createDroneModel();
+        createGround(); createDetailedDrone();
 
         function animate() {
             if (isGameOver) return;
             requestAnimationFrame(animate);
             const dt = clock.getDelta(), time = clock.getElapsedTime();
 
-            updateChunks(); updateMinimap(); updateSeeker();
+            updateChunks(); updateMinimap(); updateSeeker(); updateMission();
 
-            // Пропеллеры и управление
-            props.forEach((p, i) => p.rotation.y += (20 + (input.left.y + 1) * 20) * dt * (i % 2 === 0 ? 1 : -1));
+            if(audioCtx && !isStaticActive) {
+                const speedMult = droneState.vel.length() / 20;
+                droneOsc.frequency.setTargetAtTime(80 + (input.left.y * 45) + (speedMult * 65), audioCtx.currentTime, 0.1);
+            }
+
+            // Controls
+            props.forEach((p, i) => p.rotation.y += (35 + (input.left.y + 1) * 40) * dt * (i % 2 === 0 ? 1 : -1));
             droneState.rotY -= input.left.x * PHYSICS.rotationSpeed * dt;
             droneState.tiltX = THREE.MathUtils.lerp(droneState.tiltX, -input.right.y * PHYSICS.tiltMax, 0.1);
             droneState.tiltZ = THREE.MathUtils.lerp(droneState.tiltZ, -input.right.x * PHYSICS.tiltMax, 0.1);
@@ -375,61 +478,57 @@
             droneGroup.position.copy(droneState.pos);
             droneGroup.rotation.set(0, 0, 0);
             droneGroup.rotateY(droneState.rotY); droneGroup.rotateX(droneState.tiltX); droneGroup.rotateZ(droneState.tiltZ);
+            payloadGroup.rotation.x = THREE.MathUtils.lerp(payloadGroup.rotation.x, droneState.tiltX * 0.3, 0.1);
+            payloadGroup.rotation.z = THREE.MathUtils.lerp(payloadGroup.rotation.z, droneState.tiltZ * 0.3, 0.1);
 
             camera.position.lerp(droneState.pos.clone().add(new THREE.Vector3(0, 3, 8).applyAxisAngle(new THREE.Vector3(0, 1, 0), droneState.rotY)), 0.12);
             camera.lookAt(droneState.pos.clone().add(new THREE.Vector3(0, -1, 0)));
 
-            // Трассеры (ТОЛЬКО ВИЗУАЛИЗАЦИЯ)
             for(let i = tracers.length-1; i >= 0; i--) {
                 const t = tracers[i];
                 t.mesh.position.addScaledVector(t.dir, TRACER_SPEED * dt);
-                t.life -= dt;
-                if(t.life <= 0) { scene.remove(t.mesh); tracers.splice(i, 1); }
-                // ПРОВЕРКА ПОРАЖЕНИЯ ОТ ТРАССЕРОВ УДАЛЕНА
+                t.life -= dt; if(t.life <= 0) { scene.remove(t.mesh); tracers.splice(i, 1); }
             }
 
-            // Сущности и огонь пехоты
+            // Particles Update
+            for(let i = particles.length-1; i >= 0; i--) {
+                const p = particles[i];
+                p.mesh.position.addScaledVector(p.vel, dt);
+                p.vel.y -= 9.81 * dt; // Gravity
+                p.life -= dt;
+                p.mesh.scale.setScalar(p.life);
+                if(p.life <= 0) { scene.remove(p.mesh); particles.splice(i, 1); }
+            }
+
             entities.forEach(en => {
                 if(en.type === 'soldier') {
                     const d = en.mesh.position.distanceTo(droneState.pos);
-                    if(d < 80 && time > en.lastFire) {
-                        // Упреждение для визуала
-                        const target = droneState.pos.clone().addScaledVector(droneState.vel, 0.15);
-                        createTracer(en.mesh.position.clone().add(new THREE.Vector3(0,1,0)), target);
-                        en.lastFire = time + 1.2 + Math.random();
-                    }
+                    if(d < 80) {
+                        if(!en.spotted) {
+                            en.spotted = true;
+                            document.getElementById('radio-log').innerText = "HQ: TARGET SPOTTED! OPEN FIRE!";
+                            setTimeout(() => document.getElementById('radio-log').innerText = "", 3000);
+                        }
+                        if(time > en.lastFire) {
+                            createTracer(en.mesh.position.clone().add(new THREE.Vector3(0,1,0)), droneState.pos.clone().addScaledVector(droneState.vel, 0.15));
+                            en.lastFire = time + 0.7 + Math.random();
+                        }
+                    } else en.spotted = false;
                 }
                 if(en.speed > 0) {
                     en.mesh.position.addScaledVector(en.dir, en.speed * dt);
                     en.mesh.position.y = getTerrainHeight(en.mesh.position.x, en.mesh.position.z) + en.height/2;
                 }
-                // Столкновение с целью = ПОБЕДА
                 if (droneState.pos.distanceTo(en.mesh.position) < (en.radius + 1.2)) {
-                    endGame(true);
+                    if (en === currentMissionTarget || en.type === 'soldier' || en.type === 'human') endGame(true);
                 }
             });
 
-            // Вражеские дроны
-            enemyDrones.forEach(ed => {
-                ed.props.forEach(p => p.rotation.y += 30 * dt);
-                if (time > ed.nextChange) {
-                    ed.vel.set((Math.random()-0.5)*15, (Math.random()-0.5)*5, (Math.random()-0.5)*15);
-                    ed.nextChange = time + 2 + Math.random()*3;
-                }
-                ed.mesh.position.addScaledVector(ed.vel, dt);
-                if (droneState.pos.distanceTo(ed.mesh.position) < 2) endGame(true);
-            });
-
-            // Коллизии со статикой (Ландшафт и здания опасны)
             const curH = getTerrainHeight(droneState.pos.x, droneState.pos.z);
             if(droneState.pos.y < curH) endGame(false);
-            
             staticObstacles.forEach(h => {
                 const d = new THREE.Vector2(droneState.pos.x, droneState.pos.z).distanceTo(new THREE.Vector2(h.mesh.position.x, h.mesh.position.z));
-                if (d < h.radius) {
-                    const topLimit = h.mesh.position.y + h.height/2;
-                    if (droneState.pos.y < topLimit) endGame(false);
-                }
+                if (d < h.radius && droneState.pos.y < (h.mesh.position.y + h.height/2)) endGame(false);
             });
 
             document.getElementById('alt').innerText = `ALT: ${(droneState.pos.y - curH).toFixed(1)}m`;
