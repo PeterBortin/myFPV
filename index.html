@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>myFPV</title>
+    <style>
+        * { 
+            margin: 0; padding: 0; 
+            user-select: none; -webkit-user-select: none;
+            touch-action: none; 
+        }
+        body { background: #020202; font-family: monospace; overflow: hidden; }
+        canvas { display: block; }
+        
+        .osd-panel {
+            position: absolute; top: 20px;
+            color: #00ff00; z-index: 5; font-size: 11px;
+            pointer-events: none;
+            background: rgba(0, 30, 0, 0.5);
+            padding: 10px;
+            border: 1px solid rgba(0,255,0,0.2);
+        }
+
+        #osd-left { left: 20px; height: 60px; }
+        #osd-right { right: 20px; width: 120px; height: 60px; }
+
+        #minimap-container { position: relative; width: 100%; height: 100%; overflow: hidden; }
+        #minimap-canvas { background: transparent; }
+        #minimap-arrow {
+            position: absolute; top: 50%; left: 50%;
+            width: 0; height: 0;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-bottom: 8px solid #00ff00;
+            transform: translate(-50%, -50%);
+        }
+
+        #target-ui {
+            position: absolute; width: 60px; height: 60px;
+            border: 2px solid #ff0000; border-radius: 2px;
+            display: none; transform: translate(-50%, -50%);
+            pointer-events: none; z-index: 10;
+        }
+        #target-ui::before, #target-ui::after {
+            content: ''; position: absolute; width: 10px; height: 10px; border-color: #ff0000; border-style: solid;
+        }
+        #target-ui::before { top: 0; left: 0; border-width: 2px 0 0 2px; }
+        #target-ui::after { bottom: 0; right: 0; border-width: 0 2px 2px 0; }
+
+        #target-label {
+            position: absolute; top: -20px; left: 50%;
+            transform: translateX(-50%); color: #ff0000; font-size: 10px;
+            white-space: nowrap; font-weight: bold;
+        }
+
+        #crosshair {
+            position: absolute; top: 50%; left: 50%;
+            width: 40px; height: 40px;
+            transform: translate(-50%, -50%); pointer-events: none;
+        }
+        #crosshair::before, #crosshair::after {
+            content: ''; position: absolute; background: #00ff00; opacity: 0.5;
+        }
+        #crosshair::before { width: 100%; height: 1px; top: 50%; left: 0; }
+        #crosshair::after { height: 100%; width: 1px; left: 50%; top: 0; }
+
+        #joystick-left, #joystick-right {
+            position: absolute; bottom: 10%;
+            width: 140px; height: 140px; z-index: 20; opacity: 0.6;
+        }
+        #joystick-left { left: 5%; }
+        #joystick-right { right: 5%; }
+
+        #restart-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            text-align: center; display: none; z-index: 1000; color: #ff0000;
+            background: rgba(0,0,0,0.9);
+        }
+        
+        #static-noise {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: url('https://upload.wikimedia.org/wikipedia/commons/5/5a/Static_noise.gif');
+            opacity: 0.2; pointer-events: none; display: none;
+        }
+
+        .screen-content {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8); padding: 40px; border: 2px solid #ff0000;
+        }
+
+        button {
+            background: #ff0000; color: white; border: none;
+            padding: 12px 25px; font-family: monospace;
+            cursor: pointer; font-size: 18px; margin-top: 20px;
+        }
+        
+        .success { color: #00ff00; border-color: #00ff00 !important; }
+        .success button { background: #00ff00; color: black; }
+    </style>
+</head>
+<body>
+    <div id="osd-left" class="osd-panel">
+        <div>FPV-Drone Flying System</div>
+        <div id="alt">ALT: 0.0m</div>
+        <div id="spd">SPD: 0km/h</div>
+        <div id="status" style="margin-top:5px; color:#00ff00;">Online Mode</div>
+    </div>
+
+    <div id="osd-right" class="osd-panel">
+        <div id="minimap-container">
+            <canvas id="minimap-canvas"></canvas>
+            <div id="minimap-arrow"></div>
+        </div>
+    </div>
+
+    <div id="target-ui"><div id="target-label">LOCK</div></div>
+    <div id="crosshair"></div>
+    <div id="joystick-left"></div>
+    <div id="joystick-right"></div>
+    <div id="static-noise"></div>
+
+    <div id="restart-screen">
+        <div class="screen-content" id="screen-box">
+            <h1 id="res-msg">LOST TELEMETRY</h1>
+            <button onclick="location.reload()">RE-START</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.9.0/nipplejs.min.js"></script>
+
+    <script>
+        const PHYSICS = { acceleration: 75.0, friction: 0.97, rotationSpeed: 3.5, tiltMax: 0.7, lift: 50.0 };
+        const CHUNK_SIZE = 200;
+        const TRACER_SPEED = 160;
+
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x020202, 0.008); 
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x020202, 1);
+        document.body.appendChild(renderer.domElement);
+
+        const clock = new THREE.Clock();
+        let isGameOver = false;
+
+        const droneState = { pos: new THREE.Vector3(0, 15, 0), vel: new THREE.Vector3(0, 0, 0), rotY: 0, tiltX: 0, tiltZ: 0 };
+        let droneGroup, props = [];
+        const entities = [];
+        const staticObstacles = [];
+        const enemyDrones = [];
+        const tracers = [];
+        const activeChunks = new Set();
+
+        const mCanvas = document.getElementById('minimap-canvas');
+        const mCtx = mCanvas.getContext('2d');
+        mCanvas.width = 120; mCanvas.height = 120;
+
+        function getTerrainHeight(x, z) {
+            let h = (Math.sin(x * 0.015) * Math.cos(z * 0.015) * 15) + (Math.sin(x * 0.05) * 4);
+            let sign = Math.sign(h); h = Math.abs(h);
+            if (h < 8) h = Math.pow(h / 8, 3.0) * 8;
+            return h * sign;
+        }
+
+        function createGround() {
+            const size = 2000, res = 150;
+            const geo = new THREE.PlaneGeometry(size, size, res, res);
+            geo.rotateX(-Math.PI / 2);
+            const vertices = geo.attributes.position.array;
+            for (let i = 0; i < vertices.length; i += 3) {
+                vertices[i + 1] = getTerrainHeight(vertices[i], vertices[i + 2]);
+            }
+            geo.computeVertexNormals();
+            const mat = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true, transparent: true, opacity: 0.07 });
+            scene.add(new THREE.Mesh(geo, mat));
+        }
+
+        function createDroneModel() {
+            droneGroup = new THREE.Group();
+            const bodyGeo = new THREE.BoxGeometry(0.5, 0.2, 0.8);
+            const bodyMat = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
+            droneGroup.add(new THREE.Mesh(bodyGeo, bodyMat));
+            
+            const frameMat = new THREE.LineBasicMaterial({ color: 0x00ff00 });
+            const points = [
+                new THREE.Vector3(-0.8, 0, -0.8), new THREE.Vector3(0.8, 0, 0.8),
+                new THREE.Vector3(0.8, 0, -0.8), new THREE.Vector3(-0.8, 0, 0.8)
+            ];
+            const frameGeo = new THREE.BufferGeometry().setFromPoints(points);
+            droneGroup.add(new THREE.LineSegments(frameGeo, frameMat));
+
+            const propGeo = new THREE.BoxGeometry(0.7, 0.02, 0.06);
+            const propMat = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+            [[-0.8,0.1,-0.8], [0.8,0.1,-0.8], [0.8,0.1,0.8], [-0.8,0.1,0.8]].forEach(p => {
+                const prop = new THREE.Mesh(propGeo, propMat);
+                prop.position.set(...p);
+                props.push(prop);
+                droneGroup.add(prop);
+            });
+            scene.add(droneGroup);
+        }
+
+        function createEnemyDrone(x, z) {
+            const group = new THREE.Group();
+            const body = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.2, 0.6), new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true }));
+            group.add(body);
+            const eProps = [];
+            [[-0.5,0.1,-0.5], [0.5,0.1,-0.5], [0.5,0.1,0.5], [-0.5,0.1,0.5]].forEach(p => {
+                const prop = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.02, 0.05), new THREE.MeshBasicMaterial({ color: 0xff0000 }));
+                prop.position.set(...p);
+                eProps.push(prop);
+                group.add(prop);
+            });
+            group.position.set(x, getTerrainHeight(x, z) + 10 + Math.random()*10, z);
+            scene.add(group);
+            enemyDrones.push({ mesh: group, props: eProps, vel: new THREE.Vector3((Math.random()-0.5)*10, 0, (Math.random()-0.5)*10), nextChange: 0, radius: 1.5 });
+        }
+
+        function spawnObject(type, x, z) {
+            const group = new THREE.Group();
+            let size = [1,1,1], color = 0x00ff00, moveSpeed = 0;
+            const groundY = getTerrainHeight(x, z);
+            if(type === 'car') { size = [2, 1.2, 4]; color = 0xff3300; moveSpeed = 15 + Math.random() * 10; }
+            else if(type === 'human') { size = [0.5, 1.7, 0.5]; color = 0xffcc00; moveSpeed = 4 + Math.random() * 3; }
+            else if(type === 'house') { size = [12+Math.random()*10, 15+Math.random()*40, 12+Math.random()*10]; color = 0x00ff00; }
+            else if(type === 'trench') { size = [4, 2.5, 25]; color = 0x555555; }
+            
+            const mesh = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(...size)), new THREE.LineBasicMaterial({ color: color, transparent: true, opacity: 0.5 }));
+            group.add(mesh);
+            
+            if(type === 'trench') {
+                group.position.set(x, groundY - size[1]/3, z);
+                group.rotation.y = Math.random() * Math.PI;
+                scene.add(group);
+                for(let i=0; i<3; i++) {
+                    const offset = (Math.random() - 0.5) * 18;
+                    spawnSoldierInTrench(x, z, group.rotation.y, offset);
+                }
+            } else {
+                group.position.set(x, groundY + size[1]/2, z);
+                scene.add(group);
+            }
+            const ent = { mesh: group, type, radius: (size[0] + size[2]) / 4, height: size[1], speed: moveSpeed, dir: new THREE.Vector3(0, 0, 1).applyAxisAngle(new THREE.Vector3(0,1,0), Math.random() * Math.PI * 2) };
+            if (type === 'house' || type === 'trench') staticObstacles.push(ent); else entities.push(ent);
+        }
+
+        function spawnSoldierInTrench(tx, tz, angle, offset) {
+            const size = [0.5, 1.7, 0.5];
+            const groundY = getTerrainHeight(tx, tz);
+            const group = new THREE.Group();
+            const mesh = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(...size)), new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.8 }));
+            group.add(mesh);
+            const localPos = new THREE.Vector3(0, 0, offset).applyAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+            group.position.set(tx + localPos.x, groundY + size[1]/2 - 0.8, tz + localPos.z);
+            scene.add(group);
+            entities.push({ mesh: group, type: 'soldier', radius: 0.7, height: 1.7, speed: 0, lastFire: 0 });
+        }
+
+        function createTracer(start, target) {
+            // Трассеры теперь чисто визуальные
+            const geo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,-3)]);
+            const mat = new THREE.LineBasicMaterial({ color: 0xffaa00, transparent: true, opacity: 0.8 });
+            const line = new THREE.Line(geo, mat);
+            line.position.copy(start);
+            line.lookAt(target);
+            scene.add(line);
+            const dir = target.clone().sub(start).normalize();
+            tracers.push({ mesh: line, dir: dir, life: 1.5 });
+        }
+
+        function updateChunks() {
+            const curX = Math.floor(droneState.pos.x / CHUNK_SIZE);
+            const curZ = Math.floor(droneState.pos.z / CHUNK_SIZE);
+            for (let x = curX - 1; x <= curX + 1; x++) {
+                for (let z = curZ - 1; z <= curZ + 1; z++) {
+                    const id = `${x},${z}`;
+                    if (!activeChunks.has(id)) { generateChunk(x * CHUNK_SIZE, z * CHUNK_SIZE); activeChunks.add(id); }
+                }
+            }
+        }
+
+        function generateChunk(ox, oz) {
+            for(let i=0; i<15; i++) spawnObject('house', ox + (Math.random()-0.5)*CHUNK_SIZE, oz + (Math.random()-0.5)*CHUNK_SIZE);
+            for(let i=0; i<5; i++) spawnObject('trench', ox + (Math.random()-0.5)*CHUNK_SIZE, oz + (Math.random()-0.5)*CHUNK_SIZE);
+            for(let i=0; i<6; i++) {
+                spawnObject('car', ox + (Math.random()-0.5)*CHUNK_SIZE, oz + (Math.random()-0.5)*CHUNK_SIZE);
+                spawnObject('human', ox + (Math.random()-0.5)*CHUNK_SIZE, oz + (Math.random()-0.5)*CHUNK_SIZE);
+            }
+            if(Math.random() > 0.4) createEnemyDrone(ox + (Math.random()-0.5)*CHUNK_SIZE, oz + (Math.random()-0.5)*CHUNK_SIZE);
+        }
+
+        function updateMinimap() {
+            mCtx.clearRect(0, 0, mCanvas.width, mCanvas.height);
+            mCtx.save(); mCtx.translate(mCanvas.width/2, mCanvas.height/2); mCtx.rotate(droneState.rotY);
+            [...entities, ...enemyDrones].forEach(ent => {
+                const dx = (ent.mesh.position.x - droneState.pos.x) * 0.5, dz = (ent.mesh.position.z - droneState.pos.z) * 0.5;
+                if(Math.abs(dx) < 60 && Math.abs(dz) < 60) {
+                    mCtx.fillStyle = ent.vel ? '#ff00ff' : (ent.type === 'soldier' ? '#ffffff' : (ent.type === 'car' ? '#ff3300' : '#ffcc00'));
+                    mCtx.fillRect(dx - 1.5, dz - 1.5, 3, 3);
+                }
+            });
+            mCtx.restore();
+        }
+
+        function endGame(success = false) {
+            if (isGameOver) return;
+            isGameOver = true;
+            document.getElementById('restart-screen').style.display = 'block';
+            document.getElementById('static-noise').style.display = 'block';
+            const box = document.getElementById('screen-box');
+            const msg = document.getElementById('res-msg');
+            if(success) {
+                box.className = "screen-content success";
+                msg.innerText = "GREAT! TARGET DESTROYED";
+            } else {
+                box.className = "screen-content";
+                msg.innerText = "LOST TELEMETRY";
+            }
+        }
+
+        function updateSeeker() {
+            let bestTarget = null; let minDist = 150;
+            const targetUI = document.getElementById('target-ui');
+            const targetLabel = document.getElementById('target-label');
+            [...entities, ...enemyDrones].forEach(en => {
+                const dist = droneState.pos.distanceTo(en.mesh.position);
+                if (dist < minDist) {
+                    const screenPos = en.mesh.position.clone().project(camera);
+                    if (Math.abs(screenPos.z) < 1 && Math.abs(screenPos.x) < 0.8 && Math.abs(screenPos.y) < 0.8) {
+                        minDist = dist;
+                        bestTarget = { x: (screenPos.x * 0.5 + 0.5) * window.innerWidth, y: (screenPos.y * -0.5 + 0.5) * window.innerHeight, dist: dist, type: en.type, isEnemy: !!en.vel };
+                    }
+                }
+            });
+            if (bestTarget) {
+                targetUI.style.display = 'block';
+                targetUI.style.left = bestTarget.x + 'px'; targetUI.style.top = bestTarget.y + 'px';
+                let tag = bestTarget.isEnemy ? 'ENY_DRN' : (bestTarget.type === 'soldier' ? 'INFANTRY' : 'TRGT');
+                targetUI.style.borderColor = bestTarget.isEnemy ? '#ff00ff' : '#ff0000';
+                targetLabel.innerText = `${tag} [${bestTarget.dist.toFixed(1)}m]`;
+                targetLabel.style.color = targetUI.style.borderColor;
+            } else targetUI.style.display = 'none';
+        }
+
+        let input = { left: {x:0, y:0}, right: {x:0, y:0} };
+        nipplejs.create({ zone: document.getElementById('joystick-left'), mode: 'static', position: {left: '50%', top: '50%'}, color: 'green' })
+            .on('move', (e, d) => input.left = d.vector).on('end', () => input.left = {x:0, y:0});
+        nipplejs.create({ zone: document.getElementById('joystick-right'), mode: 'static', position: {left: '50%', top: '50%'}, color: 'white' })
+            .on('move', (e, d) => input.right = d.vector).on('end', () => input.right = {x:0, y:0});
+
+        createGround(); createDroneModel();
+
+        function animate() {
+            if (isGameOver) return;
+            requestAnimationFrame(animate);
+            const dt = clock.getDelta(), time = clock.getElapsedTime();
+
+            updateChunks(); updateMinimap(); updateSeeker();
+
+            // Пропеллеры и управление
+            props.forEach((p, i) => p.rotation.y += (20 + (input.left.y + 1) * 20) * dt * (i % 2 === 0 ? 1 : -1));
+            droneState.rotY -= input.left.x * PHYSICS.rotationSpeed * dt;
+            droneState.tiltX = THREE.MathUtils.lerp(droneState.tiltX, -input.right.y * PHYSICS.tiltMax, 0.1);
+            droneState.tiltZ = THREE.MathUtils.lerp(droneState.tiltZ, -input.right.x * PHYSICS.tiltMax, 0.1);
+            const moveDir = new THREE.Vector3(input.right.x, 0, -input.right.y).applyAxisAngle(new THREE.Vector3(0, 1, 0), droneState.rotY);
+            droneState.vel.addScaledVector(moveDir, PHYSICS.acceleration * dt);
+            droneState.vel.y += (input.left.y * PHYSICS.lift - 9.81) * dt;
+            droneState.vel.multiplyScalar(PHYSICS.friction);
+            droneState.pos.addScaledVector(droneState.vel, dt);
+
+            droneGroup.position.copy(droneState.pos);
+            droneGroup.rotation.set(0, 0, 0);
+            droneGroup.rotateY(droneState.rotY); droneGroup.rotateX(droneState.tiltX); droneGroup.rotateZ(droneState.tiltZ);
+
+            camera.position.lerp(droneState.pos.clone().add(new THREE.Vector3(0, 3, 8).applyAxisAngle(new THREE.Vector3(0, 1, 0), droneState.rotY)), 0.12);
+            camera.lookAt(droneState.pos.clone().add(new THREE.Vector3(0, -1, 0)));
+
+            // Трассеры (ТОЛЬКО ВИЗУАЛИЗАЦИЯ)
+            for(let i = tracers.length-1; i >= 0; i--) {
+                const t = tracers[i];
+                t.mesh.position.addScaledVector(t.dir, TRACER_SPEED * dt);
+                t.life -= dt;
+                if(t.life <= 0) { scene.remove(t.mesh); tracers.splice(i, 1); }
+                // ПРОВЕРКА ПОРАЖЕНИЯ ОТ ТРАССЕРОВ УДАЛЕНА
+            }
+
+            // Сущности и огонь пехоты
+            entities.forEach(en => {
+                if(en.type === 'soldier') {
+                    const d = en.mesh.position.distanceTo(droneState.pos);
+                    if(d < 80 && time > en.lastFire) {
+                        // Упреждение для визуала
+                        const target = droneState.pos.clone().addScaledVector(droneState.vel, 0.15);
+                        createTracer(en.mesh.position.clone().add(new THREE.Vector3(0,1,0)), target);
+                        en.lastFire = time + 1.2 + Math.random();
+                    }
+                }
+                if(en.speed > 0) {
+                    en.mesh.position.addScaledVector(en.dir, en.speed * dt);
+                    en.mesh.position.y = getTerrainHeight(en.mesh.position.x, en.mesh.position.z) + en.height/2;
+                }
+                // Столкновение с целью = ПОБЕДА
+                if (droneState.pos.distanceTo(en.mesh.position) < (en.radius + 1.2)) {
+                    endGame(true);
+                }
+            });
+
+            // Вражеские дроны
+            enemyDrones.forEach(ed => {
+                ed.props.forEach(p => p.rotation.y += 30 * dt);
+                if (time > ed.nextChange) {
+                    ed.vel.set((Math.random()-0.5)*15, (Math.random()-0.5)*5, (Math.random()-0.5)*15);
+                    ed.nextChange = time + 2 + Math.random()*3;
+                }
+                ed.mesh.position.addScaledVector(ed.vel, dt);
+                if (droneState.pos.distanceTo(ed.mesh.position) < 2) endGame(true);
+            });
+
+            // Коллизии со статикой (Ландшафт и здания опасны)
+            const curH = getTerrainHeight(droneState.pos.x, droneState.pos.z);
+            if(droneState.pos.y < curH) endGame(false);
+            
+            staticObstacles.forEach(h => {
+                const d = new THREE.Vector2(droneState.pos.x, droneState.pos.z).distanceTo(new THREE.Vector2(h.mesh.position.x, h.mesh.position.z));
+                if (d < h.radius) {
+                    const topLimit = h.mesh.position.y + h.height/2;
+                    if (droneState.pos.y < topLimit) endGame(false);
+                }
+            });
+
+            document.getElementById('alt').innerText = `ALT: ${(droneState.pos.y - curH).toFixed(1)}m`;
+            document.getElementById('spd').innerText = `SPD: ${(droneState.vel.length() * 3.6).toFixed(0)}km/h`;
+            renderer.render(scene, camera);
+        }
+
+        animate();
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
