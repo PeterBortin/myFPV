@@ -169,7 +169,7 @@
 
         const scene = new THREE.Scene();
         scene.fog = new THREE.FogExp2(0x020202, 0.005); 
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1200);
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1500);
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setClearColor(0x020202, 1);
@@ -180,7 +180,18 @@
         let isStaticActive = false;
         let currentMissionTarget = null;
 
-        const droneState = { pos: new THREE.Vector3(0, 40, 0), vel: new THREE.Vector3(0, 0, 0), rotY: 0, tiltX: 0, tiltZ: 0 };
+        // РАНДОМНЫЙ СПАВН
+        const spawnRange = 2000;
+        const randX = (Math.random() - 0.5) * spawnRange;
+        const randZ = (Math.random() - 0.5) * spawnRange;
+        const droneState = { 
+            pos: new THREE.Vector3(randX, 60, randZ), 
+            vel: new THREE.Vector3(0, 0, 0), 
+            rotY: Math.random() * Math.PI * 2, 
+            tiltX: 0, 
+            tiltZ: 0 
+        };
+
         let droneGroup, payloadGroup, props = [];
         const entities = [];
         const staticObstacles = [];
@@ -275,7 +286,7 @@
         }
 
         function createGround() {
-            const size = 4000, res = 120;
+            const size = 10000, res = 200;
             const geo = new THREE.PlaneGeometry(size, size, res, res);
             geo.rotateX(-Math.PI / 2);
             const vertices = geo.attributes.position.array;
@@ -319,6 +330,10 @@
         }
 
         function spawnObject(type, x, z) {
+            // Не спавним слишком близко к дрону при старте
+            const distToDrone = new THREE.Vector2(x, z).distanceTo(new THREE.Vector2(droneState.pos.x, droneState.pos.z));
+            if (distToDrone < 50) return;
+
             const group = new THREE.Group();
             const groundY = getTerrainHeight(x, z);
             if(type === 'house') {
@@ -350,6 +365,7 @@
         }
 
         function spawnTrench(x, z) {
+            if (new THREE.Vector2(x, z).distanceTo(new THREE.Vector2(droneState.pos.x, droneState.pos.z)) < 50) return;
             const group = new THREE.Group();
             const groundY = getTerrainHeight(x, z);
             const tLen = 40, tWid = 6;
@@ -359,7 +375,6 @@
             group.add(ditch);
             group.position.set(x, groundY, z);
             scene.add(group);
-            // Спавн пехоты в окопе
             for(let i=0; i<5; i++) {
                 spawnSoldier(x + (Math.random()-0.5)*4, z + (Math.random()-0.5)*30, 'hostile');
             }
