@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no,viewport-fit=cover">
-<title>myFPV — Real World</title>
+<title>myFPV</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
 *{margin:0;padding:0;user-select:none;-webkit-user-select:none;touch-action:none;box-sizing:border-box;}
@@ -27,13 +26,13 @@ canvas{display:block;}
 
 /* ── HEADING DRUM ── */
 #heading-tape{position:absolute;top:20px;left:50%;transform:translateX(-50%);width:300px;height:32px;overflow:hidden;border:1px solid rgba(57,255,20,.35);background:rgba(0,12,0,.78);backdrop-filter:blur(4px);z-index:61;pointer-events:none;}
-#heading-tape::before{content:‘▼’;position:absolute;bottom:0;left:50%;transform:translateX(-50%);font-size:8px;color:#39ff14;line-height:1;z-index:2;text-shadow:0 0 6px #39ff14;}
-#heading-tape::after{content:’’;position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(90deg,rgba(0,12,0,.92) 0%,transparent 22%,transparent 78%,rgba(0,12,0,.92) 100%);z-index:1;}
-#heading-drum{display:flex;align-items:center;height:100%;font-family:‘Share Tech Mono’,monospace;font-size:10px;color:rgba(57,255,20,.55);white-space:nowrap;position:relative;}
+#heading-tape::before{content:'▼';position:absolute;bottom:0;left:50%;transform:translateX(-50%);font-size:8px;color:#39ff14;line-height:1;z-index:2;text-shadow:0 0 6px #39ff14;}
+#heading-tape::after{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(90deg,rgba(0,12,0,.92) 0%,transparent 22%,transparent 78%,rgba(0,12,0,.92) 100%);z-index:1;}
+#heading-drum{display:flex;align-items:center;height:100%;font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(57,255,20,.55);white-space:nowrap;position:relative;}
 .hdg-tick{display:inline-flex;flex-direction:column;align-items:center;min-width:22px;height:32px;justify-content:center;flex-shrink:0;}
 .hdg-tick.major{color:#39ff14;font-size:11px;font-weight:bold;text-shadow:0 0 8px #39ff14;}
 .hdg-tick.minor{color:rgba(57,255,20,.35);font-size:8px;}
-#heading-readout{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:‘Orbitron’,monospace;font-size:14px;font-weight:700;color:#39ff14;text-shadow:0 0 10px #39ff14;background:rgba(0,12,0,.82);padding:0 6px;border-radius:2px;z-index:3;pointer-events:none;}
+#heading-readout{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Orbitron',monospace;font-size:14px;font-weight:700;color:#39ff14;text-shadow:0 0 10px #39ff14;background:rgba(0,12,0,.82);padding:0 6px;border-radius:2px;z-index:3;pointer-events:none;}
 
 /* ── FULL-WIDTH MAP BAR 80px under drum ── */
 #map-bar{
@@ -53,14 +52,14 @@ overflow:hidden;background:rgba(0,8,0,.6);
 /* ── OSD LEFT (priority target info) ── */
 #osd-left{
 position:absolute;top:152px;left:10px;
-color:#39ff14;font-family:‘Share Tech Mono’,monospace;font-size:11px;
+color:#39ff14;font-family:'Share Tech Mono',monospace;font-size:11px;
 pointer-events:none;z-index:60;line-height:1.7;
 background:linear-gradient(135deg,rgba(0,20,0,.72),rgba(0,40,0,.45));
 border:1px solid rgba(57,255,20,.28);border-left:3px solid #39ff14;
 padding:10px 12px;min-width:160px;
 clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%);
 }
-#osd-left::before{content:’’;position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,#39ff14,transparent);}
+#osd-left::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,#39ff14,transparent);}
 .hud-label{color:rgba(57,255,20,.45);font-size:8px;letter-spacing:2px;text-transform:uppercase;}
 .mission-target{color:#ff4444;text-shadow:0 0 8px #ff4444;font-size:12px;}
 .mission-dist{color:#ffff00;text-shadow:0 0 6px #ffff00;}
@@ -69,18 +68,18 @@ clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%);
 
 /* ── ALT TAPE RIGHT ── */
 #alt-tape{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:52px;height:210px;overflow:visible;z-index:60;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:transparent;}
-#alt-tape::after{content:’’;position:absolute;left:3px;right:3px;top:50%;height:1px;background:rgba(57,255,20,.55);box-shadow:0 0 4px rgba(57,255,20,.6);}
+#alt-tape::after{content:'';position:absolute;left:3px;right:3px;top:50%;height:1px;background:rgba(57,255,20,.55);box-shadow:0 0 4px rgba(57,255,20,.6);}
 #alt-border{position:absolute;top:0;bottom:0;right:0;width:1px;background:linear-gradient(180deg,transparent,rgba(57,255,20,.5) 20%,rgba(57,255,20,.5) 80%,transparent);}
-#alt-big{font-size:19px;color:#39ff14;text-shadow:0 0 12px #39ff14;font-family:‘Orbitron’,monospace;font-weight:700;}
+#alt-big{font-size:19px;color:#39ff14;text-shadow:0 0 12px #39ff14;font-family:'Orbitron',monospace;font-weight:700;}
 #alt-unit{font-size:8px;color:rgba(57,255,20,.5);letter-spacing:2px;}
 .tape-tick{width:100%;display:flex;align-items:center;justify-content:flex-end;padding-right:4px;gap:3px;}
 .tick-line{height:1px;background:rgba(57,255,20,.4);}.tick-num{font-size:7px;color:rgba(57,255,20,.45);}
 
 /* ── SPD TAPE LEFT ── */
 #spd-tape{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:52px;height:210px;overflow:visible;z-index:60;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:transparent;}
-#spd-tape::after{content:’’;position:absolute;left:3px;right:3px;top:50%;height:1px;background:rgba(0,255,255,.55);box-shadow:0 0 4px rgba(0,255,255,.6);}
+#spd-tape::after{content:'';position:absolute;left:3px;right:3px;top:50%;height:1px;background:rgba(0,255,255,.55);box-shadow:0 0 4px rgba(0,255,255,.6);}
 #spd-border{position:absolute;top:0;bottom:0;left:0;width:1px;background:linear-gradient(180deg,transparent,rgba(0,255,255,.5) 20%,rgba(0,255,255,.5) 80%,transparent);}
-#spd-big{font-size:19px;color:#00ffff;text-shadow:0 0 12px #00ffff;font-family:‘Orbitron’,monospace;font-weight:700;}
+#spd-big{font-size:19px;color:#00ffff;text-shadow:0 0 12px #00ffff;font-family:'Orbitron',monospace;font-weight:700;}
 #spd-unit{font-size:8px;color:rgba(0,255,255,.5);letter-spacing:2px;}
 .tick-line-c{height:1px;background:rgba(0,255,255,.4);}.tick-num-c{font-size:7px;color:rgba(0,255,255,.45);}
 
@@ -92,7 +91,7 @@ clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%);
 @keyframes lpy{0%,100%{box-shadow:0 0 10px rgba(255,255,0,.6),inset 0 0 10px rgba(255,255,0,.15);}50%{box-shadow:0 0 28px rgba(255,255,0,.9),inset 0 0 20px rgba(255,255,0,.25);}}
 .corner{position:absolute;width:12px;height:12px;border-color:inherit;border-style:solid;}
 .tl{top:-1px;left:-1px;border-width:2px 0 0 2px;}.tr{top:-1px;right:-1px;border-width:2px 2px 0 0;}.bl{bottom:-1px;left:-1px;border-width:0 0 2px 2px;}.br{bottom:-1px;right:-1px;border-width:0 2px 2px 0;}
-#target-label{position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-family:‘Share Tech Mono’,monospace;color:inherit;font-size:9px;white-space:nowrap;letter-spacing:2px;text-shadow:0 0 8px currentColor;}
+#target-label{position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-family:'Share Tech Mono',monospace;color:inherit;font-size:9px;white-space:nowrap;letter-spacing:2px;text-shadow:0 0 8px currentColor;}
 #target-dist{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);color:#fff;font-size:9px;background:rgba(255,40,40,.6);padding:1px 5px;letter-spacing:1px;}
 .priority #target-dist{background:rgba(255,200,0,.7);color:#000;}
 
@@ -103,9 +102,62 @@ clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%);
 .ch-v{height:20px;width:1px;left:50%;}.ch-v.top{bottom:60%;}.ch-v.bottom{top:60%;}
 .ch-dot{position:absolute;width:3px;height:3px;background:rgba(57,255,20,.9);top:50%;left:50%;transform:translate(-50%,-50%);border-radius:50%;box-shadow:0 0 6px #39ff14;}
 
-/* ── JOYSTICKS ── */
-#joystick-left,#joystick-right{position:absolute;bottom:7%;width:130px;height:130px;z-index:20;opacity:.2;filter:grayscale(1) brightness(4);}
-#joystick-left{left:4%;}#joystick-right{right:4%;}
+/* ── NEW JOYSTICK DESIGN ── */
+.nipple .back {
+    background: rgba(0, 20, 0, 0.4) !important;
+    border: 2px solid rgba(57, 255, 20, 0.3) !important;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 0 20px rgba(57, 255, 20, 0.1), inset 0 0 15px rgba(57, 255, 20, 0.1) !important;
+}
+.nipple .front {
+    background: linear-gradient(135deg, rgba(57, 255, 20, 0.8), rgba(0, 100, 0, 0.9)) !important;
+    box-shadow: 0 0 25px rgba(57, 255, 20, 0.6) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    animation: pulse 2s infinite ease-in-out;
+}
+/* Разные цвета для левого и правого */
+#joystick-right .nipple .back { border-color: rgba(0, 255, 255, 0.3) !important; }
+#joystick-right .nipple .front { 
+    background: linear-gradient(135deg, rgba(0, 255, 255, 0.8), rgba(0, 80, 150, 0.9)) !important; 
+    box-shadow: 0 0 25px rgba(0, 255, 255, 0.6) !important;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.9; }
+    50% { transform: scale(1.05); opacity: 1; }
+}
+
+#joystick-left, #joystick-right {
+    position: absolute;
+    bottom: 8%;
+    width: 140px;
+    height: 140px;
+    z-index: 100;
+    opacity: 0.7; /* Повысил видимость */
+}
+#joystick-left { left: 5%; }
+#joystick-right { right: 5%; }
+
+/* Декоративные скобки вокруг джойстиков */
+.joy-decor {
+    position: absolute;
+    width: 160px;
+    height: 160px;
+    pointer-events: none;
+    border: 1px solid rgba(57, 255, 20, 0.1);
+    border-radius: 50%;
+}
+.joy-decor::before, .joy-decor::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(57, 255, 20, 0.4);
+}
+#joystick-left .joy-decor::before { top: 0; left: 0; border-right: 0; border-bottom: 0; }
+#joystick-left .joy-decor::after { bottom: 0; right: 0; border-left: 0; border-top: 0; }
+#joystick-right .joy-decor::before { top: 0; left: 0; border-right: 0; border-bottom: 0; border-color: rgba(0, 255, 255, 0.4); }
+#joystick-right .joy-decor::after { bottom: 0; right: 0; border-left: 0; border-top: 0; border-color: rgba(0, 255, 255, 0.4); }
 
 /* ── CHUNK INDICATOR ── */
 #chunk-ind{position:fixed;top:152px;left:50%;transform:translateX(-50%);font-size:9px;color:rgba(57,255,20,.45);letter-spacing:2px;pointer-events:none;z-index:62;opacity:0;transition:opacity .5s;}
@@ -115,10 +167,10 @@ clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%);
 #static-noise{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;display:none;z-index:900;animation:sf .06s infinite;}
 @keyframes sf{0%{opacity:.35;filter:brightness(1.5) contrast(2);}50%{opacity:.65;filter:brightness(2.2) contrast(3) hue-rotate(20deg);}100%{opacity:.2;filter:brightness(1) contrast(1.5);}}
 #restart-screen{position:fixed;top:0;left:0;width:100%;height:100%;display:none;z-index:1000;background:rgba(0,0,0,.92);align-items:center;justify-content:center;}
-.screen-content{text-align:center;font-family:‘Orbitron’,monospace;padding:50px 60px;border:2px solid #ff1a1a;background:linear-gradient(135deg,rgba(20,0,0,.9),rgba(40,0,0,.7));clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px));box-shadow:0 0 40px rgba(255,26,26,.4);}
+.screen-content{text-align:center;font-family:'Orbitron',monospace;padding:50px 60px;border:2px solid #ff1a1a;background:linear-gradient(135deg,rgba(20,0,0,.9),rgba(40,0,0,.7));clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px));box-shadow:0 0 40px rgba(255,26,26,.4);}
 #res-msg{font-size:38px;color:#ff1a1a;text-shadow:0 0 30px #ff1a1a;font-weight:900;margin-bottom:10px;}
 #res-sub{font-size:11px;color:rgba(255,80,80,.7);letter-spacing:4px;margin-bottom:30px;}
-.screen-content button{background:transparent;color:#ff1a1a;border:1px solid #ff1a1a;padding:14px 35px;font-family:‘Orbitron’,monospace;cursor:pointer;font-size:13px;letter-spacing:4px;transition:all .2s;}
+.screen-content button{background:transparent;color:#ff1a1a;border:1px solid #ff1a1a;padding:14px 35px;font-family:'Orbitron',monospace;cursor:pointer;font-size:13px;letter-spacing:4px;transition:all .2s;}
 .screen-content button:hover{background:#ff1a1a;color:#000;}
 .success{border-color:#39ff14!important;background:linear-gradient(135deg,rgba(0,20,0,.9),rgba(0,40,0,.7))!important;}
 .success #res-msg{color:#39ff14!important;text-shadow:0 0 30px #39ff14!important;}
@@ -128,9 +180,9 @@ clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%);
 /* ── START / LOADING ── */
 #start-prompt{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.97);z-index:2000;display:flex;justify-content:center;align-items:center;}
 .start-box{text-align:center;padding:50px 60px;border:2px solid rgba(57,255,20,.6);background:linear-gradient(135deg,rgba(0,15,0,.9),rgba(0,30,0,.6));clip-path:polygon(0 0,calc(100% - 25px) 0,100% 25px,100% 100%,25px 100%,0 calc(100% - 25px));box-shadow:0 0 60px rgba(57,255,20,.3);max-width:480px;width:90%;}
-.start-title{font-family:‘Orbitron’,monospace;font-size:42px;font-weight:900;color:#39ff14;text-shadow:0 0 30px #39ff14,0 0 60px #00ff00;letter-spacing:6px;margin-bottom:6px;}
-.start-sub{font-family:‘Share Tech Mono’,monospace;color:rgba(57,255,20,.5);font-size:10px;letter-spacing:3px;margin-bottom:28px;}
-.start-btn{background:transparent;color:#39ff14;border:1px solid #39ff14;padding:14px 36px;font-family:‘Orbitron’,monospace;cursor:pointer;font-size:13px;letter-spacing:5px;font-weight:700;transition:all .3s;margin:6px;}
+.start-title{font-family:'Orbitron',monospace;font-size:42px;font-weight:900;color:#39ff14;text-shadow:0 0 30px #39ff14,0 0 60px #00ff00;letter-spacing:6px;margin-bottom:6px;}
+.start-sub{font-family:'Share Tech Mono',monospace;color:rgba(57,255,20,.5);font-size:10px;letter-spacing:3px;margin-bottom:28px;}
+.start-btn{background:transparent;color:#39ff14;border:1px solid #39ff14;padding:14px 36px;font-family:'Orbitron',monospace;cursor:pointer;font-size:13px;letter-spacing:5px;font-weight:700;transition:all .3s;margin:6px;}
 .start-btn:hover{background:#39ff14;color:#000;box-shadow:0 0 30px #39ff14;}
 .start-btn.sec{border-color:rgba(57,255,20,.4);color:rgba(57,255,20,.5);font-size:11px;}
 .start-btn.sec:hover{background:rgba(57,255,20,.2);color:#39ff14;}
@@ -139,7 +191,7 @@ clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%);
 #loading-bar{height:100%;background:#39ff14;box-shadow:0 0 8px #39ff14;width:0%;transition:width .3s;}
 #loading-text{margin-top:10px;font-size:9px;color:rgba(57,255,20,.5);letter-spacing:2px;display:none;}
 #coords-input-wrap{margin-top:16px;display:none;}
-#coords-input-wrap input{background:transparent;border:1px solid rgba(57,255,20,.4);color:#39ff14;font-family:‘Share Tech Mono’,monospace;font-size:11px;padding:8px 12px;width:100%;letter-spacing:1px;outline:none;text-align:center;}
+#coords-input-wrap input{background:transparent;border:1px solid rgba(57,255,20,.4);color:#39ff14;font-family:'Share Tech Mono',monospace;font-size:11px;padding:8px 12px;width:100%;letter-spacing:1px;outline:none;text-align:center;}
 #coords-input-wrap input::placeholder{color:rgba(57,255,20,.3);}
 #coords-input-wrap input:focus{border-color:#39ff14;}
 #osm-credit{position:fixed;bottom:5px;right:7px;font-size:8px;color:rgba(57,255,20,.3);pointer-events:none;z-index:60;}
@@ -151,9 +203,9 @@ clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%);
 <div id="start-prompt">
   <div class="start-box">
     <div class="start-title">myFPV</div>
-    <div class="start-sub">REAL WORLD · FPV COMBAT SIM</div>
-    <button class="start-btn" id="btn-geo" onclick="startWithGeo()">📍 МОЯ ГЕОПОЗИЦИЯ</button><br>
-    <button class="start-btn sec" id="btn-manual" onclick="showManualInput()">✎ КООРДИНАТЫ</button>
+    <div class="start-sub">✅ Location active</div>
+    <button class="start-btn" id="btn-geo" onclick="startWithGeo()">📍 моя локация</button><br>
+    <button class="start-btn sec" id="btn-manual" onclick="showManualInput()">🔍 координаты</button>
     <div id="coords-input-wrap">
       <input type="text" id="coords-input" placeholder="50.4501, 30.5234  (Киев)">
       <button class="start-btn" style="margin-top:10px;font-size:11px;padding:10px 28px" onclick="startWithManual()">ЗАГРУЗИТЬ</button>
@@ -167,16 +219,12 @@ clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%);
 <div id="scanlines"></div>
 <div id="vignette"></div>
 <div id="chromatic"></div>
-<div id="chunk-ind">▸ ЗАГРУЗКА...</div>
-
-<!-- HEADING DRUM -->
+<div id="chunk-ind">▸ загркзка..</div>
 
 <div id="heading-tape">
   <div id="heading-drum"></div>
   <div id="heading-readout">000°</div>
 </div>
-
-<!-- FULL-WIDTH MAP BAR 80px -->
 
 <div id="map-bar">
   <canvas id="map-canvas"></canvas>
@@ -186,16 +234,12 @@ clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%);
   <div id="map-cross-v"></div>
 </div>
 
-<!-- LEFT OSD: priority target -->
-
 <div id="osd-left">
-  <div class="hud-label">PRIORITY TARGET</div>
-  <div class="mission-target" id="obj-type">ПОИСК...</div>
+  <div class="hud-label">❗️ приоритет!</div>
+  <div class="mission-target" id="obj-type">🔍 поиск..</div>
   <div class="mission-dist" id="obj-dist">DST: ---</div>
-  <div id="god-status">⬡ COMBAT MODE</div>
+  <div id="god-status">⬡ Pycopi3</div>
 </div>
-
-<!-- ALT TAPE RIGHT -->
 
 <div id="alt-tape">
   <div id="alt-border"></div>
@@ -205,8 +249,6 @@ clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%);
   <div style="height:8px"></div>
   <div class="tape-tick"><div class="tick-line" style="width:9px"></div><span class="tick-num" id="alt-t1">--</span></div>
 </div>
-
-<!-- SPD TAPE LEFT -->
 
 <div id="spd-tape">
   <div id="spd-border"></div>
@@ -221,18 +263,14 @@ clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%);
   </div>
 </div>
 
-<!-- TARGET LOCK UI -->
-
 <div id="target-ui">
   <div id="target-inner">
     <div class="corner tl"></div><div class="corner tr"></div>
     <div class="corner bl"></div><div class="corner br"></div>
-    <div id="target-label">LOCK</div>
+    <div id="target-label">🔒 заблок.</div>
     <div id="target-dist">0m</div>
   </div>
 </div>
-
-<!-- CROSSHAIR -->
 
 <div id="crosshair">
   <div class="ch-h left"></div><div class="ch-h right"></div>
@@ -240,42 +278,33 @@ clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%);
   <div class="ch-dot"></div>
 </div>
 
-<div id="joystick-left"></div>
-<div id="joystick-right"></div>
+<div id="joystick-left"><div class="joy-decor"></div></div>
+<div id="joystick-right"><div class="joy-decor"></div></div>
+
 <div id="static-noise"></div>
-
-<!-- PROXIMITY FX -->
-
 <div id="prox-noise"><canvas id="prox-noise-canvas"></canvas></div>
 <div id="prox-glitch"></div>
 <div id="prox-border"></div>
-
 <div id="osm-credit">© OpenStreetMap contributors</div>
 
 <div id="restart-screen">
   <div class="screen-content" id="screen-box">
     <div id="res-msg">КРЭШ!</div>
-    <div id="res-sub">Сигнал потерян</div>
-    <button onclick="location.reload()">ПЕРЕЗАПУСК</button>
+    <div id="res-sub">❌ нет сигнала!</div>
+    <button onclick="location.reload()">🔄 заново</button>
   </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.9.0/nipplejs.min.js"></script>
 
 <script>
 'use strict';
-// ═══════════════════════════════════════════════════════
-//  CONSTANTS
-// ═══════════════════════════════════════════════════════
+// Сохраняем всю логику без изменений
 const PHYSICS={acceleration:85,friction:0.97,rotationSpeed:3.5,tiltMax:0.7,lift:52};
 const M_PER_LAT=111320, DRONE_SCALE=0.55, TRACER_SPEED=240;
 const CHUNK_R=500, CHUNK_TRIG=250;
 
-// ═══════════════════════════════════════════════════════
-//  THREE.JS SCENE
-// ═══════════════════════════════════════════════════════
 const scene=new THREE.Scene();
 scene.fog=new THREE.FogExp2(0x000a00,0.0035);
 const camera=new THREE.PerspectiveCamera(78,innerWidth/innerHeight,0.3,2000);
@@ -285,41 +314,24 @@ renderer.setClearColor(0x010a01,1);
 document.body.appendChild(renderer.domElement);
 const clock=new THREE.Clock();
 let gameOver=false;
-
-// Origin
 let oLat=0,oLon=0,mPerLon=111320;
-
-// Drone state
 const drone={pos:new THREE.Vector3(0,60,0),vel:new THREE.Vector3(),rotY:0,tiltX:0,tiltZ:0};
 let droneGrp,payloadGrp,props=[];
-
-// World data
 const tracers=[],particles=[],buildings=[],trailPts=[],trailMax=80;
 let trailLine;
 const roads=[],roadsWithCars=new Set(),cars=[];
 const entities=[];
 let missionTarget=null;
-
-// Path line to priority target
 const pathGeo=new THREE.BufferGeometry();
 pathGeo.setFromPoints([new THREE.Vector3(),new THREE.Vector3()]);
 const pathLine=new THREE.Line(pathGeo,new THREE.LineDashedMaterial({color:0xffff00,dashSize:3,gapSize:2,transparent:true,opacity:.65}));
 scene.add(pathLine);
-
-// Chunk system
 const loadedZones=new Set();
 let lastChunk=new THREE.Vector3(),chunkBusy=false,bldgTotal=0;
-
-// Map canvas
 const mapC=document.getElementById('map-canvas'),mapX=mapC.getContext('2d');
 let MAP_W=innerWidth,MAP_H=80;
-
-// Prox noise
 let proxCtx=null,proxI=0;
 
-// ═══════════════════════════════════════════════════════
-//  START SCREEN
-// ═══════════════════════════════════════════════════════
 function showManualInput(){
   document.getElementById('coords-input-wrap').style.display='block';
   document.getElementById('btn-manual').style.display='none';
@@ -375,9 +387,6 @@ async function loadMap(lat,lon){
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 function bar(p,t){document.getElementById('loading-bar').style.width=p+'%';document.getElementById('loading-text').textContent=t;}
 
-// ═══════════════════════════════════════════════════════
-//  OSM FETCH
-// ═══════════════════════════════════════════════════════
 async function fetchOSM(lat,lon,r){
   const dLat=r/M_PER_LAT,dLon=r/mPerLon;
   const S=lat-dLat,N=lat+dLat,W=lon-dLon,E=lon+dLon;
@@ -387,9 +396,6 @@ async function fetchOSM(lat,lon,r){
   return r2.json();
 }
 
-// ═══════════════════════════════════════════════════════
-//  ZONE SYSTEM
-// ═══════════════════════════════════════════════════════
 function zoneKey(la,lo){return`${(la*250|0)}_${(lo*250|0)}`;}
 function markZone(la,lo){loadedZones.add(zoneKey(la,lo));}
 async function checkZone(){
@@ -407,9 +413,6 @@ async function checkZone(){
   chunkBusy=false;setTimeout(()=>ci.classList.remove('show'),700);
 }
 
-// ═══════════════════════════════════════════════════════
-//  GEO → LOCAL
-// ═══════════════════════════════════════════════════════
 function g2l(lat,lon){return{x:(lon-oLon)*mPerLon,z:-(lat-oLat)*M_PER_LAT};}
 function triPoly(pts){
   const v=[];if(pts.length<3)return v;const p0=pts[0];
@@ -417,9 +420,6 @@ function triPoly(pts){
   return v;
 }
 
-// ═══════════════════════════════════════════════════════
-//  BUILD SCENE
-// ═══════════════════════════════════════════════════════
 async function buildScene(data){
   for(const el of data.elements||[]){
     if(el.type!=='way'||!el.geometry)continue;
@@ -454,9 +454,6 @@ async function buildScene(data){
   spawnCarsOnRoads();
 }
 
-// ═══════════════════════════════════════════════════════
-//  BUILDINGS
-// ═══════════════════════════════════════════════════════
 function spawnBuilding(pts,h){
   if(pts.length<3)return;
   const grp=new THREE.Group();
@@ -485,9 +482,6 @@ function spawnBuilding(pts,h){
   buildings.push({cx:(minX+maxX)/2,cz:(minZ+maxZ)/2,hw:(maxX-minX)/2+.4,hd:(maxZ-minZ)/2+.4,height:h,pts});
 }
 
-// ═══════════════════════════════════════════════════════
-//  CARS
-// ═══════════════════════════════════════════════════════
 function buildCarMesh(col){
   const grp=new THREE.Group(),mat=new THREE.MeshBasicMaterial({color:col,wireframe:true});
   grp.add(new THREE.Mesh(new THREE.BoxGeometry(2,.85,4),mat));
@@ -531,7 +525,6 @@ function updateCars(dt){
     const px=aa.x+(bb.x-aa.x)*c.progress,pz=aa.z+(bb.z-aa.z)*c.progress;
     const dx=bb.x-aa.x,dz=bb.z-aa.z,len=Math.sqrt(dx*dx+dz*dz)||1;
     const nx=-dz/len,nz=dx/len;
-    // building avoidance
     let ox=0,oz=0;
     for(const b of buildings){
       const bdx=px-b.cx,bdz=pz-b.cz,bd=Math.sqrt(bdx*bdx+bdz*bdz);
@@ -543,9 +536,6 @@ function updateCars(dt){
   }
 }
 
-// ═══════════════════════════════════════════════════════
-//  COMBAT ENTITIES
-// ═══════════════════════════════════════════════════════
 function spawnInitial(){
   for(let i=0;i<10;i++)spawnTank((Math.random()-.5)*800,(Math.random()-.5)*800);
   for(let i=0;i<40;i++)spawnSoldier((Math.random()-.5)*600,(Math.random()-.5)*600);
@@ -602,9 +592,6 @@ function spawnUAV(x,z){
     waypoints:wps,wpIdx:0,dir:new THREE.Vector3(0,0,1),lastFire:0,props:uavProps});
 }
 
-// ═══════════════════════════════════════════════════════
-//  ENTITY STEERING
-// ═══════════════════════════════════════════════════════
 function wander(en,dt){
   en._wt=(en._wt||0)-dt;
   if(en._wt<=0){
@@ -661,9 +648,6 @@ function updateEntities(dt,time){
   });
 }
 
-// ═══════════════════════════════════════════════════════
-//  MISSION
-// ═══════════════════════════════════════════════════════
 function updateMission(){
   if(!missionTarget||entities.indexOf(missionTarget)===-1){
     missionTarget=null;
@@ -685,12 +669,8 @@ function updateMission(){
   pathGeo.setFromPoints(pts);pathLine.computeLineDistances();
 }
 
-// ═══════════════════════════════════════════════════════
-//  TARGET SEEKER
-// ═══════════════════════════════════════════════════════
 function updateSeeker(){
   const ui=document.getElementById('target-ui');
-  // Priority target first
   let priScreen=null;
   if(missionTarget&&entities.indexOf(missionTarget)!==-1){
     const pp=missionTarget.mesh.position.clone().project(camera);
@@ -699,7 +679,6 @@ function updateSeeker(){
         dist:drone.pos.distanceTo(missionTarget.mesh.position),type:missionTarget.type};
     }
   }
-  // Nearest non-priority in FOV
   let best=null,minD=350;
   [...entities,...cars.map(c=>({mesh:c.mesh,type:'car',radius:2}))].forEach(en=>{
     if(en===missionTarget)return;
@@ -720,9 +699,6 @@ function updateSeeker(){
   } else ui.style.display='none';
 }
 
-// ═══════════════════════════════════════════════════════
-//  TRACERS
-// ═══════════════════════════════════════════════════════
 function createTracer(start,target,color){
   const geo=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(),new THREE.Vector3(0,0,-8)]);
   const line=new THREE.Line(geo,new THREE.LineBasicMaterial({color,transparent:true,opacity:.9}));
@@ -731,9 +707,6 @@ function createTracer(start,target,color){
   playGunshot(.025);
 }
 
-// ═══════════════════════════════════════════════════════
-//  EXPLOSION PARTICLES
-// ═══════════════════════════════════════════════════════
 function createExplosion(pos,col=0xff5500,count=40,big=false){
   playExplosion(big);
   [[big?22:9,0xffffcc,.95,.12],[big?37:15,0xff8800,.6,.22]].forEach(([r,c,op,life])=>{
@@ -760,9 +733,6 @@ function createExplosion(pos,col=0xff5500,count=40,big=false){
   }
 }
 
-// ═══════════════════════════════════════════════════════
-//  FALLBACK DEMO
-// ═══════════════════════════════════════════════════════
 function fallbackScene(){
   for(let i=0;i<45;i++){
     const x=(Math.random()-.5)*600,z=(Math.random()-.5)*600,w=10+Math.random()*25,h=8+Math.random()*45,d=10+Math.random()*25;
@@ -775,9 +745,6 @@ function fallbackScene(){
   spawnCarsOnRoads();
 }
 
-// ═══════════════════════════════════════════════════════
-//  GROUND
-// ═══════════════════════════════════════════════════════
 function createGround(){
   const sz=1800,geo=new THREE.PlaneGeometry(sz,sz,46,46);geo.rotateX(-Math.PI/2);
   const m=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color:0x001200,wireframe:true,transparent:true,opacity:.1}));
@@ -790,9 +757,6 @@ function createGround(){
   }
 }
 
-// ═══════════════════════════════════════════════════════
-//  DRONE MODEL
-// ═══════════════════════════════════════════════════════
 function createDrone(){
   droneGrp=new THREE.Group();
   const mat=new THREE.MeshBasicMaterial({color:0x00ff44,wireframe:true});
@@ -808,9 +772,6 @@ function createDrone(){
   droneGrp.scale.setScalar(DRONE_SCALE);scene.add(droneGrp);
 }
 
-// ═══════════════════════════════════════════════════════
-//  TRAIL
-// ═══════════════════════════════════════════════════════
 function initTrail(){
   const geo=new THREE.BufferGeometry();
   geo.setAttribute('position',new THREE.BufferAttribute(new Float32Array(trailMax*3),3));
@@ -825,39 +786,30 @@ function updateTrail(){
   trailLine.geometry.setDrawRange(0,trailPts.length);
 }
 
-// ═══════════════════════════════════════════════════════
-//  MAP CANVAS
-// ═══════════════════════════════════════════════════════
 function initMapCanvas(){
   const bar=document.getElementById('map-bar');
   MAP_W=bar?Math.round(bar.getBoundingClientRect().width)||innerWidth:innerWidth;
   MAP_H=80;mapC.width=MAP_W;mapC.height=MAP_H;
-  // reposition drone arrow to canvas centre
   document.getElementById('map-arrow').style.left='50%';
   document.getElementById('map-cross-v').style.left='50%';
 }
 function updateMap(){
   mapX.clearRect(0,0,MAP_W,MAP_H);
   const sc=.22,cx=MAP_W/2,cy=MAP_H/2;
-  // bg
   mapX.fillStyle='rgba(0,7,0,.55)';mapX.fillRect(0,0,MAP_W,MAP_H);
-  // grid
   mapX.strokeStyle='rgba(57,255,20,.05)';mapX.lineWidth=.5;
   for(let x=0;x<MAP_W;x+=30){mapX.beginPath();mapX.moveTo(x,0);mapX.lineTo(x,MAP_H);mapX.stroke();}
   for(let y=0;y<MAP_H;y+=20){mapX.beginPath();mapX.moveTo(0,y);mapX.lineTo(MAP_W,y);mapX.stroke();}
-  // roads
   roads.forEach(seg=>{
     if(seg.pts.length<2)return;
     mapX.beginPath();mapX.strokeStyle=seg.isPri?'rgba(0,200,60,.5)':'rgba(0,100,40,.3)';mapX.lineWidth=seg.isPri?1.5:.7;
     seg.pts.forEach((p,i)=>{const dx=(p.x-drone.pos.x)*sc,dz=(p.z-drone.pos.z)*sc;i===0?mapX.moveTo(cx+dx,cy+dz):mapX.lineTo(cx+dx,cy+dz);});
     mapX.stroke();
   });
-  // buildings
   buildings.forEach(b=>{
     const dx=(b.cx-drone.pos.x)*sc,dz=(b.cz-drone.pos.z)*sc;
     if(Math.abs(dx)<MAP_W/2+10&&Math.abs(dz)<MAP_H/2+5){mapX.fillStyle='rgba(0,200,0,.22)';mapX.fillRect(cx+dx-b.hw*sc,cy+dz-b.hd*sc,b.hw*sc*2,b.hd*sc*2);}
   });
-  // cars
   cars.forEach(c=>{
     const dx=(c.mesh.position.x-drone.pos.x)*sc,dz=(c.mesh.position.z-drone.pos.z)*sc;
     if(Math.abs(dx)<MAP_W/2&&Math.abs(dz)<MAP_H/2){
@@ -865,7 +817,6 @@ function updateMap(){
       mapX.fillRect(cx+dx-1.5,cy+dz-1.5,3,3);mapX.shadowBlur=0;
     }
   });
-  // entities
   entities.forEach(en=>{
     const dx=(en.mesh.position.x-drone.pos.x)*sc,dz=(en.mesh.position.z-drone.pos.z)*sc;
     const isPri=en===missionTarget;
@@ -875,7 +826,6 @@ function updateMap(){
       const sz=isPri?6:en.type==='uav'?4:2.5;
       mapX.fillRect(cx+dx-sz/2,cy+dz-sz/2,sz,sz);mapX.shadowBlur=0;
     } else if(isPri){
-      // edge arrow
       const ang=Math.atan2(dz,dx);
       const ex=Math.min(Math.max(cx+Math.cos(ang)*(MAP_W/2-8),8),MAP_W-8);
       const ez=Math.min(Math.max(cy+Math.sin(ang)*(MAP_H/2-6),5),MAP_H-5);
@@ -884,15 +834,11 @@ function updateMap(){
       mapX.restore();
     }
   });
-  // drone centre dot
   mapX.fillStyle='#39ff14';mapX.shadowColor='#39ff14';mapX.shadowBlur=5;
   mapX.beginPath();mapX.arc(cx,cy,3.5,0,Math.PI*2);mapX.fill();mapX.shadowBlur=0;
   document.getElementById('map-arrow').style.transform=`translate(-50%,-50%) rotate(${-drone.rotY}rad)`;
 }
 
-// ═══════════════════════════════════════════════════════
-//  AUDIO
-// ═══════════════════════════════════════════════════════
 let actx,dOsc,dOsc2,dGain;
 function initAudio(){
   try{
@@ -934,9 +880,6 @@ function playExplosion(big=false){
   src.buffer=buf;src.connect(lpf);lpf.connect(gn);gn.connect(actx.destination);src.start(t);src.stop(t+dur);
 }
 
-// ═══════════════════════════════════════════════════════
-//  PROXIMITY NOISE
-// ═══════════════════════════════════════════════════════
 function initProxCanvas(){
   const c=document.getElementById('prox-noise-canvas');
   if(c){c.width=innerWidth;c.height=innerHeight;proxCtx=c.getContext('2d');}
@@ -944,7 +887,6 @@ function initProxCanvas(){
 function updateProxNoise(){
   const px=drone.pos.x,py=drone.pos.y,pz=drone.pos.z;
   let closest=999;
-  // buildings
   for(const b of buildings){
     if(Math.abs(px-b.cx)>b.hw+12||Math.abs(pz-b.cz)>b.hd+12)continue;
     if(py<0||py>b.height+2)continue;
@@ -969,9 +911,6 @@ function updateProxNoise(){
   if(proxI>.4)document.getElementById('chromatic').classList.add('active');
 }
 
-// ═══════════════════════════════════════════════════════
-//  GAME OVER
-// ═══════════════════════════════════════════════════════
 function endGame(msg='Крэш',success=false){
   if(gameOver)return;gameOver=true;
   createExplosion(drone.pos.clone(),success?0xffff00:0xff2200,success?70:50,true);
@@ -985,9 +924,6 @@ function endGame(msg='Крэш',success=false){
   },1300);
 }
 
-// ═══════════════════════════════════════════════════════
-//  POLYGON HIT TEST
-// ═══════════════════════════════════════════════════════
 function pip2D(px,pz,pts){
   let inside=false;
   for(let i=0,j=pts.length-1;i<pts.length;j=i++){
@@ -997,23 +933,15 @@ function pip2D(px,pz,pts){
   return inside;
 }
 
-// ═══════════════════════════════════════════════════════
-//  JOYSTICKS
-// ═══════════════════════════════════════════════════════
+// ── SETUP JOYSTICKS ──
 let input={left:{x:0,y:0},right:{x:0,y:0}};
 function setupJoysticks(){
-  const jL=nipplejs.create({zone:document.getElementById('joystick-left'),mode:'dynamic',color:'white',size:120});
+  const jL=nipplejs.create({zone:document.getElementById('joystick-left'),mode:'static',position:{left:'70px',bottom:'70px'},color:'white',size:120});
   jL.on('move',(e,d)=>input.left=d.vector||{x:0,y:0}).on('end',()=>input.left={x:0,y:0});
-  const jR=nipplejs.create({zone:document.getElementById('joystick-right'),mode:'dynamic',color:'white',size:120});
+  const jR=nipplejs.create({zone:document.getElementById('joystick-right'),mode:'static',position:{right:'70px',bottom:'70px'},color:'white',size:120});
   jR.on('move',(e,d)=>input.right=d.vector||{x:0,y:0}).on('end',()=>input.right={x:0,y:0});
-  window.addEventListener('touchend',()=>{input.left={x:0,y:0};input.right={x:0,y:0};},{passive:true});
-  window.addEventListener('touchcancel',()=>{input.left={x:0,y:0};input.right={x:0,y:0};},{passive:true});
-  window.addEventListener('blur',()=>{input.left={x:0,y:0};input.right={x:0,y:0};});
 }
 
-// ═══════════════════════════════════════════════════════
-//  HEADING DRUM
-// ═══════════════════════════════════════════════════════
 const PX_DEG=2.2,DRUM_HALF=150;
 function buildDrum(){
   const drum=document.getElementById('heading-drum');
@@ -1036,35 +964,21 @@ function updateDrum(hdg){
   if(drum)drum.style.transform=`translateX(${-(hdg*PX_DEG)+DRUM_HALF}px)`;
   if(ro)ro.textContent=hdg.toFixed(0).padStart(3,'0')+'°';
 }
-
-// ═══════════════════════════════════════════════════════
-//  HELPER
-// ═══════════════════════════════════════════════════════
 function el(id){return document.getElementById(id);}
 
-// ═══════════════════════════════════════════════════════
-//  MAIN LOOP
-// ═══════════════════════════════════════════════════════
 function animate(){
   if(gameOver){renderer.render(scene,camera);return;}
   requestAnimationFrame(animate);
   const dt=Math.min(clock.getDelta(),.05),time=clock.getElapsedTime();
-
   updateTrail();updateMap();updateMission();updateSeeker();
   updateCars(dt);updateEntities(dt,time);
   checkZone();updateProxNoise();
-
-  // Audio
   if(actx&&dOsc){
     const f=65+drone.vel.length()*3.5;
     dOsc.frequency.setTargetAtTime(f,actx.currentTime,.08);
     dOsc2.frequency.setTargetAtTime(f+9,actx.currentTime,.08);
   }
-
-  // Props spin
   props.forEach((p,i)=>p.rotation.y+=(40+(input.left.y+1)*40)*dt*(i%2===0?1:-1));
-
-  // Physics
   drone.rotY-=input.left.x*PHYSICS.rotationSpeed*dt;
   drone.tiltX=THREE.MathUtils.lerp(drone.tiltX,-input.right.y*PHYSICS.tiltMax,.1);
   drone.tiltZ=THREE.MathUtils.lerp(drone.tiltZ,-input.right.x*PHYSICS.tiltMax,.1);
@@ -1074,24 +988,17 @@ function animate(){
   drone.vel.multiplyScalar(PHYSICS.friction);
   drone.pos.addScaledVector(drone.vel,dt);
   if(drone.pos.y<.4){drone.pos.y=.4;drone.vel.y=0;}
-
   droneGrp.position.copy(drone.pos);
   droneGrp.rotation.set(0,0,0);
   droneGrp.rotateY(drone.rotY);droneGrp.rotateX(drone.tiltX);droneGrp.rotateZ(drone.tiltZ);
-
-  // Camera
   const camOff=new THREE.Vector3(0,2,4.5).applyAxisAngle(new THREE.Vector3(0,1,0),drone.rotY);
   camera.position.lerp(drone.pos.clone().add(camOff),.18);
   camera.lookAt(drone.pos);
-
-  // Tracers
   for(let i=tracers.length-1;i>=0;i--){
     const t=tracers[i];t.mesh.position.addScaledVector(t.dir,TRACER_SPEED*dt);
     t.life-=dt;t.mesh.material.opacity=Math.max(0,t.life*.8);
     if(t.life<=0){scene.remove(t.mesh);tracers.splice(i,1);}
   }
-
-  // Particles
   for(let i=particles.length-1;i>=0;i--){
     const p=particles[i];p.mesh.position.addScaledVector(p.vel,dt);
     if(p.isRing){p.mesh.scale.addScalar(dt*30);p.mesh.material.opacity=Math.max(0,p.life*1.4);}
@@ -1100,51 +1007,35 @@ function animate(){
     else{p.vel.y-=9.81*dt;p.mesh.material.opacity=Math.max(0,p.life*.8);p.mesh.rotation.x+=dt*2.2;p.mesh.rotation.y+=dt*3.1;}
     p.life-=dt;if(p.life<=0){scene.remove(p.mesh);particles.splice(i,1);}
   }
-
-  // Collisions — ground
   if(drone.pos.y<.4)endGame('Упал на землю');
-
-  // Collisions — buildings
   const px=drone.pos.x,py=drone.pos.y,pz=drone.pos.z;
   for(const b of buildings){
     if(Math.abs(px-b.cx)>b.hw+1.5||Math.abs(pz-b.cz)>b.hd+1.5)continue;
     if(py<0||py>b.height+.5)continue;
     if(b.pts&&pip2D(px,pz,b.pts)){endGame('Врезался в здание');break;}
-    else if(!b.pts&&Math.abs(px-b.cx)<b.hw&&Math.abs(pz-b.cz)<b.hd&&py<b.height){endGame('Врезался в здание');break;}
   }
-
-  // Collisions — entities (real physical contact only)
   for(const en of entities){
     if(drone.pos.distanceTo(en.mesh.position)<en.radius+.5){
       endGame(en.side==='hostile'?'Сбит противником':'Столкновение',en.side==='hostile');break;
     }
   }
-
-  // HUD update
   const speed=drone.vel.length()*3.6,altM=drone.pos.y;
-  const ab=el('alt-big'),au=el('alt-unit'),at1=el('alt-t1'),at2=el('alt-t2');
-  const sb=el('spd-big'),su=el('spd-unit'),st1=el('spd-t1'),st2=el('spd-t2');
-  if(ab)ab.textContent=altM.toFixed(0);
-  if(at1)at1.textContent=Math.max(0,altM-20).toFixed(0);
-  if(at2)at2.textContent=(altM+20).toFixed(0);
-  if(sb)sb.textContent=speed.toFixed(0);
-  if(st1)st1.textContent=Math.max(0,speed-20).toFixed(0);
-  if(st2)st2.textContent=(speed+20).toFixed(0);
-
+  if(el('alt-big'))el('alt-big').textContent=altM.toFixed(0);
+  if(el('alt-t1'))el('alt-t1').textContent=Math.max(0,altM-20).toFixed(0);
+  if(el('alt-t2'))el('alt-t2').textContent=(altM+20).toFixed(0);
+  if(el('spd-big'))el('spd-big').textContent=speed.toFixed(0);
+  if(el('spd-t1'))el('spd-t1').textContent=Math.max(0,speed-20).toFixed(0);
+  if(el('spd-t2'))el('spd-t2').textContent=(speed+20).toFixed(0);
   const hdg=((drone.rotY*180/Math.PI)%360+360)%360;
   updateDrum(hdg);
-
   const ch=document.getElementById('chromatic');
   if(speed>80)ch.classList.add('active');else if(proxI<.4)ch.classList.remove('active');
-
   renderer.render(scene,camera);
 }
-
 window.addEventListener('resize',()=>{
   camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);
   setTimeout(()=>{initMapCanvas();const pnc=el('prox-noise-canvas');if(pnc){pnc.width=innerWidth;pnc.height=innerHeight;}},50);
 });
 </script>
-
 </body>
 </html>
