@@ -115,7 +115,6 @@ clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%);
     border: 1px solid rgba(255, 255, 255, 0.3) !important;
     animation: pulse 2s infinite ease-in-out;
 }
-/* Разные цвета для левого и правого */
 #joystick-right .nipple .back { border-color: rgba(0, 255, 255, 0.3) !important; }
 #joystick-right .nipple .front { 
     background: linear-gradient(135deg, rgba(0, 255, 255, 0.8), rgba(0, 80, 150, 0.9)) !important; 
@@ -133,12 +132,11 @@ clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%);
     width: 140px;
     height: 140px;
     z-index: 100;
-    opacity: 0.7; /* Повысил видимость */
+    opacity: 0.7;
 }
 #joystick-left { left: 5%; }
 #joystick-right { right: 5%; }
 
-/* Декоративные скобки вокруг джойстиков */
 .joy-decor {
     position: absolute;
     width: 160px;
@@ -196,7 +194,6 @@ clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%);
 #coords-input-wrap input:focus{border-color:#39ff14;}
 #osm-credit{position:fixed;bottom:5px;right:7px;font-size:8px;color:rgba(57,255,20,.3);pointer-events:none;z-index:60;}
 </style>
-
 </head>
 <body>
 
@@ -300,7 +297,6 @@ clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%);
 
 <script>
 'use strict';
-// Сохраняем всю логику без изменений
 const PHYSICS={acceleration:85,friction:0.97,rotationSpeed:3.5,tiltMax:0.7,lift:52};
 const M_PER_LAT=111320, DRONE_SCALE=0.55, TRACER_SPEED=240;
 const CHUNK_R=500, CHUNK_TRIG=250;
@@ -326,8 +322,8 @@ const pathGeo=new THREE.BufferGeometry();
 pathGeo.setFromPoints([new THREE.Vector3(),new THREE.Vector3()]);
 const pathLine=new THREE.Line(pathGeo,new THREE.LineDashedMaterial({color:0xffff00,dashSize:3,gapSize:2,transparent:true,opacity:.65}));
 scene.add(pathLine);
-const loadedZones=new Set();
 let lastChunk=new THREE.Vector3(),chunkBusy=false,bldgTotal=0;
+const loadedZones=new Set();
 const mapC=document.getElementById('map-canvas'),mapX=mapC.getContext('2d');
 let MAP_W=innerWidth,MAP_H=80;
 let proxCtx=null,proxI=0;
@@ -354,6 +350,7 @@ function startWithManual(){
   if(isNaN(lat)||isNaN(lon)){alert('Неверный формат');return;}
   loadMap(lat,lon);
 }
+
 async function loadMap(lat,lon){
   oLat=lat;oLon=lon;mPerLon=M_PER_LAT*Math.cos(lat*Math.PI/180);
   ['btn-geo','btn-manual'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display='none';});
@@ -370,11 +367,8 @@ async function loadMap(lat,lon){
     createGround();createDrone();initTrail();setupJoysticks();
     bar(100,'ГОТОВО');await sleep(300);
     document.getElementById('start-prompt').style.display='none';
-    markZone(lat,lon);
-    spawnInitial();
-    buildDrum();
-    initMapCanvas();initProxCanvas();
-    initAudio();animate();
+    markZone(lat,lon);spawnInitial();buildDrum();
+    initMapCanvas();initProxCanvas();initAudio();animate();
   }catch(e){
     console.error(e);bar(0,'❌ DEMO MODE');
     setTimeout(()=>{
@@ -387,13 +381,22 @@ async function loadMap(lat,lon){
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 function bar(p,t){document.getElementById('loading-bar').style.width=p+'%';document.getElementById('loading-text').textContent=t;}
 
-async function fetchOSM(lat,lon,r){
+async function fetchOSM(lat,lon,r,retries=10){
   const dLat=r/M_PER_LAT,dLon=r/mPerLon;
   const S=lat-dLat,N=lat+dLat,W=lon-dLon,E=lon+dLon;
   const q=`[out:json][timeout:25][bbox:${S},${W},${N},${E}];(way["building"];way["highway"~"^(primary|secondary|tertiary|residential|service|unclassified)$"];way["waterway"];way["leisure"="park"];);out geom;`;
-  const r2=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:'data='+encodeURIComponent(q)});
-  if(!r2.ok)throw new Error('Overpass '+r2.status);
-  return r2.json();
+  
+  for(let i=0; i<retries; i++){
+    try {
+      const r2=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:'data='+encodeURIComponent(q)});
+      if(r2.ok) return await r2.json();
+      console.warn(`OSM retry ${i+1}/${retries} (status ${r2.status})`);
+    } catch(err) {
+      console.warn(`OSM retry ${i+1}/${retries} (error)`);
+    }
+    await sleep(800);
+  }
+  throw new Error('OSM Max Retries');
 }
 
 function zoneKey(la,lo){return`${(la*250|0)}_${(lo*250|0)}`;}
@@ -406,7 +409,7 @@ async function checkZone(){
   chunkBusy=true;lastChunk.copy(drone.pos);
   const ci=document.getElementById('chunk-ind');ci.classList.add('show');
   try{
-    const d=await fetchOSM(cLat,cLon,CHUNK_R);
+    const d=await fetchOSM(cLat,cLon,CHUNK_R,5);
     await buildScene(d);markZone(cLat,cLon);
     spawnAround(drone.pos.x,drone.pos.z);
   }catch(e){console.warn('zone fail',e);}
@@ -933,13 +936,15 @@ function pip2D(px,pz,pts){
   return inside;
 }
 
-// ── SETUP JOYSTICKS ──
 let input={left:{x:0,y:0},right:{x:0,y:0}};
 function setupJoysticks(){
   const jL=nipplejs.create({zone:document.getElementById('joystick-left'),mode:'static',position:{left:'70px',bottom:'70px'},color:'white',size:120});
-  jL.on('move',(e,d)=>input.left=d.vector||{x:0,y:0}).on('end',()=>input.left={x:0,y:0});
+  jL.on('move',(e,d)=>input.left=d.vector||{x:0,y:0});
+  jL.on('end hidden pressure',()=>input.left={x:0,y:0});
+
   const jR=nipplejs.create({zone:document.getElementById('joystick-right'),mode:'static',position:{right:'70px',bottom:'70px'},color:'white',size:120});
-  jR.on('move',(e,d)=>input.right=d.vector||{x:0,y:0}).on('end',()=>input.right={x:0,y:0});
+  jR.on('move',(e,d)=>input.right=d.vector||{x:0,y:0});
+  jR.on('end hidden pressure',()=>input.right={x:0,y:0});
 }
 
 const PX_DEG=2.2,DRUM_HALF=150;
@@ -971,8 +976,7 @@ function animate(){
   requestAnimationFrame(animate);
   const dt=Math.min(clock.getDelta(),.05),time=clock.getElapsedTime();
   updateTrail();updateMap();updateMission();updateSeeker();
-  updateCars(dt);updateEntities(dt,time);
-  checkZone();updateProxNoise();
+  updateCars(dt);updateEntities(dt,time);checkZone();updateProxNoise();
   if(actx&&dOsc){
     const f=65+drone.vel.length()*3.5;
     dOsc.frequency.setTargetAtTime(f,actx.currentTime,.08);
