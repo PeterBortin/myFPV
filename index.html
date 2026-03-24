@@ -5,8 +5,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no,viewport-fit=cover">
 <title>myFPV</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" media="all">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
+/* fonts: Share Tech Mono, Orbitron — loaded via <link> above */
 *{margin:0;padding:0;user-select:none;-webkit-user-select:none;touch-action:none;box-sizing:border-box;}
 body{background:#000;font-family:'Share Tech Mono',monospace;overflow:hidden;}
 canvas{display:block;}
@@ -419,25 +422,36 @@ async function loadMap(lat,lon){
   document.getElementById('loading-bar-wrap').style.display='block';
   document.getElementById('loading-text').style.display='block';
   const sp=document.querySelector('.start-specs');if(sp)sp.style.display='none';
-  bar(8,'ЗАПРОС OSM...');
+
+  let osmData=null;
+  bar(5,'ЗАПРОС OSM...');
+  // Animate bar while waiting so user knows it's working
+  let barPct=5;
+  const barTimer=setInterval(()=>{if(barPct<48){barPct+=1;bar(barPct,'ЗАПРОС OSM...');}},600);
   try{
-    const d=await fetchOSM(lat,lon,CHUNK_R);
-    bar(55,'СТРОИМ МИР...');
-    await buildScene(d);
-    bar(88,'ОБЪЕКТЫ...');
-    createGround();createDrone();initTrail();setupJoysticks();
-    bar(100,'ГОТОВО');await sleep(300);
-    document.getElementById('start-prompt').style.display='none';
-    markZone(lat,lon);spawnInitial();buildDrum();
-    initMapCanvas();initProxCanvas();initAudio();animate();
+    osmData=await fetchOSM(lat,lon,CHUNK_R);
   }catch(e){
-    console.error(e);bar(0,'❌ DEMO MODE');
-    setTimeout(()=>{
-      fallbackScene();createGround();createDrone();initTrail();setupJoysticks();
-      document.getElementById('start-prompt').style.display='none';
-      spawnInitial();buildDrum();initMapCanvas();initProxCanvas();initAudio();animate();
-    },1500);
+    console.warn('OSM failed, using fallback:',e);
+  }finally{
+    clearInterval(barTimer);
   }
+
+  bar(52,'СТРОИМ МИР...');
+  await sleep(0); // yield to browser
+  if(osmData){
+    await buildScene(osmData);
+  }else{
+    fallbackScene();
+  }
+
+  bar(88,'ОБЪЕКТЫ...');
+  await sleep(0);
+  createGround();createDrone();initTrail();setupJoysticks();
+  bar(100,'ГОТОВО');
+  await sleep(250);
+  document.getElementById('start-prompt').style.display='none';
+  markZone(lat,lon);spawnInitial();buildDrum();
+  initMapCanvas();initProxCanvas();initAudio();animate();
 }
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 function bar(p,t){document.getElementById('loading-bar').style.width=p+'%';document.getElementById('loading-text').textContent=t;}
@@ -446,31 +460,59 @@ async function fetchOSM(lat,lon,r,retries=10){
   const dLat=r/M_PER_LAT,dLon=r/mPerLon;
   const S=lat-dLat,N=lat+dLat,W=lon-dLon,E=lon+dLon;
   const q=`[out:json][timeout:25][bbox:${S},${W},${N},${E}];(way["building"];way["highway"~"^(primary|secondary|tertiary|residential|service|unclassified)$"];way["waterway"];way["leisure"="park"];);out geom;`;
+  const MIRRORS=[
+    'https://overpass-api.de/api/interpreter',
+    'https://overpass.kumi.systems/api/interpreter',
+    'https://maps.mail.ru/osm/tools/overpass/api/interpreter'
+  ];
   for(let i=0;i<retries;i++){
+    const url=MIRRORS[i%MIRRORS.length];
+    const ctrl=new AbortController();
+    const tid=setTimeout(()=>ctrl.abort(),18000); // 18s hard timeout per attempt
     try{
-      const r2=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:'data='+encodeURIComponent(q)});
-      if(r2.ok)return await r2.json();
-    }catch(err){}
-    await sleep(800);
+      const resp=await fetch(url,{method:'POST',body:'data='+encodeURIComponent(q),signal:ctrl.signal});
+      clearTimeout(tid);
+      if(resp.ok){
+        const json=await resp.json();
+        if(json&&Array.isArray(json.elements))return json;
+        // Empty but valid response — return it
+        return json;
+      }
+      // Rate limited (429) — wait longer
+      if(resp.status===429)await sleep(3000+i*500);
+    }catch(err){
+      clearTimeout(tid);
+      if(err.name==='AbortError')console.warn(`OSM attempt ${i+1} timed out`);
+      else console.warn(`OSM attempt ${i+1} failed:`,err.message);
+    }
+    await sleep(600+i*200);
   }
-  throw new Error('OSM Max Retries');
+  throw new Error('OSM: all retries exhausted');
 }
 
 function zoneKey(la,lo){return`${(la*250|0)}_${(lo*250|0)}`;}
 function markZone(la,lo){loadedZones.add(zoneKey(la,lo));}
 async function checkZone(){
-  if(chunkBusy)return;
+  if(chunkBusy||gameOver)return;
   if(drone.pos.distanceTo(lastChunk)<CHUNK_TRIG)return;
   const cLat=oLat+(-drone.pos.z/M_PER_LAT),cLon=oLon+(drone.pos.x/mPerLon);
-  if(loadedZones.has(zoneKey(cLat,cLon)))return;
+  const key=zoneKey(cLat,cLon);
+  if(loadedZones.has(key))return;
+  // Pre-mark to prevent double-fetch on fast movement
+  loadedZones.add(key);
   chunkBusy=true;lastChunk.copy(drone.pos);
   const ci=document.getElementById('chunk-ind');ci.classList.add('show');
   try{
-    const d=await fetchOSM(cLat,cLon,CHUNK_R,5);
-    await buildScene(d);markZone(cLat,cLon);
+    const d=await fetchOSM(cLat,cLon,CHUNK_R,4);
+    if(d)await buildScene(d);
     spawnAround(drone.pos.x,drone.pos.z);
-  }catch(e){console.warn('zone fail',e);}
-  chunkBusy=false;setTimeout(()=>ci.classList.remove('show'),700);
+  }catch(e){
+    console.warn('zone fail',e);
+    // Remove key so it can retry next time
+    loadedZones.delete(key);
+  }
+  chunkBusy=false;
+  setTimeout(()=>ci.classList.remove('show'),700);
 }
 
 function g2l(lat,lon){return{x:(lon-oLon)*mPerLon,z:-(lat-oLat)*M_PER_LAT};}
@@ -981,7 +1023,13 @@ function updateMap(){
 }
 
 let actx,dOsc,dOsc2,dGain;
-function initAudio(){
+// AudioContext created lazily on first user interaction to avoid browser autoplay block
+function ensureAudio(){
+  if(actx){
+    // Resume if browser suspended it (common on mobile)
+    if(actx.state==='suspended')actx.resume();
+    return;
+  }
   try{
     actx=new(window.AudioContext||window.webkitAudioContext)();
     dOsc=actx.createOscillator();dOsc2=actx.createOscillator();
@@ -992,10 +1040,19 @@ function initAudio(){
     const comp=actx.createDynamicsCompressor();comp.threshold.value=-20;comp.ratio.value=4;
     dOsc.connect(lpf);dOsc2.connect(lpf);lpf.connect(hpf);hpf.connect(comp);comp.connect(dGain);dGain.connect(actx.destination);
     dOsc.start();dOsc2.start();
-  }catch(e){}
+  }catch(e){console.warn('Audio init failed:',e);}
+}
+function initAudio(){
+  // Called at game start — we don't create AudioContext here anymore,
+  // just hook it to the first joystick/touch event so it's ready
+  const resume=()=>{ensureAudio();};
+  document.addEventListener('touchstart',resume,{once:true,passive:true});
+  document.addEventListener('mousedown',resume,{once:true});
 }
 function playGunshot(vol=.06){
-  if(!actx)return;const t=actx.currentTime;
+  ensureAudio();
+  if(!actx||actx.state!=='running')return;
+  const t=actx.currentTime;
   const o=actx.createOscillator(),g=actx.createGain();
   o.type='square';o.frequency.setValueAtTime(240+Math.random()*100,t);o.frequency.exponentialRampToValueAtTime(35,t+.1);
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+.13);
@@ -1008,7 +1065,9 @@ function playGunshot(vol=.06){
   src.buffer=buf;src.connect(bpf);bpf.connect(gn);gn.connect(actx.destination);src.start(t);src.stop(t+.1);
 }
 function playExplosion(big=false){
-  if(!actx)return;const t=actx.currentTime,vol=big?.7:.45;
+  ensureAudio();
+  if(!actx||actx.state!=='running')return;
+  const t=actx.currentTime,vol=big?.7:.45;
   const o=actx.createOscillator(),gt=actx.createGain();o.type='sine';
   o.frequency.setValueAtTime(65,t);o.frequency.exponentialRampToValueAtTime(18,t+.4);
   gt.gain.setValueAtTime(vol,t);gt.gain.exponentialRampToValueAtTime(.001,t+.42);
@@ -1140,10 +1199,10 @@ function el(id){return document.getElementById(id);}
 function animate(){
   if(gameOver){renderer.render(scene,camera);return;}
   requestAnimationFrame(animate);
-  const dt=Math.min(clock.getDelta(),.05),time=clock.getElapsedTime();
+  const dt=Math.min(clock.getDelta(),.033),time=clock.getElapsedTime();
   updateTrail();updateMap();updateMission();updateSeeker();
   updateCars(dt);updateEntities(dt,time);checkZone();updateProxNoise();
-  if(actx&&dOsc){
+  if(actx&&actx.state==='running'&&dOsc){
     const f=65+drone.vel.length()*3.5;
     dOsc.frequency.setTargetAtTime(f,actx.currentTime,.08);
     dOsc2.frequency.setTargetAtTime(f+9,actx.currentTime,.08);
@@ -1167,7 +1226,12 @@ function animate(){
   for(let i=tracers.length-1;i>=0;i--){
     const t=tracers[i];t.mesh.position.addScaledVector(t.dir,TRACER_SPEED*dt);
     t.life-=dt;t.mesh.material.opacity=Math.max(0,t.life*.8);
-    if(t.life<=0){scene.remove(t.mesh);tracers.splice(i,1);}
+    if(t.life<=0){
+      scene.remove(t.mesh);
+      t.mesh.geometry.dispose();
+      t.mesh.material.dispose();
+      tracers.splice(i,1);
+    }
   }
   for(let i=particles.length-1;i>=0;i--){
     const p=particles[i];p.mesh.position.addScaledVector(p.vel,dt);
@@ -1175,18 +1239,52 @@ function animate(){
     else if(p.isSmoke){p.vel.multiplyScalar(.975);p.mesh.scale.addScalar(dt*2);p.mesh.material.opacity=Math.max(0,p.life*.3);}
     else if(p.isFlash){p.mesh.scale.setScalar(p.mesh.scale.x+dt*22);p.mesh.material.opacity=Math.max(0,p.life*8);}
     else{p.vel.y-=9.81*dt;p.mesh.material.opacity=Math.max(0,p.life*.8);p.mesh.rotation.x+=dt*2.2;p.mesh.rotation.y+=dt*3.1;}
-    p.life-=dt;if(p.life<=0){scene.remove(p.mesh);particles.splice(i,1);}
+    p.life-=dt;
+    if(p.life<=0){
+      scene.remove(p.mesh);
+      p.mesh.geometry.dispose();
+      p.mesh.material.dispose();
+      particles.splice(i,1);
+    }
   }
   if(drone.pos.y<.4)endGame('Упал на землю');
+  // ── COLLISION: buildings ──
+  // Use sub-stepped position to avoid tunnelling at low FPS
   const px=drone.pos.x,py=drone.pos.y,pz=drone.pos.z;
+  let bldgHit=false;
   for(const b of buildings){
-    if(Math.abs(px-b.cx)>b.hw+1.5||Math.abs(pz-b.cz)>b.hd+1.5)continue;
-    if(py<0||py>b.height+.5)continue;
-    if(b.pts&&pip2D(px,pz,b.pts)){endGame('Врезался в здание');break;}
+    if(bldgHit)break;
+    if(Math.abs(px-b.cx)>b.hw+2||Math.abs(pz-b.cz)>b.hd+2)continue;
+    if(py<-1||py>b.height+1)continue;
+    if(!b.pts)continue;
+    // AABB pre-check (faster than pip2D)
+    if(px>b.cx-b.hw&&px<b.cx+b.hw&&pz>b.cz-b.hd&&pz<b.cz+b.hd&&py>=0&&py<=b.height){
+      if(pip2D(px,pz,b.pts)){
+        // Compute push-out vector from building centre
+        const outX=px-b.cx, outZ=pz-b.cz;
+        const outLen=Math.sqrt(outX*outX+outZ*outZ)||1;
+        // If moving fast (low FPS) just push out; otherwise end game
+        const speed2d=Math.sqrt(drone.vel.x**2+drone.vel.z**2);
+        if(speed2d>18){
+          endGame('Врезался в здание');
+          bldgHit=true;
+        }else{
+          // Soft push-out: nudge drone outside the building
+          const pushDist=Math.max(b.hw,b.hd)*1.05;
+          drone.pos.x=b.cx+(outX/outLen)*pushDist;
+          drone.pos.z=b.cz+(outZ/outLen)*pushDist;
+          drone.vel.x*=-0.3;drone.vel.z*=-0.3;
+        }
+      }
+    }
   }
-  for(const en of entities){
-    if(drone.pos.distanceTo(en.mesh.position)<en.radius+.5){
-      endGame(en.side==='hostile'?'Сбит противником':'Столкновение',en.side==='hostile');break;
+  // ── COLLISION: entities ──
+  if(!bldgHit){
+    for(const en of entities){
+      if(drone.pos.distanceTo(en.mesh.position)<en.radius+.5){
+        endGame(en.side==='hostile'?'Сбит противником':'Столкновение',en.side==='hostile');
+        break;
+      }
     }
   }
   const speed=drone.vel.length()*3.6,altM=drone.pos.y;
