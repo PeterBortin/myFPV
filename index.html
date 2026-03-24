@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" media="all">
 <style>
-/* fonts: Share Tech Mono, Orbitron — loaded via <link> above */
+/* fonts: Share Tech Mono, Orbitron -- loaded via <link> above */
 *{margin:0;padding:0;user-select:none;-webkit-user-select:none;touch-action:none;box-sizing:border-box;}
 body{background:#000;font-family:'Share Tech Mono',monospace;overflow:hidden;}
 canvas{display:block;}
@@ -30,13 +30,13 @@ canvas{display:block;}
 
 /* ── HEADING DRUM ── */
 #heading-tape{position:absolute;top:20px;left:50%;transform:translateX(-50%);width:300px;height:32px;overflow:hidden;border:1px solid rgba(57,255,20,.35);background:rgba(0,12,0,.78);backdrop-filter:blur(4px);z-index:61;pointer-events:none;}
-#heading-tape::before{content:‘▼’;position:absolute;bottom:0;left:50%;transform:translateX(-50%);font-size:8px;color:#39ff14;line-height:1;z-index:2;text-shadow:0 0 6px #39ff14;}
-#heading-tape::after{content:’’;position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(90deg,rgba(0,12,0,.92) 0%,transparent 22%,transparent 78%,rgba(0,12,0,.92) 100%);z-index:1;}
-#heading-drum{display:flex;align-items:center;height:100%;font-family:‘Share Tech Mono’,monospace;font-size:10px;color:rgba(57,255,20,.55);white-space:nowrap;position:relative;}
+#heading-tape::before{content:'▼';position:absolute;bottom:0;left:50%;transform:translateX(-50%);font-size:8px;color:#39ff14;line-height:1;z-index:2;text-shadow:0 0 6px #39ff14;}
+#heading-tape::after{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(90deg,rgba(0,12,0,.92) 0%,transparent 22%,transparent 78%,rgba(0,12,0,.92) 100%);z-index:1;}
+#heading-drum{display:flex;align-items:center;height:100%;font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(57,255,20,.55);white-space:nowrap;position:relative;}
 .hdg-tick{display:inline-flex;flex-direction:column;align-items:center;min-width:22px;height:32px;justify-content:center;flex-shrink:0;}
 .hdg-tick.major{color:#39ff14;font-size:11px;font-weight:bold;text-shadow:0 0 8px #39ff14;}
 .hdg-tick.minor{color:rgba(57,255,20,.35);font-size:8px;}
-#heading-readout{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:‘Orbitron’,monospace;font-size:14px;font-weight:700;color:#39ff14;text-shadow:0 0 10px #39ff14;background:rgba(0,12,0,.82);padding:0 6px;border-radius:2px;z-index:3;pointer-events:none;}
+#heading-readout{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Orbitron',monospace;font-size:14px;font-weight:700;color:#39ff14;text-shadow:0 0 10px #39ff14;background:rgba(0,12,0,.82);padding:0 6px;border-radius:2px;z-index:3;pointer-events:none;}
 
 /* ── FULL-WIDTH MAP BAR 80px under drum ── */
 #map-bar{position:absolute;top:62px;left:0;right:0;height:80px;pointer-events:none;z-index:60;border-top:1px solid rgba(57,255,20,.25);border-bottom:1px solid rgba(57,255,20,.3);overflow:hidden;background:rgba(0,8,0,.6);}
@@ -48,8 +48,8 @@ canvas{display:block;}
 @keyframes sweep{to{transform:rotate(360deg);}}
 
 /* ── OSD LEFT ── */
-#osd-left{position:absolute;top:152px;left:10px;color:#39ff14;font-family:‘Share Tech Mono’,monospace;font-size:11px;pointer-events:none;z-index:60;line-height:1.7;background:linear-gradient(135deg,rgba(0,20,0,.72),rgba(0,40,0,.45));border:1px solid rgba(57,255,20,.28);border-left:3px solid #39ff14;padding:10px 12px;min-width:160px;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%);}
-#osd-left::before{content:’’;position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,#39ff14,transparent);}
+#osd-left{position:absolute;top:152px;left:10px;color:#39ff14;font-family:'Share Tech Mono',monospace;font-size:11px;pointer-events:none;z-index:60;line-height:1.7;background:linear-gradient(135deg,rgba(0,20,0,.72),rgba(0,40,0,.45));border:1px solid rgba(57,255,20,.28);border-left:3px solid #39ff14;padding:10px 12px;min-width:160px;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%);}
+#osd-left::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,#39ff14,transparent);}
 .hud-label{color:rgba(57,255,20,.45);font-size:8px;letter-spacing:2px;text-transform:uppercase;}
 .mission-target{color:#ff4444;text-shadow:0 0 8px #ff4444;font-size:12px;}
 .mission-dist{color:#ffff00;text-shadow:0 0 6px #ffff00;}
@@ -58,18 +58,18 @@ canvas{display:block;}
 
 /* ── ALT TAPE RIGHT ── */
 #alt-tape{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:52px;height:210px;overflow:visible;z-index:60;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:transparent;}
-#alt-tape::after{content:’’;position:absolute;left:3px;right:3px;top:50%;height:1px;background:rgba(57,255,20,.55);box-shadow:0 0 4px rgba(57,255,20,.6);}
+#alt-tape::after{content:'';position:absolute;left:3px;right:3px;top:50%;height:1px;background:rgba(57,255,20,.55);box-shadow:0 0 4px rgba(57,255,20,.6);}
 #alt-border{position:absolute;top:0;bottom:0;right:0;width:1px;background:linear-gradient(180deg,transparent,rgba(57,255,20,.5) 20%,rgba(57,255,20,.5) 80%,transparent);}
-#alt-big{font-size:19px;color:#39ff14;text-shadow:0 0 12px #39ff14;font-family:‘Orbitron’,monospace;font-weight:700;}
+#alt-big{font-size:19px;color:#39ff14;text-shadow:0 0 12px #39ff14;font-family:'Orbitron',monospace;font-weight:700;}
 #alt-unit{font-size:8px;color:rgba(57,255,20,.5);letter-spacing:2px;}
 .tape-tick{width:100%;display:flex;align-items:center;justify-content:flex-end;padding-right:4px;gap:3px;}
 .tick-line{height:1px;background:rgba(57,255,20,.4);}.tick-num{font-size:7px;color:rgba(57,255,20,.45);}
 
 /* ── SPD TAPE LEFT ── */
 #spd-tape{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:52px;height:210px;overflow:visible;z-index:60;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:transparent;}
-#spd-tape::after{content:’’;position:absolute;left:3px;right:3px;top:50%;height:1px;background:rgba(0,255,255,.55);box-shadow:0 0 4px rgba(0,255,255,.6);}
+#spd-tape::after{content:'';position:absolute;left:3px;right:3px;top:50%;height:1px;background:rgba(0,255,255,.55);box-shadow:0 0 4px rgba(0,255,255,.6);}
 #spd-border{position:absolute;top:0;bottom:0;left:0;width:1px;background:linear-gradient(180deg,transparent,rgba(0,255,255,.5) 20%,rgba(0,255,255,.5) 80%,transparent);}
-#spd-big{font-size:19px;color:#00ffff;text-shadow:0 0 12px #00ffff;font-family:‘Orbitron’,monospace;font-weight:700;}
+#spd-big{font-size:19px;color:#00ffff;text-shadow:0 0 12px #00ffff;font-family:'Orbitron',monospace;font-weight:700;}
 #spd-unit{font-size:8px;color:rgba(0,255,255,.5);letter-spacing:2px;}
 .tick-line-c{height:1px;background:rgba(0,255,255,.4);}.tick-num-c{font-size:7px;color:rgba(0,255,255,.45);}
 
@@ -81,7 +81,7 @@ canvas{display:block;}
 @keyframes lpy{0%,100%{box-shadow:0 0 10px rgba(255,255,0,.6),inset 0 0 10px rgba(255,255,0,.15);}50%{box-shadow:0 0 28px rgba(255,255,0,.9),inset 0 0 20px rgba(255,255,0,.25);}}
 .corner{position:absolute;width:12px;height:12px;border-color:inherit;border-style:solid;}
 .tl{top:-1px;left:-1px;border-width:2px 0 0 2px;}.tr{top:-1px;right:-1px;border-width:2px 2px 0 0;}.bl{bottom:-1px;left:-1px;border-width:0 0 2px 2px;}.br{bottom:-1px;right:-1px;border-width:0 2px 2px 0;}
-#target-label{position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-family:‘Share Tech Mono’,monospace;color:inherit;font-size:9px;white-space:nowrap;letter-spacing:2px;text-shadow:0 0 8px currentColor;}
+#target-label{position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-family:'Share Tech Mono',monospace;color:inherit;font-size:9px;white-space:nowrap;letter-spacing:2px;text-shadow:0 0 8px currentColor;}
 #target-dist{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);color:#fff;font-size:9px;background:rgba(255,40,40,.6);padding:1px 5px;letter-spacing:1px;}
 .priority #target-dist{background:rgba(255,200,0,.7);color:#000;}
 
@@ -124,7 +124,7 @@ width:140px;height:140px;pointer-events:none;
 .joy-base line{stroke-width:1;}
 .joy-label{
 position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);
-font-family:‘Share Tech Mono’,monospace;font-size:8px;letter-spacing:3px;
+font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:3px;
 pointer-events:none;white-space:nowrap;
 }
 #joystick-left .joy-label{color:rgba(57,255,20,.5);}
@@ -132,7 +132,7 @@ pointer-events:none;white-space:nowrap;
 
 /* corner brackets */
 .joy-corner{position:absolute;width:14px;height:14px;pointer-events:none;}
-.joy-corner::before,.joy-corner::after{content:’’;position:absolute;background:transparent;}
+.joy-corner::before,.joy-corner::after{content:'';position:absolute;background:transparent;}
 .joy-tl{top:0;left:0;border-top:2px solid;border-left:2px solid;}
 .joy-tr{top:0;right:0;border-top:2px solid;border-right:2px solid;}
 .joy-bl{bottom:0;left:0;border-bottom:2px solid;border-left:2px solid;}
@@ -156,13 +156,13 @@ pointer-events:none;white-space:nowrap;
 @keyframes sf{0%{opacity:.35;filter:brightness(1.5) contrast(2);}50%{opacity:.65;filter:brightness(2.2) contrast(3) hue-rotate(20deg);}100%{opacity:.2;filter:brightness(1) contrast(1.5);}}
 
 #restart-screen{position:fixed;top:0;left:0;width:100%;height:100%;display:none;z-index:1000;background:rgba(0,0,0,.92);align-items:center;justify-content:center;}
-.screen-content{text-align:center;font-family:‘Orbitron’,monospace;padding:50px 60px;border:2px solid #ff1a1a;background:linear-gradient(135deg,rgba(20,0,0,.9),rgba(40,0,0,.7));clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px));box-shadow:0 0 40px rgba(255,26,26,.4);}
+.screen-content{text-align:center;font-family:'Orbitron',monospace;padding:50px 60px;border:2px solid #ff1a1a;background:linear-gradient(135deg,rgba(20,0,0,.9),rgba(40,0,0,.7));clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px));box-shadow:0 0 40px rgba(255,26,26,.4);}
 #res-msg{font-size:38px;color:#ff1a1a;text-shadow:0 0 30px #ff1a1a;font-weight:900;margin-bottom:10px;}
 #res-sub{font-size:11px;color:rgba(255,80,80,.7);letter-spacing:4px;margin-bottom:30px;}
 
 /* Button row */
 .btn-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
-.screen-content button{background:transparent;border:1px solid #ff1a1a;padding:14px 28px;font-family:‘Orbitron’,monospace;cursor:pointer;font-size:12px;letter-spacing:3px;transition:all .2s;}
+.screen-content button{background:transparent;border:1px solid #ff1a1a;padding:14px 28px;font-family:'Orbitron',monospace;cursor:pointer;font-size:12px;letter-spacing:3px;transition:all .2s;}
 .screen-content button.btn-continue{color:#39ff14;border-color:#39ff14;}
 .screen-content button.btn-continue:hover{background:#39ff14;color:#000;box-shadow:0 0 20px #39ff14;}
 .screen-content button.btn-restart{color:#ff1a1a;border-color:#ff1a1a;}
@@ -177,9 +177,9 @@ pointer-events:none;white-space:nowrap;
 /* ── START / LOADING ── */
 #start-prompt{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.97);z-index:2000;display:flex;justify-content:center;align-items:center;}
 .start-box{text-align:center;padding:50px 60px;border:2px solid rgba(57,255,20,.6);background:linear-gradient(135deg,rgba(0,15,0,.9),rgba(0,30,0,.6));clip-path:polygon(0 0,calc(100% - 25px) 0,100% 25px,100% 100%,25px 100%,0 calc(100% - 25px));box-shadow:0 0 60px rgba(57,255,20,.3);max-width:480px;width:90%;}
-.start-title{font-family:‘Orbitron’,monospace;font-size:42px;font-weight:900;color:#39ff14;text-shadow:0 0 30px #39ff14,0 0 60px #00ff00;letter-spacing:6px;margin-bottom:6px;}
-.start-sub{font-family:‘Share Tech Mono’,monospace;color:rgba(57,255,20,.5);font-size:10px;letter-spacing:3px;margin-bottom:28px;}
-.start-btn{background:transparent;color:#39ff14;border:1px solid #39ff14;padding:14px 36px;font-family:‘Orbitron’,monospace;cursor:pointer;font-size:13px;letter-spacing:5px;font-weight:700;transition:all .3s;margin:6px;}
+.start-title{font-family:'Orbitron',monospace;font-size:42px;font-weight:900;color:#39ff14;text-shadow:0 0 30px #39ff14,0 0 60px #00ff00;letter-spacing:6px;margin-bottom:6px;}
+.start-sub{font-family:'Share Tech Mono',monospace;color:rgba(57,255,20,.5);font-size:10px;letter-spacing:3px;margin-bottom:28px;}
+.start-btn{background:transparent;color:#39ff14;border:1px solid #39ff14;padding:14px 36px;font-family:'Orbitron',monospace;cursor:pointer;font-size:13px;letter-spacing:5px;font-weight:700;transition:all .3s;margin:6px;}
 .start-btn:hover{background:#39ff14;color:#000;box-shadow:0 0 30px #39ff14;}
 .start-btn.sec{border-color:rgba(57,255,20,.4);color:rgba(57,255,20,.5);font-size:11px;}
 .start-btn.sec:hover{background:rgba(57,255,20,.2);color:#39ff14;}
@@ -188,7 +188,7 @@ pointer-events:none;white-space:nowrap;
 #loading-bar{height:100%;background:#39ff14;box-shadow:0 0 8px #39ff14;width:0%;transition:width .3s;}
 #loading-text{margin-top:10px;font-size:9px;color:rgba(57,255,20,.5);letter-spacing:2px;display:none;}
 #coords-input-wrap{margin-top:16px;display:none;}
-#coords-input-wrap input{background:transparent;border:1px solid rgba(57,255,20,.4);color:#39ff14;font-family:‘Share Tech Mono’,monospace;font-size:11px;padding:8px 12px;width:100%;letter-spacing:1px;outline:none;text-align:center;}
+#coords-input-wrap input{background:transparent;border:1px solid rgba(57,255,20,.4);color:#39ff14;font-family:'Share Tech Mono',monospace;font-size:11px;padding:8px 12px;width:100%;letter-spacing:1px;outline:none;text-align:center;}
 #coords-input-wrap input::placeholder{color:rgba(57,255,20,.3);}
 #coords-input-wrap input:focus{border-color:#39ff14;}
 #osm-credit{position:fixed;bottom:5px;right:7px;font-size:8px;color:rgba(57,255,20,.3);pointer-events:none;z-index:60;}
@@ -200,15 +200,15 @@ pointer-events:none;white-space:nowrap;
 <div id="start-prompt">
   <div class="start-box">
     <div class="start-title">myFPV</div>
-    <div class="start-sub">✅ Location active</div>
-    <button class="start-btn" id="btn-geo" onclick="startWithGeo()">📍 моя локация</button><br>
-    <button class="start-btn sec" id="btn-manual" onclick="showManualInput()">🔍 координаты</button>
+    <div class="start-sub">Location active</div>
+    <button class="start-btn" id="btn-geo" onclick="startWithGeo()">моя локация</button><br>
+    <button class="start-btn sec" id="btn-manual" onclick="showManualInput()">координаты</button>
     <div id="coords-input-wrap">
       <input type="text" id="coords-input" placeholder="50.4501, 30.5234  (Киев)">
-      <button class="start-btn" style="margin-top:10px;font-size:11px;padding:10px 28px" onclick="startWithManual()">ЗАГРУЗИТЬ</button>
+      <button class="start-btn" style="margin-top:10px;font-size:11px;padding:10px 28px" onclick="startWithManual()">загрузить</button>
     </div>
     <div id="loading-bar-wrap"><div id="loading-bar"></div></div>
-    <div id="loading-text">ЗАГРУЗКА OSM...</div>
+    <div id="loading-text">загрузка карты..</div>
     <div class="start-specs">ЛЕВЫЙ СТИК: ТЯГА / ПОВОРОТ · ПРАВЫЙ: ДВИЖЕНИЕ<br>ЗДАНИЯ · ДОРОГИ · ТРАФИК · ПЕХОТА · ТАНКИ · БПЛА<br>КАРТА РАСШИРЯЕТСЯ ПО МЕРЕ ПОЛЁТА</div>
   </div>
 </div>
@@ -232,8 +232,8 @@ pointer-events:none;white-space:nowrap;
 </div>
 
 <div id="osd-left">
-  <div class="hud-label">❗️ приоритет!</div>
-  <div class="mission-target" id="obj-type">🔍 поиск..</div>
+  <div class="hud-label">приоритет!</div>
+  <div class="mission-target" id="obj-type">поиск..</div>
   <div class="mission-dist" id="obj-dist">DST: ---</div>
   <div id="god-status">⬡ Pycopi3</div>
 </div>
@@ -242,7 +242,7 @@ pointer-events:none;white-space:nowrap;
   <div id="alt-border"></div>
   <div class="tape-tick"><div class="tick-line" style="width:14px"></div><span class="tick-num" id="alt-t2">--</span></div>
   <div style="height:8px"></div>
-  <div id="alt-big">0</div><div id="alt-unit">MTR</div>
+  <div id="alt-big">0</div><div id="alt-unit">метры</div>
   <div style="height:8px"></div>
   <div class="tape-tick"><div class="tick-line" style="width:9px"></div><span class="tick-num" id="alt-t1">--</span></div>
 </div>
@@ -253,7 +253,7 @@ pointer-events:none;white-space:nowrap;
     <span class="tick-num-c" id="spd-t2">--</span><div class="tick-line-c" style="width:14px"></div>
   </div>
   <div style="height:8px"></div>
-  <div id="spd-big">0</div><div id="spd-unit">KMH</div>
+  <div id="spd-big">0</div><div id="spd-unit">км/ч</div>
   <div style="height:8px"></div>
   <div style="display:flex;align-items:center;padding-left:4px;gap:3px;width:100%">
     <span class="tick-num-c" id="spd-t1">--</span><div class="tick-line-c" style="width:9px"></div>
@@ -264,7 +264,7 @@ pointer-events:none;white-space:nowrap;
   <div id="target-inner">
     <div class="corner tl"></div><div class="corner tr"></div>
     <div class="corner bl"></div><div class="corner br"></div>
-    <div id="target-label">🔒 заблок.</div>
+    <div id="target-label">заблок.</div>
     <div id="target-dist">0m</div>
   </div>
 </div>
@@ -338,11 +338,11 @@ pointer-events:none;white-space:nowrap;
 
 <div id="restart-screen">
   <div class="screen-content" id="screen-box">
-    <div id="res-msg">КРЭШ!</div>
-    <div id="res-sub">❌ нет сигнала!</div>
+    <div id="res-msg">разбился!</div>
+    <div id="res-sub">нет сигнала!</div>
     <div class="btn-row">
-      <button class="btn-continue" onclick="continueGame()">▶ продолжить</button>
-      <button class="btn-restart" onclick="location.reload()">↺ заново</button>
+      <button class="btn-continue" onclick="continueGame()">повторить</button>
+      <button class="btn-restart" onclick="location.reload()">выход</button>
     </div>
   </div>
 </div>
@@ -398,7 +398,7 @@ function showManualInput(){
 }
 function startWithGeo(){
   const btn=document.getElementById('btn-geo');
-  btn.textContent='📡 ОПРЕДЕЛЯЕМ...';btn.disabled=true;
+  btn.textContent='определяем..';btn.disabled=true;
   if(!navigator.geolocation){loadMap(50.4501,30.5234);return;}
   navigator.geolocation.getCurrentPosition(
     p=>loadMap(p.coords.latitude,p.coords.longitude),
@@ -424,10 +424,10 @@ async function loadMap(lat,lon){
   const sp=document.querySelector('.start-specs');if(sp)sp.style.display='none';
 
   let osmData=null;
-  bar(5,'ЗАПРОС OSM...');
+  bar(5,'запрос api..');
   // Animate bar while waiting so user knows it's working
   let barPct=5;
-  const barTimer=setInterval(()=>{if(barPct<48){barPct+=1;bar(barPct,'ЗАПРОС OSM...');}},600);
+  const barTimer=setInterval(()=>{if(barPct<48){barPct+=1;bar(barPct,'запрос api..');}},600);
   try{
     osmData=await fetchOSM(lat,lon,CHUNK_R);
   }catch(e){
@@ -436,7 +436,7 @@ async function loadMap(lat,lon){
     clearInterval(barTimer);
   }
 
-  bar(52,'СТРОИМ МИР...');
+  bar(52,'строим карту..');
   await sleep(0); // yield to browser
   if(osmData){
     await buildScene(osmData);
@@ -444,10 +444,10 @@ async function loadMap(lat,lon){
     fallbackScene();
   }
 
-  bar(88,'ОБЪЕКТЫ...');
+  bar(88,'объекты..');
   await sleep(0);
   createGround();createDrone();initTrail();setupJoysticks();
-  bar(100,'ГОТОВО');
+  bar(100,'готово!');
   await sleep(250);
   document.getElementById('start-prompt').style.display='none';
   markZone(lat,lon);spawnInitial();buildDrum();
@@ -475,10 +475,10 @@ async function fetchOSM(lat,lon,r,retries=10){
       if(resp.ok){
         const json=await resp.json();
         if(json&&Array.isArray(json.elements))return json;
-        // Empty but valid response — return it
+        // Empty but valid response -- return it
         return json;
       }
-      // Rate limited (429) — wait longer
+      // Rate limited (429) -- wait longer
       if(resp.status===429)await sleep(3000+i*500);
     }catch(err){
       clearTimeout(tid);
@@ -1043,7 +1043,7 @@ function ensureAudio(){
   }catch(e){console.warn('Audio init failed:',e);}
 }
 function initAudio(){
-  // Called at game start — we don't create AudioContext here anymore,
+  // Called at game start -- we don't create AudioContext here anymore,
   // just hook it to the first joystick/touch event so it's ready
   const resume=()=>{ensureAudio();};
   document.addEventListener('touchstart',resume,{once:true,passive:true});
