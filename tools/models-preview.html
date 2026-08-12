@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="uk"><head><meta charset="utf-8">
+<title>myFPV — модели</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:#010a01;overflow:hidden;font-family:'Share Tech Mono',monospace}
+canvas{display:block;cursor:grab}
+canvas:active{cursor:grabbing}
+#bar{position:fixed;top:0;left:0;right:0;display:flex;gap:6px;padding:10px 12px;z-index:9;flex-wrap:wrap;max-height:38vh;overflow:auto}
+#bar button{background:rgba(0,25,0,.7);border:1px solid rgba(57,255,20,.35);color:rgba(57,255,20,.75);
+  font-family:inherit;font-size:11px;letter-spacing:2px;padding:7px 13px;cursor:pointer;text-transform:uppercase}
+#bar button:hover{border-color:#39ff14;color:#39ff14}
+#bar button.on{background:#39ff14;color:#001a00;border-color:#39ff14}
+#info{position:fixed;bottom:14px;left:14px;color:rgba(57,255,20,.55);font-size:10px;letter-spacing:2px;line-height:1.9;z-index:9}
+#info b{color:#39ff14;font-weight:400}
+#hint{position:fixed;bottom:14px;right:14px;color:rgba(57,255,20,.3);font-size:9px;letter-spacing:2px;z-index:9}
+#grid{position:fixed;inset:0;pointer-events:none;z-index:1;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.14) 2px,rgba(0,0,0,.14) 4px)}
+#vig{position:fixed;inset:0;pointer-events:none;z-index:2;
+  background:radial-gradient(ellipse at center,transparent 45%,rgba(0,0,0,.75) 100%)}
+</style></head><body>
+<div id="bar"></div>
+<div id="info"></div>
+<div id="hint">тяни — вращать · колесо — зум</div>
+<div id="grid"></div><div id="vig"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="../assets/models.js"></script>
+<script>
+const scene=new THREE.Scene();
+scene.fog=new THREE.FogExp2(0x010a01,.012);
+const cam=new THREE.PerspectiveCamera(38,innerWidth/innerHeight,.05,400);
+const r=new THREE.WebGLRenderer({antialias:true});
+r.setPixelRatio(Math.min(devicePixelRatio||1,2));
+r.setSize(innerWidth,innerHeight);r.setClearColor(0x010a01);
+document.body.appendChild(r.domElement);
+
+// підлогова сітка для масштабу
+(function(){
+  const p=[],c=[];
+  for(let i=-12;i<=12;i++){
+    p.push(-12,0,i, 12,0,i, i,0,-12, i,0,12);
+    for(let k=0;k<4;k++)c.push(.03,.20,.09);
+  }
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.Float32BufferAttribute(p,3));
+  g.setAttribute('color',new THREE.Float32BufferAttribute(c,3));
+  scene.add(new THREE.LineSegments(g,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,opacity:.5})));
+})();
+
+const M=[
+  {n:'ЗРК середньої дальності',d:22,y:0,f:()=>MODELS.sam(),info:'4 пускові труби на балці, башта обертається, ракети стартують по одній'},
+  {n:'Ракета',d:9,y:1.2,f:()=>MODELS.missile(),info:'носовий обтікач, реактивний двигун, стабілізатори і рулі'},
+  {n:'Пакет пускових труб',d:20,y:0,f:()=>MODELS.samTruck(),info:'6 труб у кормі, вертикальний старт'},
+  {n:'ЗУ-23 буксирувана',d:9,y:0,f:()=>MODELS.zu(),info:'спарені стволи, щиток, станина · веде ствол за ціллю'},
+  {n:'ЗУ на пікапі',d:13,y:0,f:()=>MODELS.zuPickup(),info:'мобільна, стріляє в рухі'},
+  {n:'РЛС',d:20,y:0,f:()=>MODELS.radar(),info:'антена крутиться · виявляє цілі для ЗРК'},
+  {n:'БТР',d:17,y:0,f:()=>MODELS.apc(),info:'8 колес, башта з КПВТ · везе десант'},
+  {n:'САУ',d:19,y:0,f:()=>MODELS.arty(),info:'ствол задертий, відкат при вистрілі'},
+  {n:'РЕБ',d:20,y:0,f:()=>MODELS.ew(),info:'дзеркало на мачті крутиться · глушить керування'},
+  {n:'Вантажівка з тентом',d:19,y:0,f:()=>MODELS.truckTent(),info:'дуги поперек кузова, натягнутий тент'},
+  {n:'Заправник',d:19,y:0,f:()=>MODELS.fuel(),info:'бак по довжині шасі'},
+  {n:'НРК',d:6,y:0,f:()=>MODELS.moto(),info:'швидкий, петляє провулками'},
+  {n:'Опора ЛЕП',d:70,y:0,f:()=>MODELS.pylon({}),info:'ферма з розкосів + ізолятори · провід між опорами вбиває дрон'},
+  {n:'Майданчик запуску',d:16,y:0,f:()=>MODELS.pad(),info:'наземна станція, антена · старт вилету'},
+  {n:'FPV квадрокоптер',d:3.4,y:.9,f:()=>MODELS.quad({payload:true}),info:'5" фристайл · рама, стек, мотори, 3-лопатеві пропи, камера, VTX, БК, підвіс'},
+  {n:'Піхотинець',d:3.6,y:.95,f:()=>MODELS.soldier(),info:'артикулюється: 2 ноги + 2 руки, цикл ходьби · далекий LOD — 1 draw call'},
+  {n:'Цивільний',d:3.6,y:.95,f:()=>MODELS.civilian(),info:'без зброї, інший колір · не стріляє'},
+  {n:'Танк',d:15,y:1.4,f:()=>MODELS.tank(),info:'нахилена лобова, котки, башта наводиться на дрон'},
+  {n:'Шахед',d:6.5,y:.6,f:()=>MODELS.wing({}),info:'фюзеляж по центру крила, два кілі на кінцях · штовхаючий вінт'},
+  {n:'FPV ворожий',d:3.4,y:.9,f:()=>MODELS.quad({color:0xff3300,fill:0x220400}),info:'та сама геометрія, інший матеріал'},
+  {n:'Седан',d:7.5,y:.75,f:()=>MODELS.car('sedan',0xffaa00),info:'профіль кузова екструзією · 1 draw call'},
+  {n:'Мікроавтобус',d:8.5,y:1,f:()=>MODELS.car('van',0x00a8ff),info:'1 draw call'},
+  {n:'Евак',d:11,y:1.2,f:()=>MODELS.car('truck',0xeeeeee),info:'швидка допомога: маячок, хрест · 1 draw call'},
+  {n:'МАНПАДС',d:3.6,y:.95,f:()=>MODELS.soldier(0xff7a00,'manpads'),info:'оператор з трубою на плечі · труба наводиться на дрон'},
+  {n:'ДШК',d:5,y:0,f:()=>MODELS.dshk(),info:'кулемет на триногі · дахова позиція'},
+  {n:'ЗУ-23 стаціонарна',d:7,y:0,f:()=>MODELS.zuStatic(),info:'без візка, на даху'},
+  {n:'РЕБ на даху',d:9,y:0,f:()=>MODELS.roofEw(),info:'дзеркало на короткій мачті'},
+  {n:'Су-34',d:62,y:6,f:()=>MODELS.su34(),info:'довгий ніс, ліхтар тандемом, ПГО, дві гондоли, кілі з розвалом, жало між соплами · КАБи'},
+  {n:'Су-35',d:62,y:6,f:()=>MODELS.su35(),info:'одномісний, ОЛС перед ліхтарем, вищі кілі, сопла з керованим вектором · крилаті ракети'},
+  {n:'МіГ-31К',d:68,y:6,f:()=>MODELS.mig31(),info:'клинові бокові заборники, кілі з розвалом · «Кинжал» на центральному вузлі, відчіпляється'},
+  {n:'Мі-8',d:46,y:3.5,f:()=>MODELS.mi8(),info:'гранований ніс зі скління, смуга вікон, зсувні двері, 5 лопатей · висадка на тросах'},
+  {n:'Мі-24',d:44,y:3.5,f:()=>MODELS.mi24(),info:'ліхтарі уступом, підборідна установка + сенсорні обтікачі, крила з анхедралом · блоки НАР + ПТРК'},
+  {n:'«Калібр» 3М14',d:14,y:1.2,f:()=>MODELS.kalibr(),info:'6.2 м · ТРД, підфюзеляжний повітрозабірник, гаргрот, оживальний обтічник ГСН · крило складене, розкривається після старту'},
+  {n:'Х-101',d:16,y:1.2,f:()=>MODELS.x101(),info:'7.45 м · гранений stealth-корпус, висувний двигун знизу, Т-подібне хвостове оперення · складене крило'},
+  {n:'Х-59',d:12,y:1.2,f:()=>MODELS.x59(),info:'5.7 м · сферичне скло ГСН у носі, хрестоподібне крило по центру, стартовий блок у кормі'},
+  {n:'«Іскандер-К» 9М728',d:15,y:1.2,f:()=>MODELS.iskK(),info:'6.7 м · КР наземного старту, підфюзеляжний забірник, 4 хвостові керма · складене крило'},
+  {n:'«Іскандер-М» 9М723',d:16,y:1.2,f:()=>MODELS.iskM(),info:'7.3 м · аеробалістична: гратчасті керма з решіткою, носові дестабілізатори, оживальний обтічник'},
+  {n:'С-300 48Н6',d:16,y:1.2,f:()=>MODELS.s300(),info:'7.5 м · тонкий корпус, гострий конус, малий розмах керм — в ударному режимі по місту'},
+  {n:'«Циркон»',d:18,y:1.2,f:()=>MODELS.zircon(),info:'8.4 м · waverider-обтічник, клиновий ПВРД під корпусом, плазмовий кокон на швидкості'},
+  {n:'«Кинжал»',d:17,y:1.2,f:()=>MODELS.kinzhalMsl(),info:'7.7 м · аеробалістична авіаційного старту, потовщений корпус, великі хвостові керма'},
+  {n:'ЗРК: ракета-перехоплювач',d:12,y:1.2,f:()=>MODELS.sam9m(),info:'5.5 м · тонка зенітна, довгий конус, керма великого розмаху в кормі'},
+  {n:'Ракета гравця (Shift)',d:4,y:.8,f:()=>MODELS.agmPlayer(),info:'зменшена копія боєприпасу скиду · самонаведення по цілі в захваті'},
+  {n:'Ка-52',d:42,y:3.5,f:()=>MODELS.ka52(),info:'соосна колонка, надкабінний приціл, гармата справа, високий стабілізатор із шайбами'}
+];
+M.forEach(m=>{const b=m.f();m.g=b.group;m.parts=b.parts;if(b.parts&&b.parts.wings&&b.parts.wings.length)MODELS.agmDeploy(b.parts,1);m.g.visible=false;m.g.position.y=m.y;scene.add(m.g);});
+
+const bar=document.getElementById('bar');
+M.forEach((m,i)=>{
+  const b=document.createElement('button');b.textContent=m.n;
+  b.onclick=()=>select(i);m.btn=b;bar.appendChild(b);
+});
+
+let cur=0,az=.85,elv=.30,dist=M[0].d;
+function select(i){
+  M.forEach((m,k)=>{m.g.visible=k===i;m.btn.classList.toggle('on',k===i);});
+  cur=i;dist=M[i].d;
+  const dc=countDC(M[i].g);
+  document.getElementById('info').innerHTML=
+    `<b>${M[i].n}</b><br>${M[i].info}<br>draw calls: <b>${dc}</b>`;
+}
+function countDC(o){let n=0;o.traverse(c=>{if(c.isMesh||c.isLineSegments||c.isLine)if(c.visible)n++;});return n;}
+
+let drag=false,lx=0,ly=0;
+r.domElement.addEventListener('pointerdown',e=>{drag=true;lx=e.clientX;ly=e.clientY;});
+addEventListener('pointerup',()=>drag=false);
+addEventListener('pointermove',e=>{
+  if(!drag)return;
+  az-=(e.clientX-lx)*.006;
+  elv=Math.max(-.35,Math.min(1.25,elv+(e.clientY-ly)*.005));
+  lx=e.clientX;ly=e.clientY;
+});
+addEventListener('wheel',e=>{dist=Math.max(1.2,Math.min(200,dist*(1+e.deltaY*.0012)));},{passive:true});
+
+const clock=new THREE.Clock();
+let ph=0;
+function loop(){
+  requestAnimationFrame(loop);
+  const dt=Math.min(clock.getDelta(),.05);
+  const m=M[cur];
+  if(!drag)az+=dt*.16;
+  if(m.parts.props)m.parts.props.forEach((p,k)=>{
+    if(m.n==='Крило')p.rotation.z+=dt*26; else p.rotation.y+=(k%2?-1:1)*dt*22;
+  });
+  if(m.parts.antenna)m.parts.antenna.rotation.y+=dt*1.9;
+  if(m.parts.rotors)m.parts.rotors.forEach(rt=>{rt.rotation.y+=(rt.userData.dir||1)*dt*7.5;});
+  if(m.parts.tail&&m.parts.tail.userData.disc)m.parts.tail.userData.disc.rotation.y+=dt*22;
+  if(m.parts.dish)m.parts.dish.rotation.y=Math.sin(clock.elapsedTime*.5)*1.2;
+  if(m.parts.launcher){
+    m.parts.turret.rotation.y=Math.sin(clock.elapsedTime*.3)*1.1;
+    m.parts.launcher.rotation.x=-.35-Math.sin(clock.elapsedTime*.45)*.42;
+  }
+  if(m.parts.barrels&&m.parts.turret){
+    m.parts.turret.rotation.y=Math.sin(clock.elapsedTime*.45)*1.5;
+    m.parts.barrels.rotation.x=-.30-Math.sin(clock.elapsedTime*.6)*.5;
+  }
+  if(m.parts.legL){
+    ph+=dt*7;const sn=Math.sin(ph),P=m.parts;
+    P.legL.rotation.x=sn*.55;P.legR.rotation.x=-sn*.55;
+    P.legL.joint.rotation.x=Math.max(0,-Math.sin(ph+.55))*1.15;
+    P.legR.joint.rotation.x=Math.max(0,-Math.sin(ph+.55+Math.PI))*1.15;
+    if(P.tube){
+      P.armL.rotation.x=-1.35;P.armR.rotation.x=-1.15;
+      P.armL.joint.rotation.x=-1.0;P.armR.joint.rotation.x=-.75;
+      P.tube.rotation.x=-.5-Math.sin(clock.elapsedTime*.5)*.35;
+    }else{
+      P.armL.rotation.x=-sn*.42;P.armR.rotation.x=sn*.42;
+      P.armL.joint.rotation.x=P.armR.joint.rotation.x=-(.3+Math.abs(sn)*.55);
+    }
+    m.g.position.y=m.y+Math.abs(Math.cos(ph))*.035;
+  }
+  if(m.parts.turret&&m.parts.barrel){
+    m.parts.turret.rotation.y=Math.sin(clock.elapsedTime*.35)*.75;
+    m.parts.barrel.rotation.x=-.10-Math.sin(clock.elapsedTime*.5)*.18;
+  }
+  const ty=m.y*.55;
+  cam.position.set(Math.sin(az)*Math.cos(elv)*dist,ty+Math.sin(elv)*dist,Math.cos(az)*Math.cos(elv)*dist);
+  cam.lookAt(0,ty,0);
+  r.render(scene,cam);
+}
+addEventListener('resize',()=>{
+  cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();r.setSize(innerWidth,innerHeight);
+});
+window.focusModel=(i,a,e)=>{select(i);if(a!==undefined)az=a;if(e!==undefined)elv=e;};
+select(0);loop();
+</script></body></html>
