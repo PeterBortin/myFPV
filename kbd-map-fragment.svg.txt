@@ -1,0 +1,103 @@
+<svg id="km-svg" viewBox="-30 -358 3485 2135" xmlns="http://www.w3.org/2000/svg">
+<image href="keyboard.svg" x="0" y="0" width="3425" height="1328"/>
+<rect class="km-k" x="233" y="182" width="200" height="190" rx="30"/>
+<rect class="km-k" x="463" y="182" width="200" height="190" rx="30"/>
+<rect class="km-k" x="2533" y="182" width="200" height="190" rx="30"/>
+<rect class="km-k" x="2763" y="182" width="200" height="190" rx="30"/>
+<rect class="km-k" x="111" y="404" width="200" height="190" rx="30"/>
+<rect class="km-k" x="576" y="404" width="200" height="190" rx="30"/>
+<rect class="km-k off" x="1036" y="404" width="200" height="190" rx="30"/>
+<rect class="km-k off" x="1266" y="404" width="200" height="190" rx="30"/>
+<rect class="km-k" x="2416" y="404" width="200" height="190" rx="30"/>
+<rect class="km-k" x="424" y="624" width="200" height="190" rx="30"/>
+<rect class="km-k" x="654" y="624" width="200" height="190" rx="30"/>
+<rect class="km-k" x="884" y="624" width="200" height="190" rx="30"/>
+<rect class="km-k" x="2264" y="624" width="200" height="190" rx="30"/>
+<rect class="km-k" x="2494" y="624" width="200" height="190" rx="30"/>
+<rect class="km-k" x="2724" y="624" width="200" height="190" rx="30"/>
+<rect class="km-k" x="603" y="844" width="200" height="190" rx="30"/>
+<rect class="km-k off" x="1753" y="844" width="200" height="190" rx="30"/>
+<rect class="km-k off" x="1983" y="844" width="200" height="190" rx="30"/>
+<rect class="km-k off" x="2673" y="844" width="200" height="190" rx="30"/>
+<rect class="km-k" x="1101" y="1064" width="950" height="190" rx="30"/>
+<rect class="km-bg" x="23" y="-110" width="377" height="45" rx="4"/>
+<text class="km-t" x="211" y="-78" text-anchor="middle">TAB · безсмертя</text>
+<path class="km-l" d="M211 397L211 -65"/>
+<circle class="km-d" cx="211" cy="397" r="9"/>
+<rect class="km-bg" x="156" y="-222" width="354" height="45" rx="4"/>
+<text class="km-t" x="333" y="-190" text-anchor="middle">1 · fpv-коптер</text>
+<path class="km-l" d="M333 175L333 -177"/>
+<circle class="km-d" cx="333" cy="175" r="9"/>
+<rect class="km-bg" x="351" y="-334" width="424" height="45" rx="4"/>
+<text class="km-t" x="563" y="-302" text-anchor="middle">2 · крило «шахед»</text>
+<path class="km-l" d="M563 175L563 -289"/>
+<circle class="km-d" cx="563" cy="175" r="9"/>
+<rect class="km-bg" x="546" y="-110" width="260" height="45" rx="4"/>
+<text class="km-t" x="676" y="-78" text-anchor="middle">W · тяга +</text>
+<path class="km-l" d="M676 397L676 -65"/>
+<circle class="km-d" cx="676" cy="397" r="9"/>
+<rect class="km-bg" x="936" y="-110" width="400" height="45" rx="4"/>
+<text class="km-t" x="1136" y="-78" text-anchor="middle">R · acro / angle</text>
+<path class="km-l" d="M1136 397L1136 -65"/>
+<circle class="km-d" cx="1136" cy="397" r="9"/>
+<rect class="km-bg" x="1189" y="-222" width="354" height="45" rx="4"/>
+<text class="km-t" x="1366" y="-190" text-anchor="middle">T · тепловізор</text>
+<path class="km-l" d="M1366 397L1366 -177"/>
+<circle class="km-d" cx="1366" cy="397" r="9"/>
+<rect class="km-bg" x="2316" y="-110" width="400" height="45" rx="4"/>
+<text class="km-t" x="2516" y="-78" text-anchor="middle">P · нахил уперед</text>
+<path class="km-l" d="M2516 397L2516 -65"/>
+<circle class="km-d" cx="2516" cy="397" r="9"/>
+<rect class="km-bg" x="2468" y="-222" width="330" height="45" rx="4"/>
+<text class="km-t" x="2633" y="-190" text-anchor="middle">− · приліт бр</text>
+<path class="km-l" d="M2633 175L2633 -177"/>
+<circle class="km-d" cx="2633" cy="175" r="9"/>
+<rect class="km-bg" x="2686" y="-334" width="354" height="45" rx="4"/>
+<text class="km-t" x="2863" y="-302" text-anchor="middle">= · приліт гзр</text>
+<path class="km-l" d="M2863 175L2863 -289"/>
+<circle class="km-d" cx="2863" cy="175" r="9"/>
+<rect class="km-bg" x="277" y="1372" width="494" height="45" rx="4"/>
+<text class="km-t" x="524" y="1404" text-anchor="middle">A · розворот ліворуч</text>
+<path class="km-l" d="M524 821L524 1372"/>
+<circle class="km-d" cx="524" cy="821" r="9"/>
+<rect class="km-bg" x="624" y="1484" width="260" height="45" rx="4"/>
+<text class="km-t" x="754" y="1516" text-anchor="middle">S · тяга −</text>
+<path class="km-l" d="M754 821L754 1484"/>
+<circle class="km-d" cx="754" cy="821" r="9"/>
+<rect class="km-bg" x="725" y="1596" width="517" height="45" rx="4"/>
+<text class="km-t" x="984" y="1628" text-anchor="middle">D · розворот праворуч</text>
+<path class="km-l" d="M984 821L984 1596"/>
+<circle class="km-d" cx="984" cy="821" r="9"/>
+<rect class="km-bg" x="491" y="1708" width="424" height="45" rx="4"/>
+<text class="km-t" x="703" y="1740" text-anchor="middle">Z · режим бачення</text>
+<path class="km-l" d="M703 1041L703 1708"/>
+<circle class="km-d" cx="703" cy="1041" r="9"/>
+<rect class="km-bg" x="1388" y="1372" width="377" height="45" rx="4"/>
+<text class="km-t" x="1576" y="1404" text-anchor="middle">SPACE · скид бк</text>
+<path class="km-l" d="M1576 1261L1576 1372"/>
+<circle class="km-d" cx="1576" cy="1261" r="9"/>
+<rect class="km-bg" x="1653" y="1484" width="400" height="45" rx="4"/>
+<text class="km-t" x="1853" y="1516" text-anchor="middle">N · нічний режим</text>
+<path class="km-l" d="M1853 1041L1853 1484"/>
+<circle class="km-d" cx="1853" cy="1041" r="9"/>
+<rect class="km-bg" x="1848" y="1372" width="471" height="45" rx="4"/>
+<text class="km-t" x="2083" y="1404" text-anchor="middle">M · mode 1 / mode 2</text>
+<path class="km-l" d="M2083 1041L2083 1372"/>
+<circle class="km-d" cx="2083" cy="1041" r="9"/>
+<rect class="km-bg" x="2164" y="1484" width="400" height="45" rx="4"/>
+<text class="km-t" x="2364" y="1516" text-anchor="middle">L · снос ліворуч</text>
+<path class="km-l" d="M2364 821L2364 1484"/>
+<circle class="km-d" cx="2364" cy="821" r="9"/>
+<rect class="km-bg" x="2406" y="1372" width="377" height="45" rx="4"/>
+<text class="km-t" x="2594" y="1404" text-anchor="middle">; · нахил назад</text>
+<path class="km-l" d="M2594 821L2594 1372"/>
+<circle class="km-d" cx="2594" cy="821" r="9"/>
+<rect class="km-bg" x="2612" y="1484" width="424" height="45" rx="4"/>
+<text class="km-t" x="2824" y="1516" text-anchor="middle">' · снос праворуч</text>
+<path class="km-l" d="M2824 821L2824 1484"/>
+<circle class="km-d" cx="2824" cy="821" r="9"/>
+<rect class="km-bg" x="2514" y="1596" width="517" height="45" rx="4"/>
+<text class="km-t" x="2773" y="1628" text-anchor="middle">/ · вид від 1-ї особи</text>
+<path class="km-l" d="M2773 1041L2773 1596"/>
+<circle class="km-d" cx="2773" cy="1041" r="9"/>
+</svg>
