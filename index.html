@@ -1549,6 +1549,20 @@ body.tm-on #salt-tmap{display:flex;}
 @media (max-width:760px),(max-height:520px){#salt-tmap .tm-box{flex-direction:column;overflow:auto;}#salt-tmap .tm-map{width:min(92vw,70vh);}}
 #salt .camp-db{margin-top:16px;padding-top:12px;border-top:1px solid rgba(232,228,218,.2);}
 #salt .camp-db dl{display:grid;grid-template-columns:1fr auto;gap:3px 14px;margin:8px 0 12px!important;}#salt .camp-db dt{font:500 12px/1.3 Ubuntu,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8d9aa3;}#salt .camp-db dd{font:500 13px/1.3 'Ubuntu Mono',monospace;text-align:right;color:#e8e4da;}
+/* гранатомети, кермо (arms2.js, drive.js) */
+html.ui-salt #salt-arm,html.ui-salt #salt-drv{position:fixed;z-index:30;display:none;gap:10px;align-items:center;font:500 12px/1 "Ubuntu Mono","Ubuntu",monospace;color:#e8e4da;letter-spacing:.04em;pointer-events:none}
+html.ui-salt #salt-arm.on,html.ui-salt #salt-drv.on{display:flex}
+html.ui-salt #salt-arm{right:22px;bottom:118px}
+html.ui-salt #salt-arm span{padding:6px 9px;background:rgba(11,13,15,.72);border:1px solid rgba(232,228,218,.16);color:#8d9aa3}
+html.ui-salt #salt-arm span.a{border-color:#ffb347;color:#e8e4da}
+html.ui-salt #salt-arm b{color:#ffb347;font-weight:700}
+html.ui-salt #salt-arm i{font-style:normal;color:#0b0d0f;background:#8d9aa3;padding:1px 4px;margin-right:6px;font-size:10px}
+html.ui-salt #salt-arm span.a i{background:#ffb347}
+html.ui-salt #salt-arm em{font-style:normal;color:#d2622a}
+html.ui-salt #salt-drv{left:50%;bottom:34px;transform:translateX(-50%);padding:8px 14px;background:rgba(11,13,15,.72);border:1px solid rgba(232,228,218,.16);border-top:2px solid #ffb347}
+html.ui-salt #salt-drv b{color:#ffb347;font-family:"Ubuntu",sans-serif;font-weight:700}
+html.ui-salt #salt-drv i{font-style:normal;color:#8d9aa3;font-size:10px}
+#salt-arm,#salt-drv{display:none}
 </style>
 <script id="ui-salt">/* UI мовою Saltline (модуль ui): клас на <html> ставиться до побудови титулу, щоб не блимало; ?off=ui — старе оформлення */
 try{performance.setResourceTimingBufferSize(8000);}catch(e){}   /* фікстура мапи читає список завантажених тайлів */
@@ -14816,6 +14830,10 @@ function saltLifeStep(t,dt){
   if(typeof campStep==='function')try{campStep(G,dt);}catch(e){saltFeatFail('camp',e);}
   if(typeof flrStep==='function')try{flrStep(G,dt);}catch(e){saltFeatFail('flares',e);}
   if(typeof civ2Step==='function')try{civ2Step(G,dt);}catch(e){saltFeatFail('civ2',e);}
+  if(typeof k10Step==='function')try{k10Step(G,dt);}catch(e){saltFeatFail('kit10',e);}                              // моделі з набору: штурмовики, командири, патрулі, седани (kit10.js)
+  if(typeof armStep==='function')try{armStep(G,dt);}catch(e){saltFeatFail('arms2',e);}                             // гранатомети й гранати (arms2.js)
+  if(typeof drvStep==='function')try{drvStep(G,dt);}catch(e){try{drvLeave();}catch(_){}saltFeatFail('drive',e);}   // за кермом і броня підтримки (drive.js)
+  if(typeof supStep==='function')try{supStep(G,dt);}catch(e){saltFeatFail('supply',e);}                            // схрони й скид постачання (supply.js)
   if(typeof nobldStep==='function')try{nobldStep(G,dt);}catch(e){saltFeatFail('nobld',e);}                         // у монолітні будинки не заходять (nobld.js)
   if(typeof mgStep==='function')try{mgStep(G,dt);}catch(e){try{mgLeave();}catch(_){}saltFeatFail('mg',e);}       // кулемет: ствол ворожого кулеметника й позиція гравця (mg.js)
   /* ── боти ── */
@@ -15836,7 +15854,7 @@ function saltViaOf(road,x,z){
 
 /* ===== бойові системи: виявлення / захват / супровід цілі, режими бачення, РЕБ, пускові й ракети, колони на дорогах, ніші у вікнах, ходові завдання ===== */
 /* прапорці доповнень: window.MYFPV_FEATURES={proto:false,...} або SALT_RULES.features. Модуль, що впав, вимикається сам із повідомленням про справжню помилку. */
-const SALT_FEAT=Object.assign({war:true,strike:true,loot:true,proto:true,world2:true,sat:true,heat:true,sfx:true,vfx:true,bvh:true,bots:true,botsSquad:true,botsCiv:true,botsTraffic:true,feel:true,roads2:true,grav:true,sat2:true,detail:true,tex:true,geo:true,traffic2:true,walk2:true,solid:true,frac:true,trees2:true,facade2:true,ik:true,susp:true,mobile:true,mg:true,pfd:true,blood:true,nrk:true,nobld:true,ramp:true,calm:true,hitfit:true,civ2:true,perf:true,autoq:true,far:true,fixture:true,gen2:true,fields:true,lsm:true,reeds:true,yards:true,ruins:true,trench:true,smoke2:true,lep:true,flares:true,tac:true,sqcmd:true,vehfpv:true,mines:true,snd2:true,hunter:true,civ3:true,tmap:true,camp:true},(typeof SALT_RULES!=='undefined'&&SALT_RULES.features)||{},window.MYFPV_FEATURES||{});
+const SALT_FEAT=Object.assign({war:true,strike:true,loot:true,proto:true,world2:true,sat:true,heat:true,sfx:true,vfx:true,bvh:true,bots:true,botsSquad:true,botsCiv:true,botsTraffic:true,feel:true,roads2:true,grav:true,sat2:true,detail:true,tex:true,geo:true,traffic2:true,walk2:true,solid:true,frac:true,trees2:true,facade2:true,ik:true,susp:true,mobile:true,mg:true,pfd:true,blood:true,nrk:true,nobld:true,ramp:true,calm:true,hitfit:true,civ2:true,perf:true,autoq:true,far:true,fixture:true,gen2:true,fields:true,lsm:true,reeds:true,yards:true,ruins:true,trench:true,smoke2:true,lep:true,flares:true,tac:true,sqcmd:true,vehfpv:true,mines:true,snd2:true,hunter:true,civ3:true,tmap:true,camp:true,kit10:true,arms2:true,drive:true,supply:true},(typeof SALT_RULES!=='undefined'&&SALT_RULES.features)||{},window.MYFPV_FEATURES||{});
 /* вимкнути модулі з адреси сторінки: ?off=roads2,vfx — щоб порівняти «до» і «після» на тій самій точці */
 try{const m=/[?&]off=([\w,]+)/.exec(location.search);if(m)m[1].split(',').forEach(k=>{if(k in SALT_FEAT)SALT_FEAT[k]=false;});}catch(e){}
 function saltFeatFail(name,e){if(SALT_FEAT[name]===false)return;SALT_FEAT[name]=false;const msg=String(e&&e.message||e).slice(0,120);console.error('module '+name+':',e);if(name==='vfx')try{vfxDispose();}catch(_){}try{saltFlyMsg('модуль «'+name+'» вимкнено: '+msg);}catch(_){}}
@@ -16045,14 +16063,14 @@ function warColumn(G,ref,nWant){
     for(let k=0;k+1<rd.pts.length;k++){const ax=rd.pts[k].x-SALT.ox,az=rd.pts[k].z-SALT.oz,bx=rd.pts[k+1].x-SALT.ox,bz=rd.pts[k+1].z-SALT.oz,len=Math.hypot(bx-ax,bz-az);
       if(len<.2)continue;seg.push({ax:ax,az:az,len:len,ux:(bx-ax)/len,uz:(bz-az)/len});}
     const tot=cd.tot;if(!seg.length)continue;
-    const dir=Math.random()<.5?1:-1,n=nWant||2+((Math.random()*2)|0),col={veh:[],dead:0},KN=['truck','apc','fuel','tank','pickup','truck','moto','apc','arty','moto'],k0=(Math.random()*KN.length)|0;
+    const dir=Math.random()<.5?1:-1,n=nWant||2+((Math.random()*2)|0),col={veh:[],dead:0},KN=(typeof K10!=='undefined'&&K10.force)?[K10.force]:['truck','apc','fuel','tank','pickup','truck','moto','apc','arty','moto'].concat(SALT_FEAT.kit10!==false&&typeof K10!=='undefined'?['humvee','mrap','humvee']:[]),k0=(Math.random()*KN.length)|0;
     for(let i=0;i<n;i++){const kind=KN[(k0+i)%KN.length],PV=protoVeh(kind),C={size:PV.size},g=PV.g;
       g.userData.noMerge=true;G.scene.add(g);
       const s00=Math.max(2+(n-1)*15,Math.min(tot-2-(n-1)*15,cd.s-dir*170));                // колона виїжджає за ~170 м від гравця й іде повз нього
       const v={g:g,road:rd,kind:kind,seg:seg,s:s00-dir*i*15,dir:dir,v:0,vmax:7.5,col:col,size:C.size,gun:0,burst:0,see:0};
       v.wh=[];g.traverse(o=>{if(o.userData&&o.userData.wheel)v.wh.push(o);});                                 // вузли коліс: зараз крутяться, далі на них сяде підвіска
       const p=warVehPos(v);if(p)saltSit(g,p[0],p[1],p[2],C.size[0]*.4,C.size[2]*.4);
-      v.e=warDest(g,kind==='tank'?760:kind==='apc'?430:kind==='arty'?520:kind==='moto'?70:kind==='pickup'?160:230,kind);col.veh.push(v);WAR.veh.push(v);}
+      v.e=warDest(g,kind==='tank'?760:kind==='apc'?430:kind==='arty'?520:kind==='moto'?70:kind==='pickup'?160:kind==='humvee'?260:kind==='mrap'?540:230,kind);col.veh.push(v);WAR.veh.push(v);}
     WAR.cols.push(col);return;
   }
 }
@@ -20187,8 +20205,8 @@ function civ3Own(b,dt,s){
 function civ3Evac(b,s){
   if(SALT_FEAT.civ3===false||Math.random()>.55)return false;const e=CIV2.boom[CIV2.boom.length-1];let ex=Math.random()-.5,ez=Math.random()-.5;
   if(e){ex=b.pos.x-e.x;ez=b.pos.z-e.z;}const l=Math.hypot(ex,ez)||1;s.ex=ex/l;s.ez=ez/l;
-  CIV3.evacL=CIV3.evacL.filter(o=>o.alive&&o.c2&&o.c2.st==='evac');s.lead=CIV3.evacL.find(o=>o.pos.distanceTo(b.pos)<35)||null;if(s.lead){let t=s.lead;while(t.c2.fol)t=t.c2.fol;s.lead=t;t.c2.fol=b;}
-  CIV3.evacL.push(b);if(!CIV3.warned||LIFE.t-CIV3.warned>40){CIV3.warned=LIFE.t;try{warRadio('Цивільні виходять колоною — евакуація.',2.6);}catch(e){}}return true;
+  CIV3.evacL=CIV3.evacL.filter(o=>o.alive&&o.c2&&o.c2.st==='evac');s.lead=CIV3.evacL.find(o=>o.pos.distanceTo(b.pos)<35)||null;s.fol=null;if(s.lead===b)s.lead=null;if(s.lead){let t=s.lead,n=0;while(t.c2.fol&&t.c2.fol!==b&&t.c2.fol.alive&&t.c2.fol.c2&&t.c2.fol.c2.st==='evac'&&n++<40)t=t.c2.fol;s.lead=t;t.c2.fol=b;}   // ланцюг без кілець: старі звʼязки скидаються, прохід обмежено (кільце вішало сторінку)
+  if(CIV3.evacL.indexOf(b)<0)CIV3.evacL.push(b);if(!CIV3.warned||LIFE.t-CIV3.warned>40){CIV3.warned=LIFE.t;try{warRadio('Цивільні виходять колоною — евакуація.',2.6);}catch(e){}}return true;
 }
 function civ3Step(G,dt){civ3Sweep(G);if(SALT_FEAT.civ3===false||SALT.droneOnly)return;CIV3.t-=dt;if(CIV3.t<=0){CIV3.t=25+Math.random()*20;try{civ3Spawn(G);}catch(e){saltFeatFail('civ3',e);}}}
 /* хто пішов (евакуація) чи кого винесли (тактика) — прибрати з ботів і сцени, не рахуючи як загиблих */
@@ -20286,6 +20304,584 @@ function tmapHud(x,W,H,d,G){
   x.restore();
 }
 addEventListener('keydown',e=>{if(e.code==='KeyK'&&!e.repeat&&typeof SALT!=='undefined'&&SALT.on){e.preventDefault();tmapToggle();}else if(e.code==='Escape'&&TMAP.open){tmapToggle(false);}});
+
+/* ===== моделі з набору користувача (10 GLB), відтворені кодом (прапорець SALT_FEAT.kit10) =====
+   Зразки: згенеровані меші (один меш ≈39 тис. трикутників із текстурою, без ієрархії) — у гру файли не йдуть, узято форму, пропорції й кольори.
+   Позашляховик (4.7×2.2×1.9 м), бронеавтомобіль (6.0×2.5×2.7 м), седан 80-х (4.6×1.75×1.4 м), гранатомет із прицілом і магазином (0.8 м),
+   реактивний гранатомет із розтрубом (0.95 м), ручна граната (кругла, з важелем і кільцем), армійський ящик (0.9×0.55×0.52 м).
+   Бійці: штурмовик — наявна модель бійця + маска, тактичні окуляри, стрічки й прапорці сторони; офіцер — берет, сорочка з коротким рукавом, без спорядження.
+   Стилізований «мультяшний» боєць зі зразків не використовується. Усе в координатах набору: ніс техніки й дуло зброї — уздовж +x. */
+const K10={m:{}};
+function k10Mat(name,o){return K10.m[name]||(K10.m[name]=new SALT.G.THREE.MeshStandardMaterial(o));}
+function k10Mats(){const g=k10Mat;return {olive:g('olive',{color:0x5d6240,roughness:.72,metalness:.1}),olive2:g('olive2',{color:0x4c5236,roughness:.8,metalness:.1}),mgreen:g('mgreen',{color:0x4f7049,roughness:.6,metalness:.15}),mgreen2:g('mgreen2',{color:0x3f5a3c,roughness:.7,metalness:.15}),
+  red:g('red',{color:0xc4513a,roughness:.42,metalness:.25}),chrome:g('chrome',{color:0xc9ccd0,roughness:.18,metalness:.95}),blk:g('blk',{color:0x141517,roughness:.6,metalness:.3}),gun:g('gun',{color:0x1b1c1f,roughness:.45,metalness:.7}),
+  alu:g('alu',{color:0xb9bcc0,roughness:.3,metalness:.9}),wood:g('wood',{color:0x4a3626,roughness:.7}),box:g('box',{color:0x5f7a45,roughness:.62,metalness:.15}),boxd:g('boxd',{color:0x4c6438,roughness:.7,metalness:.15}),
+  gren:g('gren',{color:0x565a36,roughness:.5,metalness:.35}),lever:g('lever',{color:0x8c8f6c,roughness:.5,metalness:.5}),amber:g('amber',{color:0xff9a2a,emissive:0xff7a10,emissiveIntensity:.6,roughness:.4}),
+  tint:g('tint',{color:0x0c1013,roughness:.08,metalness:.9}),lamp:g('lamp',{color:0xfff3d8,emissive:0xfff0c8,emissiveIntensity:.9,roughness:.3}),tail:g('tail',{color:0xb01a14,emissive:0x7a0a08,emissiveIntensity:.5,roughness:.4})};}
+/* колесо: шина з протектором, диск, маточина, болти. off — позашляхове (грубі грунтозачепи) */
+function k10Wheel(K,M,r,w,off,rimM){
+  const GX=Math.PI/2;K.cyl(K.MP('tire'),r,r,w,0,0,0,22,GX,0);K.cyl(K.MP('tire'),r*.94,r*.94,w*1.08,0,0,0,22,GX,0);
+  const n=off?14:22;for(let q=0;q<n;q++){const a=q/n*6.283;K.box(K.MP('rubber'),off?r*.2:r*.1,off?.05:.022,w*(off?1.12:1.02),Math.cos(a)*r,Math.sin(a)*r,0,0,0,a+GX);}
+  for(const s of [-1,1]){K.cyl(rimM||M.olive2,r*.6,r*.6,.03,0,0,s*w*.46,18,GX,0);K.cyl(rimM||M.olive2,r*.26,r*.3,.08,0,0,s*w*.5,10,GX,0);
+    for(let q=0;q<(off?8:5);q++){const a=q/(off?8:5)*6.283;K.cyl(M.blk,.018,.018,.03,Math.cos(a)*r*.42,Math.sin(a)*r*.42,s*w*.48,6,GX,0);}}
+}
+/* ── військовий позашляховик ── */
+SALT_X.x_humvee=K=>{
+  const M=k10Mats(),P=M.olive,D=M.olive2,B=M.blk,G=M.tint,HW=1.08;
+  K.box(D,4.3,.16,1.5,0,.62,0,0,0,0,.03);                                                              // рама
+  K.box(P,1.55,.52,2.0,1.5,1.12,0,0,0,0,.05);K.box(P,1.5,.07,1.86,1.52,1.4,0,0,0,-.045,.03);              // капот: плаский, широкий
+  for(let k=0;k<7;k++)K.box(B,.5,.012,.05,1.75,1.435,-.3+k*.1);                                          // жалюзі на капоті
+  K.box(P,2.7,.62,2.16,-.75,1.12,0,0,0,0,.05);                                                          // низ кузова
+  K.box(P,2.5,.62,2.0,-.85,1.74,0,0,0,0,.06);K.box(P,2.56,.06,2.06,-.85,2.07,0,0,0,0,.03);               // надбудова й дах
+  K.box(G,.05,.5,1.72,.4,1.72,0,0,0,-.16);K.box(P,.07,.56,.07,.43,1.72,0,0,0,-.16);                       // лобове (дві половини зі стійкою)
+  K.box(G,.04,.4,1.5,-2.1,1.76,0);                                                                      // заднє
+  for(const s of [-1,1]){const z=s*1.005;
+    for(const x of [-.15,-.95,-1.72])K.box(G,.62,.38,.03,x,1.78,z);                                       // три бічні вікна
+    for(const x of [-.55,-1.34])K.box(P,.09,.5,.04,x,1.76,z);
+    K.box(D,2.7,.05,.03,-.75,1.38,z*1.075);K.box(B,2.3,.05,.22,-.7,.5,s*1.14);                            // молдинг, поріг-підніжка
+    for(const x of [1.45,-1.55])K.box(P,1.2,.1,.36,x,1.37,s*1.02,0,0,0,.04);                               // розширювачі арок
+    K.box(B,.05,.12,.16,.52,1.56,s*1.2);K.box(B,.3,.03,.03,.5,1.5,s*1.1);                                   // дзеркало
+    K.geo(M.lamp,new K.T.CylinderGeometry(.11,.11,.05,16),2.29,1.12,s*.72,0,0,Math.PI/2);K.geo(M.amber,new K.T.BoxGeometry(.03,.07,.12),2.29,1.12,s*.92);
+    K.geo(M.tail,new K.T.BoxGeometry(.03,.14,.1),-2.11,1.18,s*.92);K.geo(M.amber,new K.T.BoxGeometry(.03,.07,.1),-2.11,1.34,s*.92);
+    for(const x of [-.2,-.9,-1.6])K.geo(M.amber,new K.T.BoxGeometry(.08,.03,.04),x+.5,2.11,s*.5);}          // габаритні вогні на даху
+  K.box(B,.06,.42,1.1,2.28,1.1,0);for(let k=0;k<7;k++)K.box(P,.07,.36,.07,2.3,1.1,-.42+k*.14);             // решітка з вертикальними щілинами
+  K.box(B,.16,.2,2.1,2.36,.72,0,0,0,0,.04);                                                              // бампер
+  for(const s of [-1,1]){K.cyl(B,.03,.03,.5,2.44,1.0,s*.62,8);K.cyl(B,.03,.03,1.24,2.44,1.25,0,8,Math.PI/2,0);K.box(B,.1,.1,.06,2.4,.62,s*.55);}   // кенгурятник і гаки
+  K.box(B,.16,.2,2.1,-2.2,.72,0,0,0,0,.04);K.box(D,.1,.5,.5,-2.22,1.2,0);K.cyl(B,.012,.012,1.5,-1.9,2.8,.85,5);   // задній бампер, запаска-кронштейн, антена
+  for(const s of [-1,1])for(const x of [1.45,-1.55])K.wheel(x,.5,s*HW,.5,()=>k10Wheel(K,M,.5,.34,true,D));
+  K.col(-2.3,0,-1.15,2.4,2.1,1.15);
+};
+/* ── бронеавтомобіль (MRAP): капотний, з броньованим кузовом, малими бійницями-вікнами й люками на даху ── */
+SALT_X.x_mrap=K=>{
+  const M=k10Mats(),P=M.mgreen,D=M.mgreen2,B=M.blk,G=M.tint,HW=1.12;
+  K.box(D,5.4,.2,1.5,0,.78,0,0,0,0,.03);
+  K.box(D,5.0,.3,1.0,0,.62,0,0,0,0,.02);K.box(D,5.0,.22,1.5,0,.84,0,0,0,0,.02);                           // V-подібне днище
+  K.box(P,1.5,.6,2.0,2.05,1.42,0,0,0,0,.06);K.box(P,1.4,.08,1.8,2.1,1.74,0,0,0,-.06,.03);                 // капот зі скосом
+  K.box(M.tint,.9,.02,1.2,2.15,1.8,0,0,0,-.06);                                                          // панель на капоті
+  K.box(P,1.3,1.5,2.36,.72,1.86,0,0,0,0,.06);                                                            // кабіна
+  K.box(G,.05,.5,.92,1.4,2.2,.5,0,0,-.22);K.box(G,.05,.5,.92,1.4,2.2,-.5,0,0,-.22);K.box(P,.08,.56,.1,1.41,2.2,0,0,0,-.22);   // два лобові стекла
+  K.box(P,3.0,1.72,2.44,-1.45,1.98,0,0,0,0,.07);K.box(D,3.06,.06,2.5,-1.45,2.86,0,0,0,0,.03);              // броньований кузов і дах
+  for(const s of [-1,1]){const z=s*1.225;
+    K.box(G,.5,.4,.03,.75,2.25,s*1.185);K.box(D,.6,.5,.03,.75,2.25,s*1.18);                                // вікно кабіни в рамі
+    for(const x of [-.6,-1.45,-2.3]){K.box(D,.5,.34,.03,x,2.3,z);K.box(G,.36,.22,.03,x,2.3,z*1.004);}       // бійниці кузова
+    K.box(D,.8,1.5,.04,.72,1.8,s*1.19);K.box(B,.1,.04,.05,.5,1.75,s*1.22);                                  // двері кабіни, ручка
+    K.box(B,1.6,.06,.3,-.2,.62,s*1.2);K.box(B,.05,.3,.05,.6,.76,s*1.3);                                     // підніжка
+    for(const x of [2.05,-1.75])K.box(P,1.3,.12,.34,x,1.52,s*1.08,0,0,0,.05);                                // арки
+    K.box(B,.06,.16,.2,1.5,2.3,s*1.4);K.box(B,.5,.04,.04,1.3,2.2,s*1.3);                                    // дзеркала на кронштейнах
+    K.geo(M.lamp,new K.T.CylinderGeometry(.1,.1,.05,14),2.82,1.4,s*.74,0,0,Math.PI/2);K.geo(M.amber,new K.T.CylinderGeometry(.06,.06,.05,10),2.82,1.4,s*.95,0,0,Math.PI/2);
+    K.geo(M.tail,new K.T.BoxGeometry(.03,.16,.1),-2.97,1.5,s*1.0);
+    for(let k=0;k<4;k++)K.geo(M.amber,new K.T.BoxGeometry(.06,.035,.05),-.5-k*.7,2.91,s*1.05);K.box(D,2.8,.06,.06,-1.45,2.9,s*1.1);}   // вогні й рейка на даху
+  K.box(B,.06,.5,1.2,2.82,1.42,0);for(let k=0;k<5;k++)K.box(P,.07,.06,1.1,2.84,1.24+k*.09,0);              // решітка горизонтальна
+  K.box(D,.3,.3,2.3,2.9,.92,0,0,0,0,.06);K.cyl(B,.08,.08,.3,3.08,.9,-.5,10,0,Math.PI/2);K.cyl(B,.08,.08,.3,3.08,.9,.5,10,0,Math.PI/2);   // силовий бампер із буферами
+  K.box(D,.2,.3,2.3,-3.0,.92,0,0,0,0,.05);K.box(D,.05,1.4,1.0,-2.97,1.95,0);K.box(G,.04,.24,.4,-2.99,2.35,0);K.box(B,.06,.05,.9,-3.02,1.2,0);   // корма: двері десанту
+  K.cyl(D,.36,.36,.07,-.5,2.92,0,16);K.cyl(B,.3,.3,.05,-.5,2.96,0,16);K.box(D,.5,.05,.5,-2.0,2.92,.5);K.cyl(B,.012,.012,1.6,.2,3.7,-1.0,5);   // люки, антена
+  for(const s of [-1,1])for(const x of [2.05,-1.75])K.wheel(x,.58,s*HW,.58,()=>k10Wheel(K,M,.58,.4,true,D));
+  K.col(-3.1,0,-1.3,3.1,2.9,1.3);
+};
+/* ── цивільний седан 80-х: кутастий, три об'єми, хромовані бампери й молдинги ── */
+SALT_X.x_sedan80=K=>{
+  const M=k10Mats(),P=K10.car||M.red,C=M.chrome,B=M.blk,G=K.MP('glass'),HW=.78;
+  K.box(B,4.3,.14,1.5,0,.34,0,0,0,0,.03);
+  K.box(P,4.56,.5,1.74,0,.66,0,0,0,0,.07);                                                                // низ кузова
+  K.box(P,1.3,.06,1.66,1.6,.93,0,0,0,-.03,.03);K.box(P,1.05,.06,1.66,-1.72,.94,0,0,0,.02,.03);              // капот і багажник
+  K.box(P,2.1,.42,1.56,-.25,1.15,0,0,0,0,.08);K.box(P,1.7,.06,1.5,-.3,1.38,0,0,0,0,.03);                    // салон і дах
+  K.box(G,.05,.44,1.44,.86,1.14,0,0,0,-.62);K.box(G,.05,.42,1.44,-1.26,1.15,0,0,0,.72);                     // лобове й заднє
+  for(const s of [-1,1]){const z=s*.775;
+    K.box(G,.74,.3,.03,.22,1.16,z);K.box(G,.66,.3,.03,-.62,1.16,z);K.box(P,.06,.36,.04,-.2,1.15,z);K.box(B,.05,.36,.04,.62,1.15,z);   // вікна, стійки
+    K.box(C,4.3,.035,.02,0,.74,s*.878);K.box(B,4.2,.07,.02,0,.52,s*.876);                                    // хромований молдинг і чорний низ
+    K.box(C,.1,.02,.03,.1,.84,s*.885);K.box(C,.1,.02,.03,-.75,.84,s*.885);K.box(B,.14,.08,.05,.74,1.0,s*.84);   // ручки, дзеркало
+    K.geo(M.lamp,new K.T.BoxGeometry(.04,.13,.34),2.27,.72,s*.6);K.geo(M.amber,new K.T.BoxGeometry(.04,.08,.12),2.26,.72,s*.82);
+    K.geo(M.tail,new K.T.BoxGeometry(.04,.14,.4),-2.27,.74,s*.58);}
+  K.box(B,.05,.16,.8,2.27,.72,0);for(let k=0;k<4;k++)K.box(C,.06,.012,.78,2.28,.67+k*.035,0);K.box(C,.07,.05,.1,2.29,.72,0);   // решітка
+  K.box(C,.16,.13,1.8,2.3,.47,0,0,0,0,.04);K.box(C,.16,.13,1.8,-2.3,.47,0,0,0,0,.04);                        // хромовані бампери
+  K.box(B,.03,.11,.42,2.39,.47,0);K.box(B,.03,.11,.42,-2.39,.47,0);                                         // місця під номери (без написів)
+  for(const s of [-1,1])for(const x of [1.38,-1.38])K.wheel(x,.31,s*HW,.31,()=>k10Wheel(K,M,.31,.2,false,C));
+  K.col(-2.35,0,-.9,2.35,1.4,.9);
+};
+/* ── армійський ящик: рублений корпус, кришка з окантовкою, замок-засув, ручки ── */
+SALT_X.x_ammobox=K=>{
+  const M=k10Mats(),P=M.box,D=M.boxd,B=M.blk;
+  K.box(P,.86,.4,.5,0,.2,0,0,0,0,.015);K.box(B,.8,.01,.44,0,.401,0);                                         // корпус, темне нутро під кришкою
+  for(const x of [-.4,.4])for(const z of [-.24,.24])K.box(D,.07,.42,.07,x,.21,z,0,0,0,.01);                   // кутові накладки
+  for(const z of [-.255,.255]){K.box(D,.5,.26,.012,0,.2,z);K.box(P,.42,.2,.014,0,.2,z*1.005);}                 // філенки
+  for(const x of [-.435,.435]){K.box(D,.012,.26,.3,x,.2,0);K.box(B,.03,.03,.16,x*1.04,.28,0);}                 // торці з ручками
+  K.box(B,.05,.1,.025,0,.34,.285);for(const x of [-.26,.26])K.box(B,.08,.03,.03,x,.4,-.275);                   // скоба засува, завіси
+  K.node('lid',0,.41,-.27,.5,()=>{K.box(D,.9,.12,.54,0,.06,.27,0,0,0,.02);K.box(P,.84,.02,.48,0,.13,.27);K.box(D,.08,.1,.02,0,.03,.545);K.box(B,.03,.04,.03,0,.05,.56);});   // кришка: вісь — задня кромка
+  K.col(-.45,0,-.27,.45,.54,.27,'metal');
+};
+/* ── гранатомет із магазином і оптикою (дуло +x, руків'я вниз) ── */
+SALT_X.x_gl=K=>{
+  const M=k10Mats(),G=M.gun,A=M.alu,B=M.blk,GZ=Math.PI/2;
+  K.cyl(G,.045,.045,.5,-.02,0,0,16,0,GZ);K.cyl(A,.05,.05,.2,.33,0,0,18,0,GZ);K.cyl(A,.056,.056,.03,.42,0,0,18,0,GZ);K.cyl(B,.04,.04,.01,.436,0,0,16,0,GZ);   // труба, алюмінієвий надульник
+  K.cyl(A,.052,.052,.012,.26,0,0,18,0,GZ);K.cyl(A,.052,.052,.012,.3,0,0,18,0,GZ);
+  K.box(G,.34,.1,.07,-.02,-.06,0,0,0,0,.012);K.box(G,.3,.02,.05,-.02,.058,0);                                   // ствольна коробка, планка
+  for(let k=0;k<9;k++)K.box(B,.012,.012,.052,-.15+k*.033,.07,0);
+  K.box(B,.06,.15,.045,.0,-.17,0,0,0,.12,.01);K.box(B,.045,.13,.04,-.13,-.16,0,0,0,-.3,.012);                   // магазин, руків'я
+  K.geo(B,new K.T.TorusGeometry(.03,.005,6,12,Math.PI),-.06,-.115,0,0,0,Math.PI);K.box(B,.006,.03,.008,-.07,-.125,0);   // спускова скоба, гачок
+  K.box(B,.2,.04,.06,.14,-.075,0,0,0,0,.01);for(let k=0;k<4;k++)K.box(G,.012,.01,.064,.07+k*.045,-.098,0);         // цівка з планками
+  K.box(B,.09,.12,.06,-.3,-.02,0,0,0,0,.015);K.box(B,.03,.14,.065,-.355,-.02,0,0,0,0,.01);K.cyl(G,.02,.02,.1,-.24,0,0,10,0,GZ);   // приклад
+  K.cyl(B,.028,.028,.2,.0,.12,0,14,0,GZ);K.cyl(B,.036,.03,.05,.115,.12,0,14,0,GZ);K.cyl(B,.034,.028,.04,-.115,.12,0,14,0,GZ);     // оптика
+  K.geo(M.tint,new K.T.CylinderGeometry(.03,.03,.004,14),.141,.12,0,0,0,GZ);K.cyl(B,.012,.012,.03,.0,.155,0,8);K.cyl(B,.012,.012,.03,.0,.12,.035,8,GZ,0);
+  for(const x of [-.06,.06])K.box(B,.025,.045,.04,x,.085,0);
+};
+/* ── реактивний гранатомет: труба з великим розтрубом попереду, дерев'яні накладки, коліматор ── */
+SALT_X.x_rpg=K=>{
+  const M=k10Mats(),G=M.gun,B=M.blk,W=M.wood,GZ=Math.PI/2;
+  K.cyl(G,.04,.04,.62,-.05,0,0,16,0,GZ);                                                                    // труба
+  K.geo(B,new K.T.CylinderGeometry(.085,.04,.2,20,1,true),.36,0,0,0,0,-GZ);K.cyl(B,.088,.088,.02,.46,0,0,20,0,GZ);K.geo(M.tint,new K.T.CylinderGeometry(.075,.075,.004,18),.455,0,0,0,0,GZ);   // розтруб
+  K.cyl(M.alu,.045,.045,.012,.2,0,0,16,0,GZ);K.cyl(M.alu,.045,.045,.012,.24,0,0,16,0,GZ);
+  K.box(G,.26,.08,.06,-.06,-.05,0,0,0,0,.012);K.box(W,.2,.03,.064,.14,-.05,0,0,0,0,.01);                        // коробка, дерев'яна накладка
+  K.box(B,.04,.12,.04,-.02,-.15,0,0,0,-.25,.012);K.box(B,.04,.12,.04,-.14,-.15,0,0,0,-.3,.012);                 // два руків'я
+  K.geo(B,new K.T.TorusGeometry(.028,.005,6,12,Math.PI),-.08,-.095,0,0,0,Math.PI);
+  K.box(W,.16,.1,.05,-.32,-.03,0,0,0,.12,.015);K.box(B,.025,.13,.055,-.4,-.03,0,0,0,.12,.008);                 // приклад із затильником
+  K.box(G,.2,.016,.04,-.02,.05,0);K.box(B,.07,.05,.045,-.02,.085,0,0,0,0,.008);K.cyl(B,.02,.02,.06,.03,.1,0,10,0,GZ);K.geo(M.tint,new K.T.CylinderGeometry(.018,.018,.004,10),.061,.1,0,0,0,GZ);   // коліматор
+  K.box(B,.012,.04,.012,.18,.06,0);
+};
+/* ── ручна граната: кругла, запал, важіль, кільце ── */
+SALT_X.x_grenade=K=>{
+  const M=k10Mats();K.geo(M.gren,new K.T.SphereGeometry(.036,18,14),0,.036,0);K.cyl(M.gren,.016,.02,.02,0,.072,0,12);K.cyl(M.lever,.012,.014,.022,0,.092,0,10);
+  K.box(M.lever,.016,.008,.022,0,.105,.006);K.box(M.lever,.004,.085,.018,0,.062,.04,0,-.12,0);K.box(M.lever,.004,.02,.018,0,.102,.026,0,.9,0);
+  K.geo(k10Mat('ring',{color:0xcfd2d6,roughness:.25,metalness:.95}),new K.T.TorusGeometry(.016,.002,6,16),-.022,.088,0,0,Math.PI/2,0);
+};
+/* ── штурмовик: доповнення до наявної моделі бійця (маска, окуляри з бурштиновим склом, двоколірні стрічки й прапорці сторони) ──
+   Свої — синьо-жовті, ворожі — червоно-білі. Стрічка й прапорець — по одному мешу з двоколірною текстурою 2×2 (без написів). */
+function k10Flag(our){
+  const k=our?'flagO':'flagE';if(K10.m[k])return K10.m[k];const T=SALT.G.THREE,c=document.createElement('canvas');c.width=c.height=4;const x=c.getContext('2d');
+  x.fillStyle=our?'#2456a6':'#b8302a';x.fillRect(0,0,4,2);x.fillStyle=our?'#f2c230':'#e9e6dc';x.fillRect(0,2,4,2);const tx=new T.CanvasTexture(c);tx.magFilter=T.NearestFilter;tx.minFilter=T.NearestFilter;try{tx.colorSpace=T.SRGBColorSpace;}catch(e){}
+  return K10.m[k]=new T.MeshStandardMaterial({map:tx,roughness:.62,side:T.DoubleSide});
+}
+function k10Assault(m,side){
+  if(!m||!m.mil||m.k10)return;m.k10=true;const T=SALT.G.THREE,M=k10Mats(),G0=K10.geo||(K10.geo={mask:new T.SphereGeometry(.088,14,8,0,6.283,1.5,1.2),valve:new T.BoxGeometry(.05,.035,.03),visor:new T.BoxGeometry(.135,.04,.008),
+    bA:new T.CylinderGeometry(.071,.071,.06,14,1,true),bL:new T.CylinderGeometry(.098,.098,.06,14,1,true),f1:new T.PlaneGeometry(.06,.04),f2:new T.PlaneGeometry(.08,.052),f3:new T.PlaneGeometry(.13,.085)});
+  const put=(par,geo,mt,x,y,z,ry)=>{const q=new T.Mesh(geo,mt);q.position.set(x||0,y||0,z||0);if(ry)q.rotation.y=ry;q.castShadow=false;q.userData.k10=true;par.add(q);return q;};
+  const our=side==='zsu',F=k10Flag(our);
+  put(m.head,G0.mask,M.blk,0,0,.012);put(m.head,G0.valve,M.blk,0,-.035,.1);                                   // маска на нижню половину обличчя
+  put(m.head,G0.visor,k10Mat('visor',{color:0xd08a1c,roughness:.1,metalness:.6,emissive:0x5a3406,emissiveIntensity:.35}),0,.075,.119);   // бурштинове скло окулярів
+  put(m.armL.up,G0.bA,F,0,-.15,0);put(m.armR.up,G0.bA,F,0,-.15,0);                                              // стрічки на руках
+  if(!SALT.lite){put(m.legL.th,G0.bL,F,0,-.3,0);put(m.legR.th,G0.bL,F,0,-.3,0);}                                // і на стегнах
+  put(m.helm||m.head,G0.f1,F,0,.105,-.147,Math.PI);put(m.chest,G0.f2,F,.09,.137,.193);put(m.chest,G0.f3,F,0,.18,-.317,Math.PI);   // прапорці: потилиця шолома, груди, рюкзак
+}
+/* ── офіцер: цивільна статура без спорядження, оливкова сорочка з коротким рукавом, штани, ремінь, кобура, берет ── */
+function k10Officer(G){
+  const T=G.THREE,m=saltSoldier(G,'civ',false),M=k10Mats(),sh=k10Mat('oShirt',{color:0x6b7048,roughness:.85}),pa=k10Mat('oPants',{color:0x5a5f3c,roughness:.9}),sk=0xb48a6c;
+  const CM=soldMats(G,'civ'),sw=mt=>mt===CM.cloth?sh:mt===CM.pants?pa:mt;
+  m.g.traverse(o=>{if(!o.isMesh)return;o.material=Array.isArray(o.material)?o.material.map(sw):sw(o.material);});
+  for(const ar of [m.armL,m.armR]){ar.up.traverse(o=>{if(o.isMesh&&o.material!==CM.skin)o.material=sh;});ar.lo.traverse(o=>{if(o.isMesh&&o.material!==CM.skin&&o.material!==CM.black)o.material=CM.skin;});}   // короткий рукав: плече в сорочці, передпліччя голе
+  const put=(par,geo,mt,x,y,z,rx,ry,rz)=>{const q=new T.Mesh(geo,mt);q.position.set(x||0,y||0,z||0);q.rotation.set(rx||0,ry||0,rz||0);q.castShadow=true;par.add(q);return q;};
+  const ber=k10Mat('beret',{color:0x3c4a2c,roughness:.95});
+  {const g=new T.SphereGeometry(.118,18,10,0,6.283,0,1.45);g.scale(1.06,.5,1.1);const b=put(m.head,g,ber,.012,.1,-.004,0,0,-.2);put(m.head,new T.CylinderGeometry(.106,.108,.03,18),M.blk,0,.082,0);put(m.head,new T.BoxGeometry(.022,.026,.006),k10Mat('cock',{color:0xd8b24a,roughness:.3,metalness:.8}),-.03,.105,.106);}
+  put(m.hips,new T.CylinderGeometry(.168,.172,.05,20),M.blk,0,.07,0).scale.set(1.06,1,.82);put(m.hips,new T.BoxGeometry(.05,.04,.02),k10Mat('buck',{color:0xb89a4a,roughness:.3,metalness:.8}),0,.07,.142);
+  put(m.hips,new T.BoxGeometry(.065,.15,.05),M.blk,-.195,-.05,.02,0,0,.06);                                                                          // кобура
+  for(const s of [-1,1]){put(m.chest,new T.BoxGeometry(.075,.012,.05),k10Mat('epa',{color:0x4a5234,roughness:.8}),s*.15,.265,0);put(m.chest,new T.BoxGeometry(.09,.1,.012),sh,s*.1,.1,.125);}   // погони, нагрудні кишені
+  for(const a of [m.armL,m.armR])a.lo.traverse(o=>{if(o.isMesh&&o.material===sh)o.material=CM.skin||k10Mat('skinO',{color:sk,roughness:.62});});                    // короткий рукав: передпліччя голі
+  put(m.armR.up,new T.CylinderGeometry(.066,.066,.036,14,1,true),k10Mat('eA',{color:0xb8302a,roughness:.6}),0,-.16,0);
+  m.officer=true;return m;
+}
+/* ── підключення до гри ── */
+PROTO_SIZE.humvee=[4.8,2.1,2.2];PROTO_SIZE.mrap=[6.2,2.95,2.5];PROTO_SIZE.sedan80=[4.7,1.4,1.8];
+const K10_CARS=[0xc4513a,0x8a2f28,0xd9d4c6,0x4a6a8a,0x6b6f58,0x2f3338];
+function k10Sedan(ci){
+  const t=SALT.t,k='sed'+ci;if(!K10.m[k]){K10.car=k10Mat('car'+ci,{color:K10_CARS[ci],roughness:.42,metalness:.25});try{K10.m[k]=saltXBuild(t,'x_sedan80',{seed:1});}finally{K10.car=null;}}
+  return K10.m[k].clone(true);
+}
+/* частина легковиків у трафіку стає седаном зі зразка: міняємо кузов у вже створеної машини, поведінку (маршрут, паркування, реакції) не чіпаємо */
+function k10Traffic(){
+  for(const c of LIFE.cars){if(c.k10!==undefined)continue;c.k10=0;if(c.wreck||!c.wheels||c.wheels.length!==4||c.wr>.36||Math.random()>.38)continue;      // лише легковики (у фургона колесо більше)
+    const b=k10Sedan((Math.random()*K10_CARS.length)|0),g=c.g;while(g.children.length)g.remove(g.children[0]);g.add(b);const W=[];b.traverse(o=>{if(o.userData&&o.userData.wheel)W.push(o);});
+    c.wheels=W;c.wr=.31;c.su=undefined;c.k10=1;}
+}
+/* бійці: штурмовикам обох сторін — стрічки, прапорці, маска; обгортка нічого не міняє в самій збірці бійця */
+function k10Init(G){
+  if(K10.init)return;K10.init=true;
+  if(typeof saltBotMake==='function'){const o=saltBotMake;saltBotMake=function(G2,side,x,z){const b=o.apply(this,arguments);try{if(SALT_FEAT.kit10!==false&&!K10.plain&&(side==='zsu'||side==='enemy'))k10Assault(b.m,side);}catch(e){saltFeatFail('kit10',e);}return b;};}
+  try{for(const b of LIFE.bots)if(b.side==='zsu'||b.side==='enemy')k10Assault(b.m,b.side);}catch(e){}
+  if(typeof tacOwn==='function'){const o=tacOwn;tacOwn=function(b,dt,BC){if(b.officer&&b.alive){try{if(k10OfficerAI(b,dt,BC))return true;}catch(e){}}return o.apply(this,arguments);};}
+}
+/* офіцер — командир ворожої групи: тримається позаду відділення, у бій не лізе; поки живий — група не відходить і діє злагоджено.
+   Убитий командир: група на кілька секунд залягає, губить ціль і, якщо їх лишилось мало, відходить. */
+function k10OfficerMake(G,s){
+  const live=s.m.filter(o=>o.alive);if(live.length<3)return null;const P=G.player.pos;let cx=0,cz=0;for(const o of live){cx+=o.pos.x;cz+=o.pos.z;}cx/=live.length;cz/=live.length;
+  const dx=cx-P.x,dz=cz-P.z,l=Math.hypot(dx,dz)||1;if(l<55)return null;                                            // не з'являється на очах
+  let x=cx+dx/l*10,z=cz+dz/l*10;try{if(!saltFree(x,z,.8)||landAt(SALT.ox+x,SALT.oz+z)===6){x=cx;z=cz;}}catch(e){}
+  K10.plain=true;let b;try{b=saltBotMake(G,'enemy',x,z);}finally{K10.plain=false;}
+  try{G.scene.remove(b.m.g);b.m=k10Officer(G);G.scene.add(b.m.g);b.m.g.position.copy(b.pos);}catch(e){saltFeatFail('kit10',e);}
+  b.officer=true;b.hp=60;b.vr=100;b.sq=s;s.m.push(b);s.off=b;return b;
+}
+function k10OfficerAI(b,dt,BC){
+  const s=b.sq;if(!s)return false;const pp=BC.pp,live=s.m.filter(o=>o.alive&&o!==b);if(!live.length)return false;
+  if(b.sees&&b.pos.distanceTo(pp)<16)return false;                                                              // впритул — відстрілюється, як усі
+  let cx=0,cz=0;for(const o of live){cx+=o.pos.x;cz+=o.pos.z;}cx/=live.length;cz/=live.length;const L=s.lkp||pp,dx=cx-L.x,dz=cz-L.z,l=Math.hypot(dx,dz)||1,gx=cx+dx/l*16,gz=cz+dz/l*16,d=Math.hypot(gx-b.pos.x,gz-b.pos.z);
+  if(d>4){BC.walkTo(b,gx,gz,d>14?4.6:2.4);b.crouch=false;}else{b.sp=0;b.crouch=LIFE.t-s.lkpT<14;const ty=Math.atan2(L.x-b.pos.x,L.z-b.pos.z),dy=((ty-b.yaw+Math.PI*3)%(Math.PI*2))-Math.PI;b.yaw+=dy*Math.min(1,dt*4);}
+  return true;
+}
+function k10Step(G,dt){
+  if(SALT_FEAT.kit10===false)return;k10Init(G);
+  if((K10.tT=(K10.tT||0)-dt)<=0){K10.tT=1;try{k10Traffic();}catch(e){saltFeatFail('kit10',e);}
+    /* командири груп */
+    if(typeof TAC!=='undefined'&&!SALT.droneOnly)for(const s of TAC.sq){
+      if(s.off===undefined&&s.max>=3){s.off=null;if(Math.random()<.75)try{k10OfficerMake(G,s);}catch(e){saltFeatFail('kit10',e);}}
+      if(s.off&&s.off.alive&&!s.off.wounded){if(s.retreat>0&&s.m.filter(o=>o.alive).length>2)s.retreat=0;}
+      else if(s.off&&!s.offDown){s.offDown=true;const live=s.m.filter(o=>o.alive);for(const o of live)o.pin=Math.max(o.pin||0,2.5+Math.random()*1.5);s.lkpT=-99;s.lkp=null;if(live.length<=3)s.retreat=30;
+        try{warRadio('Командира групи ліквідовано — противник дезорганізований.',3);sfx('taskOk',null,.7,1);}catch(e){}try{if(typeof CAMP!=='undefined'&&CAMP.ses)CAMP.ses.off=(CAMP.ses.off||0)+1;}catch(e){}}}
+    /* патруль на позашляховику, коли колон немає */
+    if(!SALT.droneOnly&&typeof WAR!=='undefined'&&SALT_RULES.war!==false){K10.pat=(K10.pat==null?40:K10.pat)-1;if(K10.pat<=0){K10.pat=75+Math.random()*60;if(WAR.cols.length<2&&!WAR.veh.some(v=>v.patrol&&!v.e.dead)){
+      const n0=WAR.veh.length;K10.force=Math.random()<.7?'humvee':'mrap';try{const F=SALT.fly;warColumn(G,F.on&&F.pos?F.pos:G.player.pos,1);}catch(e){}finally{K10.force=null;}if(WAR.veh.length>n0)WAR.veh[WAR.veh.length-1].patrol=true;}}}
+  }
+  /* десант: позашляховик і бронеавтомобіль, помітивши піхотинця, стають і висаджують штурмовиків */
+  if(typeof WAR!=='undefined'&&!SALT.fly.on){const P=G.player,pp=P.pos;for(const v of WAR.veh){if((v.kind!=='humvee'&&v.kind!=='mrap')||v.e.dead||v.gone||v.dis)continue;const gp=v.g.position,d=gp.distanceTo(pp);if(d>70||!P.alive)continue;
+    if((v.kT=(v.kT||0)-dt)<=0){v.kT=.5;v.kSee=tacSee({x:gp.x,y:gp.y+v.size[1]-1.3,z:gp.z},pp,1.2);}if(!v.kSee)continue;v.halt=Math.max(v.halt||0,6);
+    if(v.v<1.5){v.dis=true;const n=v.kind==='mrap'?4:3;for(let k=0;k<n;k++){const a=Math.random()*6.283,x=gp.x+Math.cos(a)*3.4,z=gp.z+Math.sin(a)*3.4;try{const b=saltBotMake(G,'enemy',x,z);b.alarm=10;}catch(e){}}
+      try{warRadio(v.kind==='mrap'?'Бронеавтомобіль висадив десант!':'Патруль спішився!',2.4);}catch(e){}}}
+    for(const v of WAR.veh)if(v.halt>0&&(v.kind==='humvee'||v.kind==='mrap'))v.halt=Math.max(0,v.halt-dt);}
+}
+
+/* ===== гранатомети й ручні гранати (прапорець SALT_FEAT.arms2) =====
+   Гравець: 3 — гранатомет із магазином (6 пострілів 40 мм, балістика, вибух від удару), 4 — реактивний гранатомет (один постріл у трубі, б'є техніку,
+   реактивний струмінь позаду), Y — кинути ручну гранату (дуга, відскок, запал 3,2 с). 1/2 — назад до штатної зброї рушія, R — перезарядити.
+   Модель у руках — та сама, що в наборі (kit10.js), зі спрощеним хватом: рукавиці й передпліччя. Штатна зброя рушія не чіпається: на час гранатомета
+   вона схована, а її вогонь перехоплено у введенні — так само, як за кулеметом.
+   Вороги: у відділенні є гранатометник (труба за спиною) — б'є по машині гравця, кулеметній позиції чи по піхотинцю, що засів; перед пострілом — попередження.
+   Гранати ворог кидає на останнє відоме місце гравця, коли не бачить його з 8–30 м. На телефоні не вмикається (там лише борти). */
+const ARM={sel:null,vm:{},fire:false,cd:0,rl:0,kick:0,gren:4,gl:{mag:6,res:12},rpg:{mag:1,res:3},shots:[],thr:0,el:null,eg:0,
+  S:{gl:{v:76,g:9.8,r:6,d:170,cd:.75,rl:3.2,name:'ГП-40'},rpg:{v:115,g:1.6,r:5.5,d:620,cd:.6,rl:4.2,name:'РПГ'},gren:{v:17,g:9.8,r:6.5,d:150,fuse:3.2}}};
+function armBar(T,m,ax,ay,az,bx,by,bz,r){const d=new T.Vector3(bx-ax,by-ay,bz-az),l=d.length(),q=new T.Mesh(new T.CylinderGeometry(r,r*1.12,l,10),m);q.position.set((ax+bx)/2,(ay+by)/2,(az+bz)/2);q.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),d.normalize());return q;}
+function armVM(G,k){
+  if(ARM.vm[k])return ARM.vm[k];const T=G.THREE,t=SALT.t,g=new T.Group(),gun=saltXBuild(t,k==='gl'?'x_gl':'x_rpg',{seed:1}),h=new T.Group();
+  let M=null;try{M=soldMats(G,'zsu');}catch(e){}const cl=(M&&M.cloth)||new T.MeshStandardMaterial({color:0x5a6044,roughness:.9}),gv=(M&&M.black)||new T.MeshStandardMaterial({color:0x17181a,roughness:.8});
+  const hand=(x,y,z,ex,ey,ez)=>{const p=new T.Mesh(new T.SphereGeometry(.043,12,10),gv);p.scale.set(1.15,1,.9);p.position.set(x,y,z);h.add(p);h.add(armBar(T,gv,x,y,z,x+(ex-x)*.22,y+(ey-y)*.22,z+(ez-z)*.22,.036));h.add(armBar(T,cl,x+(ex-x)*.2,y+(ey-y)*.2,z+(ez-z)*.2,ex,ey,ez,.044));};
+  if(k==='gl'){hand(-.13,-.17,.0,-.62,-.42,.2);hand(.14,-.1,.0,-.42,-.46,-.34);}else{hand(-.02,-.16,.0,-.56,-.44,.2);hand(-.14,-.16,.0,-.6,-.5,-.3);}
+  h.traverse(o=>{if(o.isMesh){o.castShadow=false;o.frustumCulled=false;}});gun.traverse(o=>{if(o.isMesh){o.castShadow=false;o.frustumCulled=false;}});
+  const piv=new T.Group();piv.add(gun);piv.add(h);piv.rotation.y=Math.PI/2;g.add(piv);g.visible=false;g.userData.base=k==='gl'?[.2,-.25,-.52]:[.2,-.13,-.36];g.position.fromArray(g.userData.base);
+  const cam=G.camera;if(!cam.parent)G.scene.add(cam);cam.add(g);return ARM.vm[k]=g;
+}
+function armSel(k){
+  const G=SALT.G;if(k&&(SALT.fly.on||!G.player.alive||(typeof MG!=='undefined'&&MG.on)||(typeof DRV!=='undefined'&&DRV.on)))return;
+  if(ARM.sel===k)k=null;for(const n in ARM.vm)ARM.vm[n].visible=false;ARM.sel=k;ARM.rl=0;ARM.cd=.35;
+  try{G.weapon.setVisible(!k);}catch(e){}
+  if(k){armVM(G,k).visible=true;try{sfx('pickup',null,.5,.8);}catch(e){}saltFlyMsg(ARM.S[k].name+' · ЛКМ — постріл · R — перезарядити · 1/2 — штатна зброя');}
+}
+function armKey(e){
+  if(!SALT.on||e.repeat||SALT.droneOnly||SALT_FEAT.arms2===false)return;const G=SALT.G;if(!G||!G.game||G.game.state!=='playing')return;const c=e.code;
+  if(c==='Digit3'){armSel('gl');}else if(c==='Digit4'){armSel('rpg');}
+  else if((c==='Digit1'||c==='Digit2')&&ARM.sel){armSel(null);}
+  else if(c==='KeyR'&&ARM.sel){e.preventDefault();e.stopImmediatePropagation();armReload();}
+  else if(c==='KeyY'){armThrow(G);}
+}
+function armReload(){const k=ARM.sel;if(!k||ARM.rl>0)return;const W=ARM[k],full=k==='gl'?6:1;if(W.mag>=full||W.res<=0){if(W.res<=0)saltFlyMsg('пострілів більше немає — шукай схрон');return;}ARM.rl=ARM.S[k].rl;try{sfx('wh',null,.6,.7);}catch(e){}}
+function armShotMesh(G,kind){
+  const T=G.THREE,M=k10Mats();if(kind==='gren'){const g=saltXBuild(SALT.t,'x_grenade',{seed:1});g.scale.setScalar(1.25);return g;}
+  const g=new T.Group();if(kind==='gl'){const a=new T.Mesh(new T.CylinderGeometry(.02,.02,.07,10),M.alu);a.rotation.z=Math.PI/2;g.add(a);const b=new T.Mesh(new T.SphereGeometry(.02,10,8),M.gren);b.position.x=.035;g.add(b);}
+  else{const a=new T.Mesh(new T.CylinderGeometry(.035,.02,.5,10),M.gren);a.rotation.z=-Math.PI/2;g.add(a);const b=new T.Mesh(new T.ConeGeometry(.045,.22,12),M.gren);b.rotation.z=-Math.PI/2;b.position.x=.34;g.add(b);
+    const f=new T.Mesh(new T.SphereGeometry(.05,8,6),ARM.fl||(ARM.fl=new T.MeshBasicMaterial({color:0xffc070})));f.position.x=-.28;f.scale.set(2.2,1,1);g.add(f);}
+  return g;
+}
+function armLaunch(G,kind,o,d,own,fuse){
+  const S=ARM.S[kind],m=armShotMesh(G,kind);m.position.copy(o);G.scene.add(m);
+  ARM.shots.push({k:kind,m:m,p:o.clone(),v:d.clone().multiplyScalar(S.v),own:own,t:0,fuse:fuse||0,sm:0,rest:false});
+}
+function armBoom(G,s,p){
+  const S=ARM.S[s.k],big=s.k==='rpg';s.dead=true;try{G.scene.remove(s.m);}catch(e){}
+  try{G.fx.explosion(p,big?2.4:1.7);warFar(big?'explosion_big':'explosion',null,p,big?1.2:1,1.1);}catch(e){}
+  try{G.combat.explode(p,S.r,S.d,s.own);}catch(e){}
+  try{saltBlast(p,S.r,S.d,false);}catch(e){}
+  try{if(big&&p.y-saltH(p.x,p.z)<1.2)warCrater(p,1.6);}catch(e){}
+  if(s.own==='enemy'&&typeof DRV!=='undefined'&&DRV.on)try{drvHit(p,S.r,S.d);}catch(e){}
+}
+function armShots(G,dt){
+  const T=G.THREE,R=ARM._r||(ARM._r={d:new T.Vector3(),n:new T.Vector3()});
+  for(let i=ARM.shots.length-1;i>=0;i--){const s=ARM.shots[i],S=ARM.S[s.k];s.t+=dt;
+    if(s.fuse&&s.t>=s.fuse){armBoom(G,s,s.p.clone());ARM.shots.splice(i,1);continue;}
+    if(s.t>14){s.dead=true;try{G.scene.remove(s.m);}catch(e){}ARM.shots.splice(i,1);continue;}
+    if(!s.rest){s.v.y-=S.g*dt;const sp=s.v.length(),st=sp*dt;R.d.copy(s.v).multiplyScalar(1/(sp||1));let hit=null;
+      try{hit=G.physics.raycast(s.p,R.d,st+.05);}catch(e){}
+      let en=null;if(s.own==='player'&&s.k!=='gren'&&s.t>.05)try{en=G.enemies.raycast(s.p,R.d,hit?hit.dist:st+.05);}catch(e){}
+      const gy=saltH(s.p.x+R.d.x*st,s.p.z+R.d.z*st);
+      if(s.k!=='gren'){
+        if(en||hit||s.p.y+R.d.y*st<gy+.03){const at=en?en.point.clone():hit?hit.point.clone():new T.Vector3(s.p.x+R.d.x*st,gy+.05,s.p.z+R.d.z*st);
+          if(s.t<.07&&!en){s.t=.07;}                                                  // запобіжник: не вибухає впритул до ствола
+          armBoom(G,s,at);ARM.shots.splice(i,1);continue;}
+        if(s.own==='enemy'){const P=G.player.pos;if(Math.hypot(s.p.x-P.x,s.p.y-P.y-1,s.p.z-P.z)<1.6){armBoom(G,s,s.p.clone());ARM.shots.splice(i,1);continue;}}
+        s.p.addScaledVector(R.d,st);s.m.position.copy(s.p);s.m.quaternion.setFromUnitVectors(R.n.set(1,0,0),R.d);
+        if(s.k==='rpg'&&(s.sm-=dt)<=0){s.sm=.035;try{G.fx.smoke(s.p.clone().addScaledVector(R.d,-.5),{size:.5,life:1.4,rise:.3,count:1,color:0xcfc8bd,alpha:.4});}catch(e){}}
+      }else{
+        if(hit){const n=hit.normal||R.n.set(0,1,0),dn=s.v.dot(n);s.v.addScaledVector(n,-1.9*dn).multiplyScalar(.38);s.p.copy(hit.point).addScaledVector(n,.05);try{sfx('wh',s.p,.5,1.7);}catch(e){}}
+        else if(s.p.y+R.d.y*st<gy+.05){s.p.x+=R.d.x*st;s.p.z+=R.d.z*st;s.p.y=gy+.05;if(Math.abs(s.v.y)<1.6&&Math.hypot(s.v.x,s.v.z)<1.2){s.rest=true;}else{s.v.y=-s.v.y*.32;s.v.x*=.55;s.v.z*=.55;try{sfx('wh',s.p,.5,1.5);}catch(e){}}}
+        else s.p.addScaledVector(R.d,st);
+        s.m.position.copy(s.p);s.m.rotation.x+=dt*9;s.m.rotation.z+=dt*6;}
+    }
+  }
+}
+function armThrow(G){
+  const P=G.player;if(ARM.thr>0||!P.alive||SALT.fly.on||(typeof MG!=='undefined'&&MG.on)||(typeof DRV!=='undefined'&&DRV.on))return;
+  if(ARM.gren<=0){saltFlyMsg('гранат немає — шукай схрон');return;}ARM.gren--;ARM.thr=1.1;
+  const T=G.THREE,cam=G.camera,d=new T.Vector3();cam.getWorldDirection(d);d.y+=.22;d.normalize();const o=cam.position.clone().addScaledVector(d,.5);o.y-=.12;
+  armLaunch(G,'gren',o,d,'player',ARM.S.gren.fuse);try{sfx('wh',null,.6,1.1);warRadio('Граната!',1.4);}catch(e){}
+  try{if(typeof BOTS!=='undefined')BOTS.heard={x:o.x,y:o.y,z:o.z,t:LIFE.t,boom:false};}catch(e){}
+}
+function armFire(G){
+  const k=ARM.sel,W=ARM[k],S=ARM.S[k];if(W.mag<=0){armReload();return;}W.mag--;ARM.cd=S.cd;ARM.kick=1;
+  const T=G.THREE,cam=G.camera,d=new T.Vector3();cam.getWorldDirection(d);const up=new T.Vector3(0,1,0),rt=new T.Vector3().crossVectors(d,up).normalize();
+  const o=cam.position.clone().addScaledVector(d,.9).addScaledVector(rt,.14);o.y-=.1;if(k==='gl'){d.y+=.012;d.normalize();}
+  armLaunch(G,k,o,d,'player',0);
+  try{G.fx.muzzleFlash(o,d,{scale:k==='rpg'?2.4:1.3});sfx(k==='rpg'?'launch':'bomb',null,k==='rpg'?1:1.1,k==='rpg'?1.5:.75);G.player.addShake&&G.player.addShake(k==='rpg'?.25:.12);}catch(e){}
+  if(k==='rpg'){const b=cam.position.clone().addScaledVector(d,-1.6);try{G.fx.smoke(b,{size:2.2,life:2.6,rise:.8,count:5,color:0xd8d2c6,alpha:.5});}catch(e){}
+    for(const q of LIFE.bots)if(q.alive&&q.pos.distanceTo(b)<3.2&&q.side!=='enemy')try{q.damage(40,b,null,'body');}catch(e){}}             // реактивний струмінь: позаду не стояти
+  try{LIFE.fireT=LIFE.t;if(typeof BOTS!=='undefined')BOTS.heard={x:o.x,y:o.y,z:o.z,t:LIFE.t,boom:true};}catch(e){}
+  if(W.mag<=0&&W.res>0)setTimeout(()=>{if(ARM.sel===k)armReload();},500);
+}
+/* ── вороги ── */
+function armEnemy(G,dt){
+  if((ARM.eg-=dt)>0||typeof TAC==='undefined')return;ARM.eg=.5;const T=G.THREE,P=G.player,pp=P.pos,inCar=typeof DRV!=='undefined'&&DRV.on,atMg=typeof MG!=='undefined'&&MG.on;
+  for(const s of TAC.sq){const live=s.m.filter(o=>o.alive&&!o.wounded&&!o.officer);if(!live.length)continue;
+    /* гранатометник: один на відділення з трьох і більше */
+    if(s.rpgM===undefined&&s.max>=3){s.rpgM=null;if(Math.random()<.6){const b=live[live.length-1];s.rpgM=b;b.rpg=2;try{const tube=saltXBuild(SALT.t,'x_rpg',{seed:1});tube.rotation.set(0,0,1.25);tube.position.set(-.12,.12,-.2);tube.userData.noMerge=true;b.m.chest.add(tube);b.rpgTube=tube;}catch(e){}}}
+    const g=s.rpgM;
+    if(g&&g.alive&&!g.wounded&&g.rpg>0&&P.alive&&!SALT.fly.on){const d=g.pos.distanceTo(pp);s.rpgT=(s.rpgT==null?4:s.rpgT)-.5;
+      const still=Math.hypot(P.vel?P.vel.x:0,P.vel?P.vel.z:0)<.6,want=(inCar||atMg||(still&&LIFE.t-s.lkpT<6))&&d>22&&d<150&&g.sees;
+      if(g.aimRpg){g.aimRpg-=.5;g.pin=Math.max(g.pin||0,.6);if(g.aimRpg<=0){g.aimRpg=0;g.rpg--;s.rpgT=14+Math.random()*8;
+          const o=new T.Vector3(g.pos.x,g.pos.y+1.5,g.pos.z),tg=new T.Vector3(pp.x+(Math.random()-.5)*(inCar?3:5),pp.y+(inCar?1:.2),pp.z+(Math.random()-.5)*(inCar?3:5)),dd=tg.sub(o),L=dd.length();dd.normalize();dd.y+=L*ARM.S.rpg.g/(2*ARM.S.rpg.v*ARM.S.rpg.v);dd.normalize();
+          armLaunch(G,'rpg',o.addScaledVector(dd,.8),dd,'enemy',0);try{G.fx.muzzleFlash(o,dd,{scale:2.2});sfx('launch',o,1,1.5);}catch(e){}if(g.rpg<=0&&g.rpgTube)g.rpgTube.visible=false;}}
+      else if(want&&s.rpgT<=0){g.aimRpg=1.5;try{warRadio(inCar?'РПГ по машині! Маневруй!':'РПГ! В укриття!',2);sfx('lock',null,.8,.7);}catch(e){}}}
+    /* ручні гранати на останнє відоме місце */
+    if(s.lkp&&LIFE.t-s.lkpT<10&&LIFE.t-s.lkpT>1.2&&LIFE.t-(s.grT||-99)>13&&!inCar){const b=live.find(o=>!o.sees&&o!==g&&(o.pos.distanceTo(s.lkp)>8)&&o.pos.distanceTo(s.lkp)<30);
+      if(b&&Math.random()<.5){s.grT=LIFE.t;const o=new T.Vector3(b.pos.x,b.pos.y+1.6,b.pos.z),dx=s.lkp.x-o.x,dz=s.lkp.z-o.z,L=Math.hypot(dx,dz),v=ARM.S.gren.v,sn=Math.min(1,L*9.8/(v*v)),a=.5*Math.asin(sn),k=Math.max(.5,Math.min(1,Math.sqrt(L*9.8/(v*v*Math.max(.05,Math.sin(2*a))))));
+        const d=new T.Vector3(dx/L*Math.cos(a),Math.sin(a),dz/L*Math.cos(a)).multiplyScalar(k);armLaunch(G,'gren',o,d,'enemy',ARM.S.gren.fuse);
+        if(Math.hypot(pp.x-s.lkp.x,pp.z-s.lkp.z)<14)try{warRadio('Граната!',1.6);sfx('lock',null,.7,1.2);}catch(e){}}}
+  }
+}
+function armHud(){
+  let h=ARM.el;if(!h){h=ARM.el=document.createElement('div');h.id='salt-arm';(document.getElementById('salt')||document.body).appendChild(h);}
+  const on=!SALT.droneOnly&&!SALT.fly.on&&SALT.G.player.alive&&SALT.G.game.state==='playing';h.classList.toggle('on',on);if(!on)return;
+  const s='<span class="'+(ARM.sel==='gl'?'a':'')+'"><i>3</i>ГП-40 <b>'+ARM.gl.mag+'</b>/'+ARM.gl.res+'</span><span class="'+(ARM.sel==='rpg'?'a':'')+'"><i>4</i>РПГ <b>'+ARM.rpg.mag+'</b>/'+ARM.rpg.res+'</span><span><i>Y</i>ГРАН <b>'+ARM.gren+'</b></span>'+(ARM.rl>0?'<em>перезаряджання…</em>':'');
+  if(s!==ARM.hs){ARM.hs=s;h.innerHTML=s;}
+}
+function armInit(G){
+  if(ARM.init)return;ARM.init=true;
+  const inp=G.input,upd=inp.update.bind(inp);inp.update=dt=>{upd(dt);if(ARM.sel&&!SALT.fly.on){ARM.fire=!!inp.fire;inp.fire=false;inp.ads=false;}else ARM.fire=false;};
+  addEventListener('keydown',armKey,true);
+}
+function armStep(G,dt){
+  if(SALT_FEAT.arms2===false)return;armInit(G);const P=G.player;
+  armShots(G,dt);if(!SALT.droneOnly)try{armEnemy(G,dt);}catch(e){if(!ARM._ee){ARM._ee=1;console.error('arm enemy',e);}}
+  ARM.thr=Math.max(0,ARM.thr-dt);ARM.cd=Math.max(0,ARM.cd-dt);ARM.kick=Math.max(0,ARM.kick-dt*5);
+  if(ARM.sel&&(SALT.fly.on||!P.alive||(typeof MG!=='undefined'&&MG.on)||(typeof DRV!=='undefined'&&DRV.on))){const k=ARM.sel;armSel(null);if(SALT.fly.on||(typeof MG!=='undefined'&&MG.on)||(typeof DRV!=='undefined'&&DRV.on))try{G.weapon.setVisible(false);}catch(e){}ARM.back=k;}
+  if(ARM.sel){const k=ARM.sel,W=ARM[k],vm=ARM.vm[k],b=vm.userData.base;
+    try{if(G.weapon.root&&G.weapon.root.visible)G.weapon.setVisible(false);}catch(e){}
+    if(ARM.rl>0){ARM.rl-=dt;if(ARM.rl<=0){const full=k==='gl'?6:1,n=Math.min(full-W.mag,W.res);W.mag+=n;W.res-=n;try{sfx('pickup',null,.6,.6);}catch(e){}}}
+    else if(ARM.fire&&ARM.cd<=0)armFire(G);
+    const rl=ARM.rl>0?Math.sin(Math.min(1,ARM.rl/.5)*1.57)*Math.min(1,(ARM.S[k].rl-ARM.rl)/.4):0,sw=Math.sin(LIFE.t*1.7)*.003;
+    vm.position.set(b[0],b[1]-rl*.16+sw,b[2]+ARM.kick*.07);vm.rotation.set(ARM.kick*.09-rl*.5,0,rl*.25);}
+  armHud();
+}
+
+/* ===== за кермом і броня підтримки (прапорець SALT_FEAT.drive) =====
+   Машини, якими можна кермувати: наш позашляховик біля місця висадки, бронеавтомобіль підтримки, а також покинуті ворожі позашляховик, бронеавтомобіль і пікап
+   (екіпаж спішився або перебитий, поруч нікого). E поруч — сісти, E — вийти. Вигляд лише від першої особи, з місця водія (третьої особи немає).
+   W/S — газ і задній хід, A/D — кермо, пробіл — гальмо. Модель руху — «велосипедна»: швидкість, кут керма, поворот від бази; машина лягає на рендерену
+   поверхню тими самими точками, що й колони. У будинки не заїжджає, у воду — теж; на швидкості збиває піхоту. Відділення сідає разом із гравцем і виходить із ним.
+   Бронеавтомобіль тримає кулі (гравець усередині невразливий до стрілецької зброї), але гранатомет і міни його бʼють; знищена машина викидає екіпаж.
+   Підтримка (P): бронеавтомобіль приїздить до гравця, привозить двох штурмовиків і ящик із боєкомплектом, кулеметник на даху прикриває. Перезарядка виклику — 4 хв.
+   На телефоні не вмикається (там лише борти). */
+const DRV={on:false,cur:null,list:[],el:null,hintT:0,sup:null,supCd:0,spawned:false,
+  K:{humvee:{acc:6.5,vmax:24,rev:7,turn:.6,seat:[.1,1.72,-.48],hp:320,name:'ПОЗАШЛЯХОВИК',armor:false},mrap:{acc:4.2,vmax:19,rev:5,turn:.5,seat:[.75,2.28,-.55],hp:700,name:'БРОНЕАВТОМОБІЛЬ',armor:true},
+     pickup:{acc:6,vmax:23,rev:7,turn:.6,seat:[.25,1.6,-.42],hp:160,name:'ПІКАП',armor:false}}};
+function drvAdd(G,kind,x,z,yaw,own){
+  const PV=protoVeh(kind),g=PV.g;g.userData.noMerge=true;G.scene.add(g);const c={g:g,kind:kind,size:PV.size,x:x,z:z,yaw:yaw,v:0,st:0,own:!!own,wh:[],gun:0,gt:0};
+  g.traverse(o=>{if(o.userData&&o.userData.wheel){o.rotation.order='YZX';c.wh.push(o);}});saltSit(g,x,z,yaw,c.size[0]*.4,c.size[2]*.4);g.position.y+=.04;
+  c.e=warDest(g,DRV.K[kind].hp,kind);c.e.own=!!own;DRV.list.push(c);return c;
+}
+/* покинута ворожа машина стає нашою: знімаємо її з колони, знищуваність лишається та сама */
+function drvCapture(G,v){
+  const i=WAR.veh.indexOf(v);if(i<0)return null;WAR.veh.splice(i,1);const g=v.g,c={g:g,kind:v.kind,size:v.size,x:g.position.x,z:g.position.z,yaw:g.rotation.y,v:0,st:0,own:false,wh:[],e:v.e,gun:0,gt:0};
+  g.traverse(o=>{if(o.userData&&o.userData.wheel){o.rotation.order='YZX';c.wh.push(o);}});g.rotation.set(0,c.yaw,0);DRV.list.push(c);return c;
+}
+function drvNear(G){
+  const P=G.player.pos;let best=null,bd=4.2;
+  for(const c of DRV.list){if(c.e.dead||c.busy)continue;const d=Math.hypot(c.x-P.x,c.z-P.z);if(d<bd){bd=d;best=c;}}
+  if(!best&&typeof WAR!=='undefined')for(const v of WAR.veh){if(v.e.dead||v.gone||!DRV.K[v.kind]||v.v>.6)continue;const gp=v.g.position,d=Math.hypot(gp.x-P.x,gp.z-P.z);if(d>=bd)continue;
+    if(LIFE.bots.some(b=>b.alive&&b.side==='enemy'&&b.pos.distanceTo(gp)<14))continue;bd=d;best={cap:v};}
+  return best;
+}
+function drvGlass(c,show){c.g.traverse(o=>{if(!o.isMesh||!o.material)return;const m=o.material;if(m===K10.m.tint||m.transparent||(m.name&&/glass/i.test(m.name))||o.userData.drvGlass){o.userData.drvGlass=true;o.visible=show;}});}
+function drvCockpit(G,c){
+  if(c.cp)return c.cp;const T=G.THREE,M=k10Mats(),g=new T.Group(),s=DRV.K[c.kind].seat,add=(geo,m,x,y,z,rx,ry,rz)=>{const q=new T.Mesh(geo,m);q.position.set(x,y,z);q.rotation.set(rx||0,ry||0,rz||0);g.add(q);return q;};
+  const dm=k10Mat('dash',{color:0x1c1e1f,roughness:.85}),W=c.size[2]-.3;
+  add(new T.BoxGeometry(.34,.2,W),dm,s[0]+.62,s[1]-.36,0);add(new T.BoxGeometry(.2,.06,W),dm,s[0]+.72,s[1]-.24,0,0,0,.25);                    // торпедо з козирком
+  add(new T.BoxGeometry(.03,.09,.26),k10Mat('gauge',{color:0x0b0d0f,emissive:0xffb347,emissiveIntensity:.25,roughness:.4}),s[0]+.5,s[1]-.27,s[2],0,0,.3);   // щиток приладів
+  const sw=new T.Group();sw.position.set(s[0]+.4,s[1]-.3,s[2]);sw.rotation.z=-.42;g.add(sw);c.sw=new T.Group();sw.add(c.sw);
+  {const r=new T.Mesh(new T.TorusGeometry(.17,.017,8,24),M.blk);r.rotation.y=Math.PI/2;c.sw.add(r);for(let k=0;k<3;k++){const b=new T.Mesh(new T.BoxGeometry(.016,.17,.03),M.blk);b.position.set(0,Math.cos(k*2.094+3.14)*.085,Math.sin(k*2.094+3.14)*.085);b.rotation.x=k*2.094+3.14;c.sw.add(b);}
+    const col=new T.Mesh(new T.CylinderGeometry(.022,.026,.3,8),M.blk);col.rotation.z=Math.PI/2;col.position.x=.15;c.sw.add(col);}
+  for(const z of [-1,1])add(new T.BoxGeometry(.07,.7,.07),c.kind==='mrap'?M.mgreen2:M.olive2,s[0]+.62,s[1]+.06,z*(c.size[2]/2-.12),0,0,-.2);       // передні стійки
+  add(new T.BoxGeometry(1.5,.05,W),dm,s[0]-.1,s[1]+.36,0);                                                                                  // стеля
+  add(new T.BoxGeometry(.03,.07,.2),M.blk,s[0]+.5,s[1]+.27,0);                                                                                // дзеркало заднього виду
+  g.traverse(o=>{if(o.isMesh){o.castShadow=false;o.frustumCulled=false;}});g.visible=false;g.userData.noMerge=true;c.g.add(g);return c.cp=g;
+}
+function drvEnter(c){
+  const G=SALT.G,P=G.player;if(DRV.on||SALT.fly.on||!P.alive)return;if(c.cap){c=drvCapture(G,c.cap);if(!c)return;try{warRadio('Трофей наш. За кермо!',2);}catch(e){}}
+  DRV.on=true;DRV.cur=c;c.busy=false;c.ai=null;const K=DRV.K[c.kind];P.yaw=c.yaw-Math.PI/2;P.pitch=0;DRV.inv0=P.invulnerable;
+  try{G.weapon.setVisible(false);}catch(e){}try{drvGlass(c,false);drvCockpit(G,c).visible=true;}catch(e){}
+  for(const b of LIFE.bots)if(b.alive&&b.side==='zsu'&&!b.fixed&&b.pos.distanceTo(P.pos)<22){b.inCar=c;try{b.m.g.visible=false;}catch(e){}}
+  document.body.classList.add('salt-drv');saltFlyMsg('за кермом · W/S — газ, A/D — кермо, пробіл — гальмо · E — вийти');try{sfx('pickup',null,.6,.6);}catch(e){}
+}
+function drvLeave(msg,thrown){
+  if(!DRV.on)return;const G=SALT.G,P=G.player,c=DRV.cur;DRV.on=false;DRV.cur=null;c.v=thrown?0:c.v*.3;
+  try{P.invulnerable=DRV.inv0||false;}catch(e){}try{if(!ARM.sel)G.weapon.setVisible(true);}catch(e){}try{drvGlass(c,true);if(c.cp)c.cp.visible=false;}catch(e){}
+  const cs=Math.cos(c.yaw),sn=Math.sin(c.yaw),w=c.size[2]/2+1;let px=c.x-sn*w*-1,pz=c.z-cs*w;                                            // вихід ліворуч, якщо зайнято — праворуч
+  for(const sd of [-1,1,-1.8,1.8]){const x=c.x+sn*w*sd,z=c.z+cs*w*sd;let ok=true;try{ok=saltFree(x,z,.5)&&!saltInBld(x,z);}catch(e){}if(ok){px=x;pz=z;break;}}
+  P.pos.x=px;P.pos.z=pz;P.pos.y=saltH(px,pz);try{P.vel.set(0,0,0);}catch(e){}
+  let k=0;for(const b of LIFE.bots)if(b.inCar===c){b.inCar=null;k++;const a=k*1.3;b.pos.set(px+Math.cos(a)*2.2,0,pz+Math.sin(a)*2.2);b.pos.y=saltH(b.pos.x,b.pos.z);try{b.m.g.visible=true;b.m.g.position.copy(b.pos);}catch(e){}}
+  document.body.classList.remove('salt-drv');if(DRV.el)DRV.el.classList.remove('on');try{sfxLoop('drv',null);}catch(e){}if(msg)saltFlyMsg(msg);
+}
+function drvHit(p,r,dmg){const c=DRV.cur;if(!c)return;const d=Math.hypot(c.x-p.x,c.z-p.z);if(d<r+2&&!DRV.K[c.kind].armor)try{SALT.G.player.damage?SALT.G.player.damage(dmg*.12*(1-d/(r+2))):0;}catch(e){}}
+function drvKey(e){
+  if(!SALT.on||e.repeat||SALT.droneOnly||SALT_FEAT.drive===false)return;const G=SALT.G;if(!G||!G.game||G.game.state!=='playing')return;
+  if(e.code==='KeyP'&&!SALT.fly.on){drvSupport(G);return;}
+  if(e.code!=='KeyE'||SALT.fly.on||(typeof MG!=='undefined'&&MG.on))return;
+  if(DRV.on){e.preventDefault();e.stopImmediatePropagation();if(Math.abs(DRV.cur.v)>4){saltFlyMsg('спершу зупинись');return;}drvLeave('вийшов із машини');return;}
+  if(typeof supNear==='function'&&supNear(G))return;                                                   // поруч ящик — E відкриває його
+  const c=drvNear(G);if(c){e.preventDefault();e.stopImmediatePropagation();drvEnter(c);}
+}
+/* шлях без будинків і води по прямій: для під'їзду підтримки */
+function drvLineFree(x0,z0,x1,z1){const L=Math.hypot(x1-x0,z1-z0),n=Math.ceil(L/3);for(let i=0;i<=n;i++){const x=x0+(x1-x0)*i/n,z=z0+(z1-z0)*i/n;try{if(saltInBld(x,z)||landAt(SALT.ox+x,SALT.oz+z)===6)return false;}catch(e){}}return true;}
+function drvSupport(G){
+  const P=G.player,pp=P.pos;if(!P.alive)return;
+  if(DRV.supCd>0){saltFlyMsg('броня підтримки буде за '+Math.ceil(DRV.supCd)+' с');return;}
+  let sp=null;for(let k=0;k<40&&!sp;k++){const a=Math.random()*6.283,r=(k<28?80:45)+Math.random()*40,x=pp.x+Math.cos(a)*r,z=pp.z+Math.sin(a)*r;try{if(!saltFree(x,z,2.5)||saltInBld(x,z)||landAt(SALT.ox+x,SALT.oz+z)===6||landAt(SALT.ox+x,SALT.oz+z)<0)continue;}catch(e){continue;}if(drvLineFree(x,z,pp.x,pp.z))sp=[x,z];}
+  if(!sp){saltFlyMsg('броні сюди не підʼїхати — вийди на відкрите місце');return;}
+  if(DRV.sup&&!DRV.sup.e.dead&&DRV.sup!==DRV.cur){const o=DRV.sup,i=DRV.list.indexOf(o);if(i>=0)DRV.list.splice(i,1);try{G.scene.remove(o.g);const q=DEST.list.indexOf(o.e);if(q>=0)DEST.list.splice(q,1);}catch(e){}}
+  const yaw=Math.atan2(-(pp.z-sp[1]),pp.x-sp[0]),c=drvAdd(G,'mrap',sp[0],sp[1],yaw,true);c.ai={tx:pp.x,tz:pp.z,st:'come'};c.busy=true;DRV.sup=c;DRV.supCd=240;
+  try{warRadio('Броня підтримки виїхала. Хвилина — і в тебе.',3);sfx('scout',null,.7,1);}catch(e){}
+}
+function drvMove(G,c,dt,thr,str,brake){
+  const K=DRV.K[c.kind],L=c.size[0]*.62;
+  if(brake){c.v-=Math.sign(c.v)*Math.min(Math.abs(c.v),16*dt);}
+  else if(thr){const fw=thr>0;if(fw&&c.v<-.3||!fw&&c.v>.3)c.v-=Math.sign(c.v)*Math.min(Math.abs(c.v),13*dt);else c.v+=thr*K.acc*dt*(1-Math.min(1,Math.abs(c.v)/(fw?K.vmax:K.rev))*.85);}
+  else c.v-=Math.sign(c.v)*Math.min(Math.abs(c.v),1.8*dt);
+  c.v=Math.max(-K.rev,Math.min(K.vmax,c.v));
+  const lim=K.turn/(1+Math.abs(c.v)*.07);c.st+=(str*lim-c.st)*Math.min(1,dt*5);
+  const dy=c.v/L*Math.tan(c.st)*dt;c.yaw+=dy;
+  const cs=Math.cos(c.yaw),sn=-Math.sin(c.yaw);let nx=c.x+cs*c.v*dt,nz=c.z+sn*c.v*dt,hl=c.size[0]/2*Math.sign(c.v||1);
+  let blk=false,wat=false;try{const fx=nx+cs*hl,fz=nz+sn*hl;if(saltInBld(fx,fz)||saltInBld(nx,nz))blk=true;const cl=landAt(SALT.ox+fx,SALT.oz+fz);if(cl===6&&!(typeof BRIDGE!=='undefined'&&BRIDGE.n&&saltH(fx,fz)-terrainH(SALT.ox+fx,SALT.oz+fz)>1))wat=true;}catch(e){}
+  if(!blk&&Math.abs(c.v)>.5)try{const T=G.THREE,o=DRV._o||(DRV._o=new T.Vector3()),d=DRV._d||(DRV._d=new T.Vector3());o.set(c.x,c.g.position.y+.9,c.z);d.set(cs*Math.sign(c.v),0,sn*Math.sign(c.v));const h=G.physics.raycast(o,d,c.size[0]/2+Math.abs(c.v)*dt+.3);if(h&&h.normal&&Math.abs(h.normal.y)<.6)blk=true;}catch(e){}
+  if(blk||wat){const hard=Math.abs(c.v);if(hard>7){try{sfx('bomb',null,.8,.6);c.e.hp-=hard*3;if(c===DRV.cur)G.player.addShake&&G.player.addShake(.3);}catch(e){}}c.v=-c.v*.15;if(wat&&c===DRV.cur&&LIFE.t-(DRV.wT||0)>3){DRV.wT=LIFE.t;saltFlyMsg('далі вода');}return dy;}
+  c.x=nx;c.z=nz;saltSit(c.g,c.x,c.z,c.yaw,c.size[0]*.4,c.size[2]*.4);c.g.position.y+=.04;
+  for(const w of c.wh){w.rotation.z-=c.v*dt/(w.userData.wheel.r||.5);if(w.userData.wheel.x>0)w.rotation.y=c.st;}
+  const gp=c.g.position,h=Math.max(c.size[0],c.size[2])*.5;c.e.c.set(gp.x,gp.y+c.size[1]*.5,gp.z);c.e.bb.min.set(gp.x-h,gp.y,gp.z-h);c.e.bb.max.set(gp.x+h,gp.y+c.size[1],gp.z+h);
+  /* наїзд */
+  if(Math.abs(c.v)>3.5)for(const b of LIFE.bots){if(!b.alive||b.inCar||b.side==='zsu')continue;const rx=b.pos.x-c.x,rz=b.pos.z-c.z,f=rx*cs+rz*sn,s=-rx*sn+rz*cs;if(Math.abs(f)<c.size[0]/2+.3&&Math.abs(s)<c.size[2]/2+.2&&Math.abs(b.pos.y-gp.y)<2)try{b.damage(60+Math.abs(c.v)*14,b.pos,null,'body');c.v*=.9;sfx('wh',null,.8,.5);}catch(e){}}
+  return dy;
+}
+/* кулеметник на даху бронеавтомобіля підтримки */
+function drvGunner(G,c,dt){
+  if(c.kind!=='mrap'||!c.own)return;const T=G.THREE;if((c.gt-=dt)<=0){c.gt=.6;c.tg=null;let bd=95;const eye={x:c.x,y:c.g.position.y+c.size[1]-1.2,z:c.z};
+    for(const b of LIFE.bots)if(b.alive&&b.side==='enemy'){const d=Math.hypot(b.pos.x-c.x,b.pos.z-c.z);if(d<bd&&tacSee(eye,b.pos,1.2)){bd=d;c.tg=b;}}}
+  const b=c.tg;if(!b||!b.alive)return;c.gun-=dt;if(c.gun>0)return;if(!(c.gb>0)){c.gb=5;c.gun=1.1+Math.random()*.8;return;}c.gb--;c.gun=.1;
+  const mz=new T.Vector3(c.x,c.g.position.y+c.size[1]+.25,c.z),dr=new T.Vector3(b.pos.x-mz.x,b.pos.y+1.1-mz.y,b.pos.z-mz.z),d=dr.length();dr.normalize();
+  try{G.fx.muzzleFlash(mz,dr,{scale:1.2});G.fx.tracer(mz,mz.clone().addScaledVector(dr,d),{color:0xffd27a,speed:420,width:.045});sfx('mg',mz,1.1,.8);}catch(e){}
+  if(Math.random()<.22)try{b.damage(34,b.pos,dr,'body');}catch(e){}else b.pin=Math.max(b.pin||0,1.2);
+}
+function drvInit(G){
+  if(DRV.init)return;DRV.init=true;
+  const inp=G.input,upd=inp.update.bind(inp);inp.update=dt=>{upd(dt);if(DRV.on&&!SALT.fly.on){DRV.in={x:inp.move.x,y:inp.move.y,brake:!!(inp.jump||inp.keys&&inp.keys.Space)};inp.move.x=0;inp.move.y=0;inp.fire=false;inp.ads=false;inp.sprint=false;inp.crouch=false;inp.jump=false;}};
+  addEventListener('keydown',drvKey,true);addEventListener('keydown',e=>{if(e.code==='Space')DRV.sp=true;},true);addEventListener('keyup',e=>{if(e.code==='Space')DRV.sp=false;},true);
+  if(typeof sqOwn==='function'){const o=sqOwn;sqOwn=function(b,dt,BC){if(b.inCar){const c=b.inCar;if(c.e.dead||!DRV.on){b.inCar=null;try{b.m.g.visible=true;}catch(e){}return false;}b.pos.set(c.x,c.g.position.y,c.z);b.sp=0;try{b.m.g.visible=false;}catch(e){}return true;}return o.apply(this,arguments);};}
+}
+function drvStep(G,dt){
+  if(SALT_FEAT.drive===false||SALT.droneOnly)return;drvInit(G);const T=G.THREE,P=G.player,pp=P.pos;DRV.supCd=Math.max(0,DRV.supCd-dt);
+  /* наш позашляховик біля місця висадки */
+  if(!DRV.spawned&&LIFE.t>2){DRV.spawned=true;let q=null;try{for(let k=0;k<30&&!q;k++){const a=Math.random()*6.283,r=7+Math.random()*12,x=pp.x+Math.cos(a)*r,z=pp.z+Math.sin(a)*r;if(saltFree(x,z,2.6)&&!saltInBld(x,z)&&landAt(SALT.ox+x,SALT.oz+z)!==6)q=[x,z];}}catch(e){}
+    if(q)try{drvAdd(G,'humvee',q[0],q[1],Math.random()*6.283,true);}catch(e){saltFeatFail('drive',e);}}
+  /* прибирання далеких і знищених */
+  for(let i=DRV.list.length-1;i>=0;i--){const c=DRV.list[i];if(c===DRV.cur)continue;const far=Math.hypot(c.x-pp.x,c.z-pp.z)>420;if(far||(c.e.dead&&(c.deadT=(c.deadT||0)+dt)>90)){try{G.scene.remove(c.g);const q=DEST.list.indexOf(c.e);if(q>=0)DEST.list.splice(q,1);}catch(e){}DRV.list.splice(i,1);if(DRV.sup===c)DRV.sup=null;}}
+  /* броня підтримки їде сама */
+  for(const c of DRV.list){if(c.e.dead)continue;if(c.ai&&c!==DRV.cur){const a=c.ai;if(a.st==='come'){a.tx=pp.x;a.tz=pp.z;const dx=a.tx-c.x,dz=a.tz-c.z,d=Math.hypot(dx,dz),want=Math.atan2(-dz,dx);let dy=((want-c.yaw+Math.PI*3)%(Math.PI*2))-Math.PI;
+        const thr=d>30?1:d>15?(c.v<5?1:0):0;drvMove(G,c,dt,thr,Math.max(-1,Math.min(1,dy*2.2)),d<=15);
+        a.stuck=Math.abs(c.v)<.4&&d>16?(a.stuck||0)+dt:0;if(a.stuck>3){c.yaw+=.9;a.stuck=0;}
+        if(d<=15&&Math.abs(c.v)<.3){a.st='here';c.busy=false;c.v=0;try{warRadio('Броня на місці. Поповнення й боєкомплект — за кормою. E — за кермо.',3.4);sfx('taskOk',null,.7,1);}catch(e){}
+          const cs=Math.cos(c.yaw),sn=-Math.sin(c.yaw),bx=c.x-cs*(c.size[0]/2+1.6),bz=c.z-sn*(c.size[0]/2+1.6);
+          try{const have=LIFE.bots.filter(b=>b.alive&&b.side==='zsu'&&!b.fixed).length;for(let k=0;k<2&&have+k<5;k++)saltBotMake(G,'zsu',bx+(k-.5)*1.6,bz+(k-.5)*1.2);}catch(e){}
+          try{if(typeof supPlace==='function')supPlace(G,bx-cs*1.2,bz-sn*1.2,c.yaw);}catch(e){}}}
+      }
+    else if(c!==DRV.cur&&Math.abs(c.v)>.01)drvMove(G,c,dt,0,0,true);
+    try{drvGunner(G,c,dt);}catch(e){}}
+  if(!DRV.on){if(!SALT.fly.on&&(DRV.hintT-=dt)<=0){DRV.hintT=.5;const c=drvNear(G),h=DRV.hint;DRV.hint=c&&(c.cap||c);if(c&&DRV.hint!==h&&!(typeof MG!=='undefined'&&MG.on))saltFlyMsg(c.cap?'E — забрати трофейну машину':'E — сісти за кермо');}return;}
+  const c=DRV.cur,K=DRV.K[c.kind];
+  if(!P.alive||(G.game&&G.game.state!=='playing')){drvLeave(null);return;}
+  if(c.e.dead){drvLeave('машину знищено!',true);try{P.invulnerable=false;P.damage&&P.damage(45);}catch(e){}return;}
+  if(SALT.fly.on){drvMove(G,c,dt,0,0,true);P.pos.x=c.x;P.pos.z=c.z;P.pos.y=c.g.position.y;return;}           // оператор підняв борт із машини: вона стоїть
+  const I=DRV.in||{x:0,y:0},thr=Math.abs(I.y)>.1?-Math.sign(I.y)*DRV.ys:0;
+  const dy=drvMove(G,c,dt,thr,-I.x,!!(I.brake||DRV.sp));P.yaw+=dy;
+  if(K.armor)P.invulnerable=true;
+  P.pos.x=c.x;P.pos.z=c.z;P.pos.y=c.g.position.y;try{P.vel.set(0,0,0);}catch(e){}
+  c.g.updateMatrixWorld(true);const cam=G.camera,e=DRV._e||(DRV._e=new T.Vector3());e.set(K.seat[0],K.seat[1],K.seat[2]).applyMatrix4(c.g.matrixWorld);
+  P.pitch=Math.max(-.7,Math.min(.6,P.pitch));cam.position.copy(e);cam.rotation.set(0,0,0);cam.rotateY(P.yaw);cam.rotateX(P.pitch);
+  if(c.sw)c.sw.rotation.x=-c.st*3.2;
+  try{sfxLoop('drv','engine',.35+Math.min(.5,Math.abs(c.v)/K.vmax*.5),.7+Math.abs(c.v)/K.vmax*1.1);}catch(e){}
+  let h=DRV.el;if(!h){h=DRV.el=document.createElement('div');h.id='salt-drv';(document.getElementById('salt')||document.body).appendChild(h);}
+  const s='<b>'+K.name+'</b><span>'+Math.round(Math.abs(c.v)*3.6)+' <i>км/год</i></span><span>'+(c.v<-.3?'R':'D')+'</span><span>корпус '+Math.max(0,Math.round(c.e.hp/K.hp*100))+'%</span>';
+  h.classList.add('on');if(s!==DRV.hs){DRV.hs=s;h.innerHTML=s;}
+}
+DRV.ys=-1;                                                                 // у рушія «вперед» — move.y = +1 (перевірено на стенді)
+
+/* ===== схрони з боєкомплектом і скид постачання (прапорець SALT_FEAT.supply) =====
+   Армійський ящик із набору (kit10.js). Схрони стоять у бліндажах окопів і подекуди в районах бойових дій; E поруч — відкрити (кришка відкидається):
+   набої до штатної зброї, гранати, постріли до обох гранатометів, перев'язка. Кожен ящик — одноразовий.
+   Скид постачання (O): ящик на парашуті в точку, куди дивишся (до 150 м), або під ноги; бурштиновий дим позначає місце. Перезарядка — 2,5 хв.
+   Ящик привозить і броня підтримки (drive.js). На телефоні не вмикається. */
+const SUP={list:[],drops:[],cd:0,el:null,hintT:0};
+function supPlace(G,x,z,yaw,ch){
+  const T=G.THREE,g=saltXBuild(SALT.t,'x_ammobox',{seed:1});g.userData.noMerge=true;let lid=null;g.traverse(o=>{if(o.userData&&o.userData.part==='lid')lid=o;});
+  const y=saltY(x,z);g.position.set(x,y,z);g.rotation.y=yaw||0;(ch?SALT.kit.dynRoot:G.scene).add(g);if(ch)ch.objs.push(g);
+  const b={x:x,y:y,z:z,g:g,lid:lid,ch:ch||null,used:false,open:0};SUP.list.push(b);return b;
+}
+function supBuild(ch,B){
+  if(SALT.droneOnly||!B.near)return;const I=g2War(B.X0+B.CH/2,B.Z0+B.CH/2),R=B.rnd;
+  if(ch.trenchN&&typeof WZN!=='undefined'&&WZN.last){const x=WZN.last[0]+(R()-.5)*1.6,z=WZN.last[1]+(R()-.5)*1.6;if(x>=B.X0&&x<B.X0+B.CH&&z>=B.Z0&&z<B.Z0+B.CH){supPlace(SALT.G,x,z,R()*6.283,ch);return;}}
+  if(I<.35||R()>.3)return;
+  for(let k=0;k<12;k++){const x=B.X0+3+R()*(B.CH-6),z=B.Z0+3+R()*(B.CH-6),c=g2Land(x,z);if([0,1,2,3,4,5].indexOf(c)<0)continue;try{if(!saltFree(x,z,.9)||saltInBld(x,z))continue;}catch(e){continue;}if(g2RoadDist(x,z).d<2)continue;supPlace(SALT.G,x,z,R()*6.283,ch);return;}
+}
+function supNear(G){const P=G.player.pos;let best=null,bd=2.4;for(const b of SUP.list){if(b.used)continue;const d=Math.hypot(b.x-P.x,b.z-P.z);if(d<bd&&Math.abs(b.y-P.y)<2){bd=d;best=b;}}return best;}
+function supOpen(G,b){
+  b.used=true;const P=G.player,out=[];
+  try{const sl=G.weapon.slots||[];if(sl[0]&&Number.isFinite(sl[0].reserve))sl[0].reserve+=90;else G.weapon.addAmmo(90);out.push('+90 набоїв');}catch(e){}
+  if(typeof ARM!=='undefined'){const g0=ARM.gren;ARM.gren=Math.min(6,ARM.gren+3);if(ARM.gren>g0)out.push('+'+(ARM.gren-g0)+' гранат');ARM.gl.res=Math.min(24,ARM.gl.res+6);ARM.rpg.res=Math.min(5,ARM.rpg.res+2);out.push('постріли до ГП-40 і РПГ');}
+  try{if(P.health<(P.maxHealth||100)){P.heal?P.heal(40):(P.health=Math.min(P.maxHealth||100,P.health+40));out.push('перевʼязка');}}catch(e){}
+  saltFlyMsg('схрон: '+out.join(' · '));try{sfx('pickup',null,.8,.7);sfx('medkit',null,.5,1);}catch(e){}
+}
+function supKey(e){
+  if(!SALT.on||e.repeat||SALT.droneOnly||SALT_FEAT.supply===false)return;const G=SALT.G;if(!G||!G.game||G.game.state!=='playing'||SALT.fly.on)return;
+  if(typeof DRV!=='undefined'&&DRV.on)return;if(typeof MG!=='undefined'&&MG.on)return;
+  if(e.code==='KeyE'){const b=supNear(G);if(b){e.preventDefault();e.stopImmediatePropagation();supOpen(G,b);}}
+  else if(e.code==='KeyO')supDrop(G);
+}
+function supDrop(G){
+  const P=G.player;if(!P.alive)return;if(SUP.cd>0){saltFlyMsg('наступний скид за '+Math.ceil(SUP.cd)+' с');return;}
+  const T=G.THREE,cam=G.camera,d=new T.Vector3();cam.getWorldDirection(d);let tx=P.pos.x+d.x*4,tz=P.pos.z+d.z*4;
+  try{const h=G.physics.raycast(cam.position,d,150);if(h&&h.point){tx=h.point.x;tz=h.point.z;}else if(d.y<-.03){const k=Math.min(150,(cam.position.y-saltH(cam.position.x,cam.position.z))/-d.y);tx=cam.position.x+d.x*k;tz=cam.position.z+d.z*k;}}catch(e){}
+  try{if(saltInBld(tx,tz)||landAt(SALT.ox+tx,SALT.oz+tz)===6){saltFlyMsg('туди скинути не вийде — обери відкрите місце');return;}}catch(e){}
+  SUP.cd=150;const g=new T.Group(),box=saltXBuild(SALT.t,'x_ammobox',{seed:1});g.add(box);
+  const cm=SUP.cm||(SUP.cm=new T.MeshStandardMaterial({color:0x8d9076,roughness:.9,side:T.DoubleSide})),can=new T.Mesh(new T.SphereGeometry(1.7,16,8,0,6.283,0,1.25),cm);can.scale.y=.62;can.position.y=3.4;g.add(can);
+  const lp=[];for(let k=0;k<8;k++){const a=k/8*6.283;lp.push(Math.cos(a)*1.6,3.75,Math.sin(a)*1.6,(k%2?.4:-.4)*(k<4?1:-1),.5,(k%4<2?.24:-.24));}
+  const lg=new T.BufferGeometry();lg.setAttribute('position',new T.Float32BufferAttribute(lp,3));g.add(new T.LineSegments(lg,SUP.lm||(SUP.lm=new T.LineBasicMaterial({color:0x2a2c2a}))));
+  const y0=saltY(tx,tz);g.position.set(tx+6,y0+70,tz+4);g.userData.noMerge=true;G.scene.add(g);SUP.drops.push({g:g,can:can,tx:tx,tz:tz,y0:y0,t:0,sm:0});
+  try{warRadio('Скид пішов. Чекай ящик під парашутом, дим — бурштиновий.',3);sfx('scout',null,.7,.9);}catch(e){}
+}
+function supStep(G,dt){
+  if(SALT_FEAT.supply===false||SALT.droneOnly)return;const T=G.THREE;
+  if(!SUP.init){SUP.init=true;addEventListener('keydown',supKey,true);}
+  SUP.cd=Math.max(0,SUP.cd-dt);
+  SUP.list=SUP.list.filter(b=>{if(b.ch&&SALT.chunks.get(saltChunkKey(b.ch.ix,b.ch.iz))!==b.ch)return false;if(!b.ch&&b.used&&(b.gone=(b.gone||0)+dt)>120){try{G.scene.remove(b.g);}catch(e){}return false;}return true;});
+  for(const b of SUP.list)if(b.used&&b.open<1&&b.lid){b.open=Math.min(1,b.open+dt*2.2);b.lid.rotation.x=-1.9*(1-Math.pow(1-b.open,2));}
+  for(let i=SUP.drops.length-1;i>=0;i--){const d=SUP.drops[i],p=d.g.position;d.t+=dt;
+    if(!d.land){p.y-=6.5*dt;p.x+=(d.tx-p.x)*Math.min(1,dt*.35);p.z+=(d.tz-p.z)*Math.min(1,dt*.35);d.g.rotation.z=Math.sin(d.t*1.3)*.1;d.g.rotation.x=Math.cos(d.t*1.1)*.08;
+      const gy=saltY(p.x,p.z);if(p.y<=gy){d.land=1;try{sfx('wh',p,.9,.5);}catch(e){}const b=supPlace(G,p.x,p.z,Math.random()*6.283,null);d.box=b;d.g.children[0].visible=false;d.g.position.y=gy;d.g.rotation.set(0,0,0);
+        try{warRadio('Ящик на землі.',2);}catch(e){}}}
+    else{d.land+=dt;d.can.scale.y=Math.max(.04,.62-d.land*.5);d.can.position.y=Math.max(.25,3.4-d.land*2.8);d.can.scale.x=d.can.scale.z=1+Math.min(.4,d.land*.3);
+      if((d.sm-=dt)<=0&&d.land<45&&d.box&&!d.box.used){d.sm=.35;try{G.fx.smoke(new T.Vector3(p.x+.6,p.y+.3,p.z),{size:1.1,life:4,rise:2.2,count:1,color:0xffa53a,alpha:.5});}catch(e){}}
+      if(d.land>60||(d.box&&d.box.used&&d.land>6)){try{G.scene.remove(d.g);}catch(e){}SUP.drops.splice(i,1);}}}
+  if(!SALT.fly.on&&(SUP.hintT-=dt)<=0){SUP.hintT=.5;const b=supNear(G),h=SUP.hint;SUP.hint=b;if(b&&b!==h&&!(typeof DRV!=='undefined'&&DRV.on))saltFlyMsg('E — відкрити схрон');}
+}
+g2Add('caches',supBuild);
 
 /* ═══════════ ПІХОТИНЕЦЬ ВІД ПЕРШОЇ ОСОБИ ═══════════
    craft==='foot': гравець — боєць на землі. Стан гравця лишається в `drone` (позиція = центр мас,
@@ -22064,7 +22660,7 @@ function titleInit(){
 }
 /* ── налаштування: лише потрібне; керування — наочно для бійця, FPV і крила ── */
 var SETTAB='set',SETDEV=IS_T?'t':'k';
-var CTL={k:[['Боєць',[['Рух','W A S D'],['Огляд','миша'],['Вогонь','ЛКМ'],['Приціл','ПКМ'],['Перезарядка','R'],['Інша зброя','Q'],['Стрибок','Space'],['Біг','Shift'],['Присісти','Ctrl'],['Лягти','B'],['Нахил ліворуч / праворуч','Z / X'],['Підкат','Ctrl на бігу'],['Тактичний спринт','Shift двічі'],['Перелізти','Space біля перешкоди'],['Відділення: тримати / за мною','T'],['Відділення: придушити вогнем точку','H'],['Відділення: в укриття / за мною','J'],['Відділення: вогонь по цілі в прицілі','L'],['Тактична мапа','K'],['Зрізати вузол','тримати E'],['Пауза','Esc']]],
+var CTL={k:[['Боєць',[['Рух','W A S D'],['Огляд','миша'],['Вогонь','ЛКМ'],['Приціл','ПКМ'],['Перезарядка','R'],['Інша зброя','Q'],['Стрибок','Space'],['Біг','Shift'],['Присісти','Ctrl'],['Лягти','B'],['Нахил ліворуч / праворуч','Z / X'],['Підкат','Ctrl на бігу'],['Тактичний спринт','Shift двічі'],['Перелізти','Space біля перешкоди'],['Відділення: тримати / за мною','T'],['Відділення: придушити вогнем точку','H'],['Відділення: в укриття / за мною','J'],['Відділення: вогонь по цілі в прицілі','L'],['Тактична мапа','K'],['Гранатомет ГП-40 / РПГ','3 / 4'],['Кинути гранату','Y'],['Сісти за кермо / вийти, відкрити схрон','E'],['За кермом: газ, кермо, гальмо','W S · A D · Space'],['Броня підтримки','P'],['Скид постачання','O'],['Зрізати вузол','тримати E'],['Пауза','Esc']]],
     ['FPV',[['Підняти / повернутись до тіла','F'],['Уперед / назад','W S'],['Поворот ліворуч / праворуч','A D'],['Напрямок','миша'],['Угору / вниз','Space / C'],['Прискорення','лівий Shift'],['Ракета по цілі в центрі кадру','E'],['Скид','R'],['Підрив','ЛКМ або удар'],['Захват (борт веде сам)','Q'],['Бойова частина','V'],['Зір: звичайний / тепловізор / нічний','N'],['Удар по точці (мапа)','M'],['БР / ГЗР за прицілом','− / ='],['Розвідник','U'],['Безсмертя','Tab']]],
     ['Крило',[['Запуск із руки / повернутись до тіла','G'],['Швидше / повільніше','W S'],['Поворот','A D'],['Напрямок','миша'],['Ніс угору','Space'],['Ракета по цілі в центрі кадру','E'],['Скид','R'],['Підрив','ЛКМ або удар']]],
     ['Кулемет',[['Стати за кулемет / відійти','E поруч із ДШК без кулеметника'],['Наведення','миша'],['Вогонь','ЛКМ'],['Перегрів','довга черга — пауза']]]],
