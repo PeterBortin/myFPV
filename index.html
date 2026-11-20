@@ -13193,7 +13193,7 @@ function saltChunkBuildings(kit,t,X0,Z0,X1,Z1,full,ch){
       const x0=cx-b.hw,x1=cx+b.hw,STEP=4,n=lp.length-1;
       for(let x=x0;x<x1;x+=STEP){const xm=Math.min(x1,x+STEP),xc=(x+xm)/2,zs=[];
         for(let k=0;k<n;k++){const a=lp[k],c=lp[k+1];if((a.x>xc)!==(c.x>xc))zs.push(a.z+(xc-a.x)/(c.x-a.x)*(c.z-a.z));}
-        zs.sort((p,q)=>p-q);for(let k=0;k+1<zs.length;k+=2)if(zs[k+1]-zs[k]>.3)t.physics.addBox([x,by-3,zs[k]],[xm,by+h,zs[k+1]],{surface:'concrete',noNav:!full});}
+        zs.sort((p,q)=>p-q);for(let k=0;k+1<zs.length;k+=2)if(zs[k+1]-zs[k]>.3)t.physics.addBox([x,by-3,zs[k]],[xm,by+h,zs[k+1]],{surface:'concrete',noNav:!full,tag:'bld'});}
       continue;}
     if(type!=='house'){                                            // дах: кондиціонери, вентшахти, антена; на цеху — ряд витяжок
       const nR=Math.min(type==='ind'?9:6,1+((b.hw*b.hd)/60|0));let q=hsh*31+i;
@@ -13217,7 +13217,7 @@ function saltChunkBuildings(kit,t,X0,Z0,X1,Z1,full,ch){
         if((a.x>xc)!==(c.x>xc))zs.push(a.z+(xc-a.x)/(c.x-a.x)*(c.z-a.z));
       }
       zs.sort((p,q)=>p-q);
-      for(let k=0;k+1<zs.length;k+=2)if(zs[k+1]-zs[k]>.3)t.physics.addBox([x,by-3,zs[k]],[xm,by+roofTop*(type==='house'?.85:1),zs[k+1]],{surface:'concrete'});
+      for(let k=0;k+1<zs.length;k+=2)if(zs[k+1]-zs[k]>.3)t.physics.addBox([x,by-3,zs[k]],[xm,by+roofTop*(type==='house'?.85:1),zs[k+1]],{surface:'concrete',tag:'bld'});
     }
     lift();
   }
@@ -13831,8 +13831,9 @@ function saltDecor(kit,t,X0,Z0,ch){
       const src=ind;if(!src.length)break;
       const xy=cellXY(...pick(src));
       if(Math.hypot(xy[0],xy[1])<18||busy(xy[0],xy[1],8))continue;
-      if(yard(xy[0],xy[1],rnd()<.5?0:Math.PI/2)){yards++;(SALT.pois||(SALT.pois=[])).push({x:xy[0]+7,z:xy[1]+7,kind:'yard',ck:ch});}
+      if(yard(xy[0],xy[1],SALT._yy=(rnd()<.5?0:Math.PI/2))){yards++;(SALT.pois||(SALT.pois=[])).push({x:xy[0]+7,z:xy[1]+7,kind:'yard',ck:ch,cx:xy[0],cz:xy[1],yaw:SALT._yy});}
     }
+    if(typeof siteBuild==='function'&&SALT_FEAT.sites!==false)try{siteBuild({put:put,rnd:rnd,free:free,busy:busy,cellsOf:cellsOf,cellXY:cellXY,pick:pick,roadEdge:roadEdge,rdPieces:rdPieces,ch:ch,kit:kit,t:t,T:T,X0:X0,Z0:Z0,ind:ind,open:open,res:res,taken:taken,cnt:cnt});}catch(e){saltFeatFail('sites',e);}   // майданчики Saltline — до розсипу, щоб їм дісталося рівне вільне місце (sites.js)
     /* блокпости на дорогах: шикана з бетонних блоків, мішки, будка, шлагбаум, конуси, прожектор */
     let posts=0;
     for(let k=0;k<8&&posts<1&&rdPieces.length>=3&&rnd()<(SALT_RULES.posts||0);k++){
@@ -13908,7 +13909,7 @@ function saltDecor(kit,t,X0,Z0,ch){
       add(MS.pole,MS.wood,0,3.7,0,0,0,0,g);add(MS.arm,MS.wood,0,7.0,0,0,0,0,g);
       for(const o of [-.7,0,.7])add(MS.ins,MS.gl,o,7.11,0,0,0,0,g);
       g.position.set(x,y,z);g.rotation.y=yaw;kit.dynRoot.add(g);
-      t.physics.addBox([x-.14,y-.5,z-.14],[x+.14,y+7.5,z+.14],{surface:'wood'});taken.push({x:x,z:z});
+      t.physics.addBox([x-.14,y-.5,z-.14],[x+.14,y+7.5,z+.14],{surface:'wood',tag:'pole'});taken.push({x:x,z:z});
       if(prev&&prev.id===r.id&&Math.hypot(prev.x-x,prev.z-z)<46){   // три дроти з провисом
         for(const o of [-.7,0,.7]){
           const ax=prev.x+Math.cos(prev.yaw)*o,az=prev.z-Math.sin(prev.yaw)*o,bx=x+Math.cos(yaw)*o,bz=z-Math.sin(yaw)*o;
@@ -13933,7 +13934,7 @@ function saltDecor(kit,t,X0,Z0,ch){
           else{for(const yy of [.35,.95])add(new T.BoxGeometry(w,.07,.04),fm,mx,y+yy,mz,0,yaw,0);for(let q=0;q<Math.round(w/.16);q++)add(new T.BoxGeometry(.09,hF,.025),fm,mx+ux*(-w/2+.08+q*.16),y+hF/2+.04,mz+uz*(-w/2+.08+q*.16),0,yaw,0);}
           add(new T.BoxGeometry(.08,hF+.15,.08),pm,ax+ux*s0,saltY(ax+ux*s0,az+uz*s0)+(hF+.15)/2,az+uz*s0,0,yaw,0);
           const bx0=Math.min(ax+ux*s0,ax+ux*s1)-.06,bx1=Math.max(ax+ux*s0,ax+ux*s1)+.06,bz0=Math.min(az+uz*s0,az+uz*s1)-.06,bz1=Math.max(az+uz*s0,az+uz*s1)+.06;
-          t.physics.addBox([bx0,y-.3,bz0],[bx1,y+hF,bz1],{surface:sheet?'metal':'wood'});}};
+          t.physics.addBox([bx0,y-.3,bz0],[bx1,y+hF,bz1],{surface:sheet?'metal':'wood',tag:'fence'});}};
       side(x0,z0,x0,z1,gs===0);side(x1,z0,x1,z1,gs===1);side(x0,z0,x1,z0,gs===2);side(x0,z1,x1,z1,gs===3);
     }
     for(let k=0;k<mine.length&&k<2;k++){                           // завал під стіною
@@ -14001,7 +14002,7 @@ function saltDecor(kit,t,X0,Z0,ch){
       list.forEach((tr,i)=>{
         const sc=tr[2]/TR.var[v].h;Q.setFromEuler(E.set(0,tr[3]*6.28,0));M.compose(V.set(tr[0],saltY(tr[0],tr[1])-.1,tr[1]),Q,S.set(sc,sc,sc));
         bk.setMatrixAt(i,M);lf.setMatrixAt(i,M);lf.setColorAt(i,col.setHex(TN[(tr[3]*TN.length)|0]));
-        const r=.24*sc,ty=saltY(tr[0],tr[1]);t.physics.addBox([tr[0]-r,ty-1,tr[1]-r],[tr[0]+r,ty+3.2*sc,tr[1]+r],{surface:'wood'});
+        const r=.24*sc,ty=saltY(tr[0],tr[1]);{const tb=t.physics.addBox([tr[0]-r,ty-1,tr[1]-r],[tr[0]+r,ty+3.2*sc,tr[1]+r],{surface:'wood',tag:'tree'});tb.tr=[bk,lf,i,tr[2]];}   // tr — щоб збите машиною дерево можна було прибрати з інстансів (crash.js)
         veilAdd(ch,tr[0],ty+tr[2]*.66,tr[1],tr[2]*(VV.vk||.34));
       });
       [bk,lf].forEach(m=>{try{m.computeBoundingSphere();}catch(e){m.frustumCulled=false;}m.instanceMatrix.needsUpdate=true;if(m.instanceColor)m.instanceColor.needsUpdate=true;});
@@ -14858,7 +14859,9 @@ function saltLifeStep(t,dt){
   if(typeof drvStep==='function')try{drvStep(G,dt);}catch(e){try{drvLeave();}catch(_){}saltFeatFail('drive',e);}   // за кермом і броня підтримки (drive.js)
   if(typeof supStep==='function')try{supStep(G,dt);}catch(e){saltFeatFail('supply',e);}
   if(typeof k11Step==='function')try{k11Step(G,dt);}catch(e){saltFeatFail('kit11',e);}
-  if(typeof k12Step==='function')try{k12Step(G,dt);}catch(e){saltFeatFail('kit12',e);}                             // третій набір: цивільні-люди, хатини, блоки, сенсори, контейнери, музика, сигнал ракет, піхотинець на телефоні (kit12.js)                             // другий набір зразків: цивільні, бронемашина, голуби, покинуті авто (kit11.js)                            // схрони й скид постачання (supply.js)
+  if(typeof k12Step==='function')try{k12Step(G,dt);}catch(e){saltFeatFail('kit12',e);}
+  if(typeof pushStep==='function')try{pushStep(G,dt);}catch(e){saltFeatFail('push',e);}                             // рухомий реквізит: копнув, зсунув (push.js)
+  if(typeof crashStep==='function')try{crashStep(G,dt);}catch(e){saltFeatFail('crash',e);}                           // аварії: інерція збитих машин, повалені дерева (crash.js)                             // третій набір: цивільні-люди, хатини, блоки, сенсори, контейнери, музика, сигнал ракет, піхотинець на телефоні (kit12.js)                             // другий набір зразків: цивільні, бронемашина, голуби, покинуті авто (kit11.js)                            // схрони й скид постачання (supply.js)
   if(typeof nobldStep==='function')try{nobldStep(G,dt);}catch(e){saltFeatFail('nobld',e);}                         // у монолітні будинки не заходять (nobld.js)
   if(typeof mgStep==='function')try{mgStep(G,dt);}catch(e){try{mgLeave();}catch(_){}saltFeatFail('mg',e);}       // кулемет: ствол ворожого кулеметника й позиція гравця (mg.js)
   /* ── боти ── */
@@ -14977,7 +14980,7 @@ function saltLifeStep(t,dt){
   }
   /* авто на дорогах */
   for(const c of LIFE.cars){
-    if(c.wreck)continue;
+    if(c.wreck||c.crash)continue;                                   // crash — після аварії машина стоїть там, куди її віднесло (crash.js)
     if(typeof BOTS!=='undefined'&&BOTS.on&&botsCar(c,dt,BC)){if(typeof civ2Car==='function')try{civ2Car(c,dt);}catch(e){saltFeatFail('civ2',e);}continue;}                                   // кермування Yuka: рух по смузі
     const r=c.rd;let stop=Math.hypot(c.g.position.x-pp.x,c.g.position.z-pp.z)<7||c.red;
     c.v+=((stop?0:c.vmax)-c.v)*Math.min(1,dt*1.5);c.s+=c.v*dt*c.dir;
@@ -15024,7 +15027,7 @@ function saltTraffic(G,pp){
       замість нього розлітаються уламки. Тож ціна для відеокарти та сама, що й у злитого реквізиту.
    2) Групи замість поодиноких предметів і заповнення порожнеч: шаблони груп за зоною, потім трава кущиками на решті зелені.
    3) Вода: катери, рибальські човни, баржі з буксирами, ворожі патрульні катери, плавці біля берега. ═══ */
-const SALT_DEST_HP={barrel:30,crate_wood:25,crate_stack:40,cardboard_boxes:10,pallet:20,pallet_stack:40,traffic_cone:8,jerry_can:12,tire_stack:45,
+const SALT_DEST_HP={gas_cylinders:50,tarp_cargo:70,generator:220,forklift:420,gate_arm:35,pipe_stack:400,barrel:30,crate_wood:25,crate_stack:40,cardboard_boxes:10,pallet:20,pallet_stack:40,traffic_cone:8,jerry_can:12,tire_stack:45,
   cable_reel:40,toolbox_cart:30,ibc_tote:35,dumpster:90,sign_post:20,bollard_post:25,jersey_barrier:160,sandbags:120,fence_panel:40,
   x_kiosk:90,x_bus_stop:70,x_outhouse:40,x_woodpile:40,x_haybales:50,x_greenhouse:40,x_well:120,x_playground:80,x_curbs:120,x_beds:999,x_boat:60,x_barn:220,x_garages:260,x_transformer:160};
 const DEST={list:[],deb:[],holes:0};
@@ -15879,7 +15882,7 @@ function saltViaOf(road,x,z){
 
 /* ===== бойові системи: виявлення / захват / супровід цілі, режими бачення, РЕБ, пускові й ракети, колони на дорогах, ніші у вікнах, ходові завдання ===== */
 /* прапорці доповнень: window.MYFPV_FEATURES={proto:false,...} або SALT_RULES.features. Модуль, що впав, вимикається сам із повідомленням про справжню помилку. */
-const SALT_FEAT=Object.assign({war:true,strike:true,loot:true,proto:true,world2:true,sat:true,heat:true,sfx:true,vfx:true,bvh:true,bots:true,botsSquad:true,botsCiv:true,botsTraffic:true,feel:true,roads2:true,grav:true,sat2:true,detail:true,tex:true,geo:true,traffic2:true,walk2:true,solid:true,frac:true,trees2:true,facade2:true,ik:true,susp:true,mobile:true,mg:true,pfd:true,blood:true,nrk:true,nobld:true,ramp:true,calm:true,hitfit:true,civ2:true,perf:true,autoq:true,far:true,fixture:true,gen2:true,fields:true,lsm:true,reeds:true,yards:true,ruins:true,trench:true,smoke2:true,lep:true,flares:true,tac:true,sqcmd:true,vehfpv:true,mines:true,snd2:true,hunter:true,civ3:true,tmap:true,camp:true,kit10:true,kit10baked:true,cabin:true,kit11:true,pigeons:true,kit12:true,mobfoot:true,music2:true,arms2:true,drive:true,supply:true},(typeof SALT_RULES!=='undefined'&&SALT_RULES.features)||{},window.MYFPV_FEATURES||{});
+const SALT_FEAT=Object.assign({war:true,strike:true,loot:true,proto:true,world2:true,sat:true,heat:true,sfx:true,vfx:true,bvh:true,bots:true,botsSquad:true,botsCiv:true,botsTraffic:true,feel:true,roads2:true,grav:true,sat2:true,detail:true,tex:true,geo:true,traffic2:true,walk2:true,solid:true,frac:true,trees2:true,facade2:true,ik:true,susp:true,mobile:true,mg:true,pfd:true,blood:true,nrk:true,nobld:true,ramp:true,calm:true,hitfit:true,civ2:true,perf:true,autoq:true,far:true,fixture:true,gen2:true,fields:true,lsm:true,reeds:true,yards:true,ruins:true,trench:true,smoke2:true,lep:true,flares:true,tac:true,sqcmd:true,vehfpv:true,mines:true,snd2:true,hunter:true,civ3:true,tmap:true,camp:true,kit10:true,kit10baked:true,cabin:true,kit11:true,pigeons:true,kit12:true,mobfoot:true,music2:true,push:true,crash:true,sites:true,arms2:true,drive:true,supply:true},(typeof SALT_RULES!=='undefined'&&SALT_RULES.features)||{},window.MYFPV_FEATURES||{});
 /* вимкнути модулі з адреси сторінки: ?off=roads2,vfx — щоб порівняти «до» і «після» на тій самій точці */
 try{const m=/[?&]off=([\w,]+)/.exec(location.search);if(m)m[1].split(',').forEach(k=>{if(k in SALT_FEAT)SALT_FEAT[k]=false;});}catch(e){}
 function saltFeatFail(name,e){if(SALT_FEAT[name]===false)return;SALT_FEAT[name]=false;const msg=String(e&&e.message||e).slice(0,120);console.error('module '+name+':',e);if(name==='vfx')try{vfxDispose();}catch(_){}try{saltFlyMsg('модуль «'+name+'» вимкнено: '+msg);}catch(_){}}
@@ -16107,6 +16110,7 @@ function warVehStep(G,dt,ref){
     if(v.gone||Math.hypot(gp.x-ref.x,gp.z-ref.z)>300){G.scene.remove(v.g);const q=DEST.list.indexOf(v.e);if(q>=0)DEST.list.splice(q,1);WAR.veh.splice(i,1);
       if(SALT.smokeAt)SALT.smokeAt=SALT.smokeAt.filter(s=>Math.hypot(s.x-gp.x,s.z-gp.z)>3);continue;}
     if(v.e.dead){if(!v.wreck){v.wreck=true;v.col.dead++;}continue;}
+    if(v.crash)continue;                                                                                 // після аварії стоїть, де зупинилась (crash.js)
     const ahead=WAR.veh.some(o=>o!==v&&o.col===v.col&&o.e.dead&&Math.abs(o.s-v.s)<16&&(o.s-v.s)*v.dir>0);       // підбитий попереду — колона стає
     const stop=ahead||Math.hypot(gp.x-pp.x,gp.z-pp.z)<9||v.halt>0;                                    // v.halt — помітили FPV (tactics.js)
     v.v+=((stop?0:v.vmax)-v.v)*Math.min(1,dt*1.2);v.s+=v.v*dt*v.dir;
@@ -19875,7 +19879,7 @@ function yrdBuild(ch,B){
           wood.push({x:p[0],y:y+.35,z:p[1],sx:len,sy:.07,sz:.04,ry:ry},{x:p[0],y:y+1.05,z:p[1],sx:len,sy:.07,sz:.04,ry:ry});}
         const pe=W(s[0]+(s[2]-s[0])*t0,s[1]+(s[3]-s[1])*t0);posts.push({x:pe[0],y:saltY(pe[0],pe[1])-.2,z:pe[1],sx:.09,sy:H+.25,sz:.09,ry:ry});
         if(B.near){const pa=W(s[0]+(s[2]-s[0])*t0,s[1]+(s[3]-s[1])*t0),pb=W(s[0]+(s[2]-s[0])*t1,s[1]+(s[3]-s[1])*t1),th=.12;
-          g2Col(ch,Math.min(pa[0],pb[0])-th,y,Math.min(pa[1],pb[1])-th,Math.max(pa[0],pb[0])+th,y+H,Math.max(pa[1],pb[1])+th,metal?'metal':'wood');}}});
+          const fb=g2Col(ch,Math.min(pa[0],pb[0])-th,y,Math.min(pa[1],pb[1])-th,Math.max(pa[0],pb[0])+th,y+H,Math.max(pa[1],pb[1])+th,metal?'metal':'wood');if(fb)fb.tag='fence';}}});
     /* сарай у дальньому від воріт куті й грядки за хатою */
     const back=(gs+2)%4,bs=sides[back],sp=W(bs[0]+(bs[2]-bs[0])*.2+(back%2?0:0),bs[1]+(bs[3]-bs[1])*.2);
     const inw=W((bs[0]+bs[2])/2*.0+(bs[0]*.8+(u0+u1)/2*.2),(bs[1]*.8+(v0+v1)/2*.2));
@@ -21237,7 +21241,7 @@ function drvSupport(G){
   try{warRadio('Броня підтримки виїхала. Хвилина — і в тебе.',3);sfx('scout',null,.7,1);}catch(e){}
 }
 function drvMove(G,c,dt,thr,str,brake){
-  const K=DRV.K[c.kind],L=c.size[0]*.62;
+  const K=DRV.K[c.kind],L=c.size[0]*.62;if(c.jy>.05){thr=0;str=0;brake=false;}                                  // у повітрі після бетонного блока ні газу, ні керма
   if(brake){c.v-=Math.sign(c.v)*Math.min(Math.abs(c.v),16*dt);}
   else if(thr){const fw=thr>0;if(fw&&c.v<-.3||!fw&&c.v>.3)c.v-=Math.sign(c.v)*Math.min(Math.abs(c.v),13*dt);else c.v+=thr*K.acc*dt*(1-Math.min(1,Math.abs(c.v)/(fw?K.vmax:K.rev))*.85);}
   else c.v-=Math.sign(c.v)*Math.min(Math.abs(c.v),1.8*dt);
@@ -21246,9 +21250,14 @@ function drvMove(G,c,dt,thr,str,brake){
   const dy=c.v/L*Math.tan(c.st)*dt;c.yaw+=dy;
   const cs=Math.cos(c.yaw),sn=-Math.sin(c.yaw);let nx=c.x+cs*c.v*dt,nz=c.z+sn*c.v*dt,hl=c.size[0]/2*Math.sign(c.v||1);
   let blk=false,wat=false;try{const fx=nx+cs*hl,fz=nz+sn*hl;if(saltInBld(fx,fz)||saltInBld(nx,nz))blk=true;const cl=landAt(SALT.ox+fx,SALT.oz+fz);if(cl===6&&!(typeof BRIDGE!=='undefined'&&BRIDGE.n&&saltH(fx,fz)-terrainH(SALT.ox+fx,SALT.oz+fz)>1))wat=true;}catch(e){}
-  if(!blk&&Math.abs(c.v)>.5)try{const T=G.THREE,o=DRV._o||(DRV._o=new T.Vector3()),d=DRV._d||(DRV._d=new T.Vector3());o.set(c.x,c.g.position.y+.9,c.z);d.set(cs*Math.sign(c.v),0,sn*Math.sign(c.v));const h=G.physics.raycast(o,d,c.size[0]/2+Math.abs(c.v)*dt+.3);if(h&&h.normal&&Math.abs(h.normal.y)<.6)blk=true;}catch(e){}
+  if(!blk&&Math.abs(c.v)>.5)try{const T=G.THREE,o=DRV._o||(DRV._o=new T.Vector3()),d=DRV._d||(DRV._d=new T.Vector3());o.set(c.x,c.g.position.y+.9,c.z);d.set(cs*Math.sign(c.v),0,sn*Math.sign(c.v));const CR=typeof crashHit==='function'&&SALT_FEAT.crash!==false,reach=c.size[0]/2+Math.abs(c.v)*dt+.3;
+      if(!CR){const h=G.physics.raycast(o,d,reach);if(h&&h.normal&&Math.abs(h.normal.y)<.6)blk=true;}
+      else if(!(c.jy>.35)){const wd=c.size[2]*.42;for(const q of [0,-1,1]){o.set(c.x-d.z*wd*q,c.g.position.y-(c.jy||0)+.5,c.z+d.x*wd*q);const h=G.physics.raycast(o,d,reach);   // три промені на висоті бампера: тепер зупиняють лише будинки, решту розбирає crash.js
+          if(h&&h.normal&&Math.abs(h.normal.y)<.6&&crashHit(G,c,h,d.x,d.z)){blk=true;break;}}}}catch(e){if(!DRV.ce){DRV.ce=1;console.error('crash',e);}}
   if(blk||wat){const hard=Math.abs(c.v);if(hard>7){try{sfx('bomb',null,.8,.6);c.e.hp-=hard*3;if(c===DRV.cur)G.player.addShake&&G.player.addShake(.3);}catch(e){}}c.v=-c.v*.15;if(wat&&c===DRV.cur&&LIFE.t-(DRV.wT||0)>3){DRV.wT=LIFE.t;saltFlyMsg('далі вода');}return dy;}
   c.x=nx;c.z=nz;saltSit(c.g,c.x,c.z,c.yaw,c.size[0]*.4,c.size[2]*.4);c.g.position.y+=.04;
+  if(c.jv||c.jy)try{crashAir(G,c,dt);}catch(e){c.jv=0;c.jy=0;}
+  if(typeof crashCars==='function'&&SALT_FEAT.crash!==false&&Math.abs(c.v)>1)try{crashCars(G,c,cs,sn);}catch(e){if(!DRV.ce2){DRV.ce2=1;console.error('crash cars',e);}}
   for(const w of c.wh){w.rotation.z-=c.v*dt/(w.userData.wheel.r||.5);if(w.userData.wheel.x>0)w.rotation.y=c.st;}
   const gp=c.g.position,h=Math.max(c.size[0],c.size[2])*.5;c.e.c.set(gp.x,gp.y+c.size[1]*.5,gp.z);c.e.bb.min.set(gp.x-h,gp.y,gp.z-h);c.e.bb.max.set(gp.x+h,gp.y+c.size[1],gp.z+h);
   /* наїзд */
@@ -21626,7 +21635,7 @@ function k12Static(ch,name,x,z,yaw,hp,surf,sink){
   if(name==='barrier'){for(let i=-2;i<=2;i++){const px=x+s*i*.6,pz=z+c*i*.6;bx.push(g2Col(ch,px-.4,y,pz-.4,px+.4,y+S[1],pz+.4,'concrete'));}}        // довгий блок під кутом — ланцюжок коротких коробок, а не товстий квадрат
   else if(name==='sensor')bx.push(g2Col(ch,x-.22,y,z-.22,x+.22,y+1.45,z+.22,'metal'));
   else{const ac=Math.abs(c),as=Math.abs(s),hx=(ac*S[0]+as*S[2])/2*.9,hz=(as*S[0]+ac*S[2])/2*.9;bx.push(g2Col(ch,x-hx,y,z-hz,x+hx,y+S[1]*.92,z+hz,surf||'metal'));}
-  const o={g:g,e:e,ch:ch,bx:bx[0],name:name};K11.stat.push(o);return o;                                                                  // прибирання разом із ділянкою — спільне з kit11
+  const o={g:g,e:e,ch:ch,bx:bx[0],bxs:bx,name:name};K11.stat.push(o);return o;                                                                  // прибирання разом із ділянкою — спільне з kit11
 }
 function k12Clear(x,z,r){for(const o of K11.stat)if(Math.hypot(o.g.position.x-x,o.g.position.z-z)<r)return false;return true;}
 function k12Build(ch,B){
@@ -21654,7 +21663,7 @@ function k12Build(ch,B){
 /* ───────── контейнер: обшук ───────── */
 function k12BinNear(G){const P=G.player.pos;let best=null,bd=2.3;for(const b of K12.bins){if(b.used)continue;const d=Math.hypot(b.x-P.x,b.z-P.z);if(d<bd&&Math.abs(b.y-P.y)<2.2){bd=d;best=b;}}return best;}
 function k12BinOpen(G,b){
-  b.used=true;b.t=4.5;try{k10bDoor(b.o.g,'lid',true);sfx('metal',null,.5,.7);}catch(e){}
+  b.used=true;b.t=4.5;try{k10bDoor(b.o.g,'lid',true);sfx('wh',null,.5,.6);}catch(e){}
   setTimeout(()=>{try{const P=G.player,r=b.seed;let s='порожньо';
       if(r<.3){const sl=G.weapon.slots||[];if(sl[0]&&Number.isFinite(sl[0].reserve))sl[0].reserve+=30;else G.weapon.addAmmo(30);s='+30 набоїв';}
       else if(r<.5&&typeof ARM!=='undefined'){ARM.gren=Math.min(6,ARM.gren+1);s='+1 граната';}
@@ -21680,7 +21689,7 @@ function k12Sensors(G,dt){
     try{for(const b of LIFE.bots){if(!b.alive||b.side!=='enemy'||!b.sq)continue;if(Math.hypot(b.pos.x-s.x,b.pos.z-s.z)>180)continue;b.sq.lkp=lk;b.sq.lkpT=LIFE.t;b.alarm=8;n++;}}catch(e){}
     try{if(typeof BOTS!=='undefined')BOTS.heard={x:lk.x,y:lk.y,z:lk.z,t:LIFE.t,r:170};}catch(e){}
     try{if(typeof warRadioE==='function')warRadioE(['Датчик сработал: движение в секторе. Группе — проверить!','Камера видит цель у дороги. Выдвигайтесь!','Сенсор: противник в секторе, работаем!'][(Math.random()*3)|0],3);}catch(e){}
-    try{saltFlyMsg(n?'вас засік сенсор — ворог іде сюди':'вас засік сенсор-спостерігач');sfx('beep',null,.5,1.6);}catch(e){}
+    try{saltFlyMsg(n?'вас засік сенсор — ворог іде сюди':'вас засік сенсор-спостерігач');sfx('lock',null,.5,1.2);}catch(e){}
   }
 }
 /* ───────── музика й сигнал ракетної загрози ───────── */
@@ -21741,6 +21750,343 @@ function k12Step(G,dt){
     if(!SALT.droneOnly&&!SALT.fly.on){const b=k12BinNear(G);if(b&&K12.hint!==b){K12.hint=b;saltFlyMsg('E — обшукати контейнер');}else if(!b)K12.hint=null;}}
 }
 if(typeof g2Add==='function')g2Add('kit12',k12Build);
+
+/* ===== рухомий реквізит (прапорець SALT_FEAT.push) =====
+   Усе, що стоїть на сцені окремим предметом, має масу й клас:
+   · дрібне (до 50 кг: конус, каністра, ящик, бочка, шини) — від ноги відскакує: летить, падає, котиться, стукається об стіни;
+   · середнє (до 450 кг: піддони, котушка, контейнер для сміття, тачка) — зсувається, поки на нього тиснеш;
+   · важке (до 4 т: бетонний блок, генератор, навантажувач, покинута легковичка) — ледь-ледь посувається;
+   · закріплене й велике (сарай, кіоск, морський контейнер, склад, міст, будинок) — не рухається взагалі.
+   Предмети ділянки злиті в спільні меші (living.js): предмет рухається зсувом свого діапазону вершин разом із колайдерами.
+   Окремі обʼєкти (покинуті авто, блоки, контейнери набору, укриття) рухаються як Object3D. Вибух теж розкидає дрібне.
+   Машина гравця користується тими самими предметами (crash.js). */
+const PUSH={near:[],mv:[],sT:0,stat:{kick:0,shove:0,boom:0},el:[]};
+const PUSH_M={barrel:25,crate_wood:30,crate_stack:90,cardboard_boxes:6,pallet:20,pallet_stack:160,traffic_cone:3,jerry_can:8,tire_stack:40,cable_reel:180,toolbox_cart:45,ibc_tote:120,dumpster:350,
+  jersey_barrier:1800,barrier:1800,sandbags:900,gas_cylinders:150,tarp_cargo:400,generator:900,forklift:3500,pipe_stack:2500,gate_arm:60,x_outhouse:150,x_woodpile:300,x_haybales:250,x_logs:400,x_loot_med:4,x_ammobox:12,
+  bin:300,sensor:15,fiat:800,ebr:13000};
+const PUSH_FIX=/^(container|guard_booth|x_barn|x_garages|x_kiosk|x_bus_stop|x_well|x_transformer|x_greenhouse|x_playground|x_trench|x_dugout|x_tank|x_pipe_rack|x_curbs|x_beds|x_boat|x_rubble|x_slabs|fence_panel|sign_post|bollard|light_mast|shelf_rack|stairs_metal|catwalk|relay_node|reefer_unit|shack)/;
+function pushCls(name,m){return PUSH_FIX.test(name)||m>4000?'fixed':m<=50?'small':m<=450?'medium':'heavy';}
+/* запис про предмет; src — запис DEST (злитий) або обʼєкт сцени зі своїми колайдерами */
+function pushOf(src,kind,name,boxes,g,e){
+  if(src._pi!==undefined)return src._pi;
+  let bb=null;
+  if(kind==='dest'){if(!src.ranges||!src.ranges.length||!src.boxes||!src.boxes.length||src.obj||!src.bb)return src._pi=null;bb=src.bb;name=src.name;boxes=src.boxes;e=src;}
+  else{boxes=(boxes||[]).filter(Boolean);if(!boxes.length||!g)return src._pi=null;bb={min:boxes[0].min.clone(),max:boxes[0].max.clone()};for(const b of boxes){bb.min.min(b.min);bb.max.max(b.max);}}
+  const vol=Math.max(.001,(bb.max.x-bb.min.x)*(bb.max.y-bb.min.y)*(bb.max.z-bb.min.z)),m=PUSH_M[name]||vol*(vol>12?400:110);
+  const it={k:kind,src:src,e:e||null,g:g||null,boxes:boxes,name:name||'',m:m,cls:pushCls(name||'',m),bb:bb,vx:0,vy:0,vz:0,air:false,spin:0,cd:0,mv:false,ref:null};
+  if(vol>14&&!PUSH_M[name])it.cls='fixed';
+  for(const b of boxes)b._pi=it;return src._pi=it;
+}
+/* зсув предмета на (dx,dy,dz) і поворот довкола вертикалі на rot */
+function pushShift(it,dx,dy,dz,rot){
+  const bb=it.bb;
+  if(it.k==='dest'){const e=it.e,cx=e.c.x,cz=e.c.z,c=rot?Math.cos(rot):1,s=rot?Math.sin(rot):0;
+    for(const r of e.ranges){const ms=r.mesh;if(!ms)continue;const A=ms.geometry.attributes.position,a=A.array,N=rot?ms.geometry.attributes.normal:null;
+      for(let i=r.s*3,n=(r.s+r.c)*3;i<n;i+=3){if(rot){const x=a[i]-cx,z=a[i+2]-cz;a[i]=cx+x*c+z*s;a[i+2]=cz-x*s+z*c;if(N){const q=N.array,nx=q[i],nz=q[i+2];q[i]=nx*c+nz*s;q[i+2]=-nx*s+nz*c;}}a[i]+=dx;a[i+1]+=dy;a[i+2]+=dz;}
+      try{if(A.addUpdateRange)A.addUpdateRange(r.s*3,r.c*3);}catch(_){}A.needsUpdate=true;if(N){try{if(N.addUpdateRange)N.addUpdateRange(r.s*3,r.c*3);}catch(_){}N.needsUpdate=true;}
+      if(!ms.userData.pushW){ms.userData.pushW=true;try{if(ms.geometry.boundingSphere)ms.geometry.boundingSphere.radius+=14;}catch(_){}}}       // зсунуте не повинно зникати на краю огляду
+    e.c.x+=dx;e.c.y+=dy;e.c.z+=dz;}
+  else{const p=it.g.position;p.x+=dx;p.y+=dy;p.z+=dz;if(rot)it.g.rotation.y+=rot;it.g.updateMatrixWorld(true);
+    if(it.e&&it.e.bb&&it.e.bb!==bb){it.e.bb.min.x+=dx;it.e.bb.min.y+=dy;it.e.bb.min.z+=dz;it.e.bb.max.x+=dx;it.e.bb.max.y+=dy;it.e.bb.max.z+=dz;it.e.c.x+=dx;it.e.c.y+=dy;it.e.c.z+=dz;}
+    const r=it.ref;if(r){if(r.x!=null)r.x+=dx;if(r.z!=null)r.z+=dz;if(r.y!=null)r.y+=dy;}}
+  bb.min.x+=dx;bb.min.y+=dy;bb.min.z+=dz;bb.max.x+=dx;bb.max.y+=dy;bb.max.z+=dz;
+  for(const b of it.boxes){if(b!==bb){b.min.x+=dx;b.min.y+=dy;b.min.z+=dz;b.max.x+=dx;b.max.y+=dy;b.max.z+=dz;}try{if(typeof accMoved==='function')accMoved(b);}catch(_){}}
+}
+/* поштовх: швидкість по землі, підскок, обертання */
+function pushKick(it,vx,vz,vy,spin){
+  if(!it||it.cls==='fixed'||(it.k==='dest'&&(it.e.dead||it.e.falling)))return false;
+  it.vx=vx;it.vz=vz;if(vy>0){it.vy=vy;it.air=true;}if(spin)it.spin=spin;if(!it.mv){it.mv=true;PUSH.mv.push(it);}return true;
+}
+function pushScan(G,cx,cz,R){
+  const out=PUSH.near;out.length=0;
+  for(const e of DEST.list){if(e.dead||e.obj||!e.c)continue;if(Math.abs(e.c.x-cx)>R||Math.abs(e.c.z-cz)>R)continue;const it=pushOf(e,'dest');if(it&&it.cls!=='fixed')out.push(it);}
+  if(typeof K11!=='undefined')for(const o of K11.stat){const p=o.g.position;if(Math.abs(p.x-cx)>R||Math.abs(p.z-cz)>R||(o.e&&o.e.dead))continue;
+    const it=pushOf(o,'obj',o.name||(o.e&&o.e.name==='car'?'fiat':'ebr'),o.bxs||[o.bx],o.g,o.e);if(it){if(it.ref===null&&typeof K12!=='undefined')it.ref=K12.bins.find(b=>b.o===o)||K12.sens.find(b=>b.o===o)||false;if(it.cls!=='fixed')out.push(it);}}
+  for(const c of SALT.cover0||[]){if(!c.o||!c.o.parent||Math.abs(c.x-cx)>R||Math.abs(c.z-cz)>R)continue;const it=pushOf(c,'obj',c.o.name||c.o.userData.prop||'',c.bx,c.o,null);if(it){it.ref=c;if(it.cls!=='fixed')out.push(it);}}
+}
+function pushInit(G){
+  if(PUSH.init)return;PUSH.init=true;
+  try{G.events.on('explosion',ev=>{if(!ev||!ev.pos||SALT_FEAT.push===false)return;const R=Math.max(4,(ev.radius||ev.r||5)*1.5),p=ev.pos;let n=0;
+      for(const e of DEST.list){if(e.dead||e.obj||!e.c||Math.abs(e.c.x-p.x)>R||Math.abs(e.c.z-p.z)>R)continue;const it=pushOf(e,'dest');if(!it||it.cls==='fixed'||it.cls==='heavy')continue;
+        const dx=e.c.x-p.x,dz=e.c.z-p.z,d=Math.hypot(dx,dz)||.1;if(d>R)continue;const k=1-d/R,sm=it.cls==='small',sp=k*(sm?9:3);if(pushKick(it,dx/d*sp,dz/d*sp,sm?1.5+k*4.5:k*1.2,(Math.random()-.5)*8))n++;if(n>24)break;}
+      PUSH.stat.boom+=n;});}catch(e){}
+}
+function pushStep(G,dt){
+  if(SALT_FEAT.push===false||typeof DEST==='undefined')return;pushInit(G);dt=Math.min(dt,.05);
+  const P=G.player,drv=typeof DRV!=='undefined'&&DRV.on&&DRV.cur,foot=!drv&&!SALT.fly.on&&P.alive&&(!SALT.droneOnly||SALT.mobFoot);
+  if((PUSH.sT-=dt)<=0){PUSH.sT=drv?.25:.5;if(drv)pushScan(G,DRV.cur.x,DRV.cur.z,26);else if(foot)pushScan(G,P.pos.x,P.pos.z,9);else PUSH.near.length=0;}
+  /* гравець пішки: чого торкнувся в русі — те штовхає */
+  if(foot){let wx=P.vel?P.vel.x:0,wz=P.vel?P.vel.z:0;
+    try{const I=G.input.move,mx=I.x||0,my=I.y||0;if(mx||my){const sy=Math.sin(P.yaw),cy=Math.cos(P.yaw),sp=G.input.sprint?6.2:4.2,ix=(-sy*my+cy*mx)*sp,iz=(-cy*my-sy*mx)*sp;if(Math.hypot(ix,iz)>Math.hypot(wx,wz)){wx=ix;wz=iz;}}}catch(e){}   // рушій гасить швидкість об колайдер, тому беремо й намір руху
+    const ws=Math.hypot(wx,wz);
+    if(ws>.4)for(const it of PUSH.near){if(it.cd>0){it.cd-=dt;continue;}const b=it.bb;if(b.max.y<P.pos.y+.12||b.min.y>P.pos.y+1.3)continue;
+      const qx=Math.max(b.min.x,Math.min(b.max.x,P.pos.x)),qz=Math.max(b.min.z,Math.min(b.max.z,P.pos.z)),d=Math.hypot(qx-P.pos.x,qz-P.pos.z);if(d>.52)continue;
+      let nx=(b.min.x+b.max.x)/2-P.pos.x,nz=(b.min.z+b.max.z)/2-P.pos.z;const nl=Math.hypot(nx,nz)||1;nx/=nl;nz/=nl;const tw=(wx*nx+wz*nz);if(tw<.35)continue;
+      if(it.cls==='small'){const sp=Math.min(6.5,tw*1.1+1.3);if(pushKick(it,nx*sp+(Math.random()-.5),nz*sp+(Math.random()-.5),1.5+Math.random()*1.3+tw*.2,(Math.random()-.5)*7)){it.cd=.3;PUSH.stat.kick++;try{sfx('wh',null,.35,1.6);}catch(e){}}}
+      else{const sp=it.cls==='medium'?Math.min(1.1,tw*.75):Math.min(.13,tw*.1);if(pushKick(it,nx*sp,nz*sp,0,0))PUSH.stat.shove++;}}}
+  /* рух зрушених */
+  const T=G.THREE,o=PUSH._o||(PUSH._o=new T.Vector3()),dv=PUSH._d||(PUSH._d=new T.Vector3());
+  for(let i=PUSH.mv.length-1;i>=0;i--){const it=PUSH.mv[i],b=it.bb;
+    if((it.k==='dest'&&(it.e.dead||it.e.falling))||(it.g&&!it.g.parent)){it.mv=false;it.vx=it.vz=it.vy=0;it.air=false;PUSH.mv.splice(i,1);continue;}
+    let sp=Math.hypot(it.vx,it.vz),dx=it.vx*dt,dz=it.vz*dt;const cx=(b.min.x+b.max.x)/2,cz=(b.min.z+b.max.z)/2,hx=(b.max.x-b.min.x)/2,hz=(b.max.z-b.min.z)/2;
+    if(sp>.04){let stop=false;const ux=it.vx/sp,uz=it.vz/sp,reach=Math.abs(ux)*hx+Math.abs(uz)*hz+sp*dt+.04;
+      try{for(const q of it.boxes){q._po=q.playerOnly;q.playerOnly=true;}o.set(cx,b.min.y+Math.min(.45,(b.max.y-b.min.y)*.5),cz);dv.set(ux,0,uz);const h=G.physics.raycast(o,dv,reach);if(h&&h.box&&h.normal&&Math.abs(h.normal.y)<.6)stop=true;}catch(e){}finally{for(const q of it.boxes)q.playerOnly=q._po;}
+      if(!stop)try{const nxp=cx+dx+ux*Math.max(hx,hz),nzp=cz+dz+uz*Math.max(hx,hz);if(landAt(SALT.ox+nxp,SALT.oz+nzp)===6||saltInBld(nxp,nzp))stop=true;}catch(e){}
+      if(stop){if(it.cls==='small'&&sp>1.5){it.vx*=-.35;it.vz*=-.35;try{sfx('wh',null,.25,1.9);}catch(e){}}else{it.vx=0;it.vz=0;}dx=0;dz=0;sp=Math.hypot(it.vx,it.vz);}}
+    let dy=0;const g=saltY(cx+dx,cz+dz);
+    if(it.air){it.vy-=9.81*dt;let ny=b.min.y+it.vy*dt;if(ny<=g){ny=g;if(it.vy<-2.4){it.vy*=-.34;it.vx*=.62;it.vz*=.62;it.spin*=.5;try{sfx('wh',null,.2,1.4);}catch(e){}}else{it.vy=0;it.air=false;}}dy=ny-b.min.y;}
+    else{dy=Math.max(-.6,Math.min(.6,g-b.min.y));if(b.min.y-g>.5){it.air=true;it.vy=0;dy=0;}}
+    const rot=it.cls==='small'&&it.spin?it.spin*dt:0;if(dx||dy||dz||rot)pushShift(it,dx,dy,dz,rot);
+    if(!it.air){const f=(it.cls==='small'?5:it.cls==='medium'?9:16)*dt;if(sp<=f){it.vx=0;it.vz=0;}else{it.vx-=it.vx/sp*f;it.vz-=it.vz/sp*f;}it.spin*=Math.max(0,1-4*dt);}
+    if(!it.air&&Math.hypot(it.vx,it.vz)<.03){it.vx=it.vz=0;it.spin=0;it.mv=false;PUSH.mv.splice(i,1);try{if(typeof GRAV!=='undefined')GRAV.destT=.1;}catch(e){}}
+  }
+}
+
+/* ===== аварії й наїзди машини гравця (прапорець SALT_FEAT.crash) =====
+   Машину зупиняють лише будинки й «зовсім велике» (склад, морський контейнер, гараж, остов броні).
+   · бетонний блок — підкидає на 1–1,5 м, далі несе за інерцією;
+   · паркан — зноситься: секція зникає, дошки чи листи летять;
+   · дерево й стовп — валяться (дерево падає своєю ж моделлю), швидкість і корпус втрачаються;
+   · реквізит — розлітається за масою (push.js), крихке на швидкості трощиться;
+   · інша машина — удар за законом збереження імпульсу: її відносить і розвертає, вона пошкоджена (або горить), наша втрачає швидкість і корпус.
+   drive.js кличе crashHit (промені бампера), crashCars (габарити машин) і crashAir (політ після блока). */
+const CRASH={sl:[],fell:[],M:{humvee:3500,mrap:14000,pickup:2000,ebr:13000,car:1300,van:2600,fiat:800,truck:8000,apc:14000,tank:42000,moto:200,fuel:9000,arty:6000,sedan80:1300},stat:{fence:0,tree:0,pole:0,jump:0,car:0,prop:0,smash:0},t:0};
+function crashMass(c){return CRASH.M[c.kind]||3000;}
+function crashFx(G,c,k,hp){try{if(c===DRV.cur&&G.player.addShake)G.player.addShake(Math.min(.6,k));if(hp)c.e.hp-=hp;}catch(e){}}
+function crashChunkAt(x,z){try{return SALT.chunks.get(saltChunkKey(Math.floor(x/SALT.CH),Math.floor(z/SALT.CH)));}catch(e){return null;}}
+function crashDebris(G,x,y,z,ux,uz,v,n,col,sz){
+  const T=G.THREE,mt=CRASH['m'+col]||(CRASH['m'+col]=new T.MeshStandardMaterial({color:col,roughness:.85,metalness:col===0x8d9aa3?.5:0})),geo=SALT.res.debGeo||(SALT.res.debGeo=new T.BoxGeometry(1,1,1));
+  for(let k=0;k<n;k++){const m=new T.Mesh(geo,mt);m.scale.set(sz[0]*(.6+Math.random()*.6),sz[1],sz[2]*(.7+Math.random()*.5));m.position.set(x+(Math.random()-.5)*1.6,y+.3+Math.random()*1.1,z+(Math.random()-.5)*1.6);m.rotation.set(Math.random()*3,Math.random()*3,Math.random()*3);m.castShadow=true;G.scene.add(m);
+    DEST.deb.push({m:m,v:new T.Vector3(ux*v*(.5+Math.random()*.6)+(Math.random()-.5)*3,2+Math.random()*4,uz*v*(.5+Math.random()*.6)+(Math.random()-.5)*3),w:new T.Vector3(Math.random()*9,Math.random()*9,Math.random()*9),t:0,life:8+Math.random()*4});}
+}
+/* прибрати з ділянки те, що лежить у коробці b: інстанси — нульовим масштабом, злиту геометрію — стисканням вершин */
+function crashErase(G,b,pad,merged){
+  const T=G.THREE,ch=crashChunkAt((b.min.x+b.max.x)/2,(b.min.z+b.max.z)/2);if(!ch||!ch.objs)return 0;let n=0;
+  const x0=b.min.x-pad,x1=b.max.x+pad,z0=b.min.z-pad,z1=b.max.z+pad,y0=b.min.y-.6,y1=b.max.y+.9,M=CRASH._m||(CRASH._m=new T.Matrix4()),Z=CRASH._z||(CRASH._z=new T.Matrix4().makeScale(0,0,0));
+  for(const o of ch.objs){
+    if(o.isInstancedMesh){if(o.userData.tree)continue;let hit=false;const a=o.instanceMatrix.array;for(let i=0;i<o.count;i++){const x=a[i*16+12],y=a[i*16+13],z=a[i*16+14];if(x>=x0&&x<=x1&&z>=z0&&z<=z1&&y>=y0-1&&y<=y1){Z.elements[12]=x;Z.elements[13]=y-40;Z.elements[14]=z;o.setMatrixAt(i,Z);hit=true;n++;}}if(hit)o.instanceMatrix.needsUpdate=true;}
+    else if(merged&&o.name==='real-merged')o.traverse(m=>{if(!m.isMesh||!m.geometry||!m.geometry.attributes.position)return;const A=m.geometry.attributes.position,a=A.array;let hit=false;
+        for(let i=0;i<a.length;i+=3){const x=a[i],z=a[i+2];if(x<x0||x>x1||z<z0||z>z1)continue;const y=a[i+1];if(y<y0||y>y1)continue;a[i+1]=y0-30;hit=true;n++;}if(hit)A.needsUpdate=true;});
+  }
+  return n;
+}
+function crashBoxOff(G,b){try{G.physics.removeBox(b);}catch(e){}try{const ch=crashChunkAt((b.min.x+b.max.x)/2,(b.min.z+b.max.z)/2);if(ch&&ch.boxes){const i=ch.boxes.indexOf(b);if(i>=0)ch.boxes.splice(i,1);}}catch(e){}b.dead=true;}
+function crashFence(G,b,ux,uz,v){
+  const metal=b.surface==='metal';crashErase(G,b,.14,true);crashBoxOff(G,b);
+  crashDebris(G,(b.min.x+b.max.x)/2,b.min.y,(b.min.z+b.max.z)/2,ux,uz,Math.max(3,v),metal?3:7,metal?0x8d9aa3:0x6b5236,metal?[1.1,.03,.9]:[.11,.03,1.0]);
+  try{sfx('ruin',null,.35,metal?2.2:1.7);sfx('wh',null,.6,.7);}catch(e){}CRASH.stat.fence++;
+}
+function crashTree(G,b,ux,uz){
+  const T=G.THREE,tr=b.tr;crashBoxOff(G,b);CRASH.stat.tree++;if(!tr||!tr[0])return;
+  const bk=tr[0],lf=tr[1],i=tr[2],M=new T.Matrix4();bk.getMatrixAt(i,M);const p=new T.Vector3(),q=new T.Quaternion(),s=new T.Vector3();M.decompose(p,q,s);
+  const Z=new T.Matrix4().makeScale(0,0,0);Z.setPosition(p.x,p.y-60,p.z);bk.setMatrixAt(i,Z);bk.instanceMatrix.needsUpdate=true;if(lf){lf.setMatrixAt(i,Z);lf.instanceMatrix.needsUpdate=true;}
+  /* те саме дерево окремим обʼєктом: валиться від машини й лишається лежати */
+  const g=new T.Group(),in2=new T.Group();in2.quaternion.copy(q);in2.scale.copy(s);in2.add(new T.Mesh(bk.geometry,bk.material));if(lf){const lm=new T.Mesh(lf.geometry,lf.material);if(lf.customDepthMaterial)lm.customDepthMaterial=lf.customDepthMaterial;in2.add(lm);}
+  in2.traverse(m=>{if(m.isMesh){m.castShadow=true;m.receiveShadow=true;}});g.add(in2);g.position.copy(p);g.userData.noMerge=true;G.scene.add(g);
+  const ax=new T.Vector3(uz,0,-ux).normalize();CRASH.fell.push({g:g,ax:ax,a:0,w:.5,t:0,max:1.42+Math.random()*.1});
+  try{sfx('ruin',null,.6,1.5);}catch(e){}
+}
+function crashPole(G,b,ux,uz,v){
+  const x=(b.min.x+b.max.x)/2,z=(b.min.z+b.max.z)/2;crashErase(G,{min:{x:x-1,y:b.min.y,z:z-1},max:{x:x+1,y:b.max.y,z:z+1}},0,true);crashBoxOff(G,b);
+  try{const ch=crashChunkAt(x,z);for(const o of ch.objs){if(o.name!=='real-wire'||!o.geometry)continue;if(!o.geometry.boundingBox)o.geometry.computeBoundingBox();const B=o.geometry.boundingBox;
+      if([[B.min.x,B.min.z],[B.min.x,B.max.z],[B.max.x,B.min.z],[B.max.x,B.max.z]].some(c=>Math.hypot(c[0]-x,c[1]-z)<1.6))o.visible=false;}}catch(e){}
+  crashDebris(G,x,b.min.y+.5,z,ux,uz,Math.max(3,v*.6),5,0x5a4630,[.16,.16,1.4]);try{sfx('ruin',null,.6,1.2);}catch(e){}CRASH.stat.pole++;
+}
+/* промінь бампера в щось уперся. Повертає true — машина зупиняється */
+function crashHit(G,c,h,ux,uz){
+  const b=h.box;if(!b||b.dead)return false;const v=Math.abs(c.v),m1=crashMass(c),me=c===DRV.cur;
+  if(b.tag==='bld')return true;
+  if(b.tag==='fence'){crashFence(G,b,ux,uz,v);c.v*=.93;crashFx(G,c,.12,1);return false;}
+  if(b.tag==='tree'){if(v<1.2)return true;const big=(b.max.x-b.min.x)>.62;crashTree(G,b,ux,uz);c.v*=big?.5:.72;crashFx(G,c,big?.4:.22,v*(big?2.6:1.1)*3500/m1);return false;}
+  if(b.tag==='pole'){if(v<1.2)return true;crashPole(G,b,ux,uz,v);c.v*=.7;crashFx(G,c,.3,v*1.6*3500/m1);return false;}
+  let it=b._pi;if(it===undefined&&typeof PUSH!=='undefined'){for(const e of DEST.list){if(e.dead||!e.boxes||e.boxes.indexOf(b)<0)continue;it=pushOf(e,'dest');break;}}
+  if(it){const nm=it.name;if(it.k==='dest'&&it.e.dead)return false;
+    if(nm==='jersey_barrier'||nm==='barrier'){                                                     // бетонний блок: трамплін
+      if(v>4&&!(c.jy>0)){c.jv=Math.sqrt(2*9.81*(1+.5*Math.min(1,(v-4)/9)));c.jy=.02;c.v*=.94;pushKick(it,ux*.9,uz*.9,0,0);crashFx(G,c,.45,5*3500/m1);try{sfx('bomb',null,.55,.75);}catch(e){}CRASH.stat.jump++;}
+      else if(!(c.jy>0)){pushKick(it,ux*Math.min(.5,v*.4),uz*Math.min(.5,v*.4),0,0);c.v*=.6;}
+      return false;}
+    if(it.cls==='fixed'){
+      if(it.k==='dest'&&it.e.hp<=95&&!/container|guard_booth|x_well|x_barn|x_garages|x_transformer/.test(nm)&&v>2.5){try{saltDestKill(it.e,h.point);}catch(e){}c.v*=nm==='fence_panel'||nm==='sign_post'||/bollard/.test(nm)?.92:.68;crashFx(G,c,.25,v*1.1*3500/m1);
+        if(nm==='fence_panel')CRASH.stat.fence++;else CRASH.stat.smash++;return false;}
+      return true;}
+    const m2=it.m,v2=Math.min(13,m1*v*1.2/(m1+m2)),sm=it.cls==='small';
+    if(CRASH.t-(it.hitT||-9)<.3){if(Math.hypot(it.vx,it.vz)<v)pushKick(it,ux*v*1.03,uz*v*1.03,0,0);return false;}it.hitT=CRASH.t;       // той самий предмет перед бампером: штовхаємо далі, удар рахується один раз
+    if(it.k==='dest'&&it.e.hp<=45&&v>9&&!sm){try{saltDestKill(it.e,h.point);}catch(e){}CRASH.stat.smash++;}
+    else{pushKick(it,ux*v2+(Math.random()-.5)*(sm?3:.6),uz*v2+(Math.random()-.5)*(sm?3:.6),sm?1.4+v*.16:it.cls==='medium'?.4+v*.05:0,(Math.random()-.5)*(sm?10:2));
+      if(it.e&&it.k==='obj'&&it.e.hp!=null&&v>3){it.e.hp-=v*v*.55*m1/(m1+m2);if(it.e.hp<=0)try{saltDestKill(it.e,h.point);}catch(e){}}}   // покинута машина: мнеться, може спалахнути
+    c.v*=Math.max(.3,(m1-.2*m2)/(m1+m2));crashFx(G,c,Math.min(.5,.08+m2/m1*.6),v*m2/m1*1.6);CRASH.stat.prop++;
+    if(me&&v>3)try{sfx('wh',null,Math.min(.9,.3+m2/900),sm?1.2:.5);}catch(e){}
+    return false;}
+  /* невідомий колайдер: дрібне — крізь нього з втратою швидкості, велике — стіна */
+  const fx=b.max.x-b.min.x,fz=b.max.z-b.min.z,hh=b.max.y-b.min.y;
+  if(Math.max(fx,fz)<1.5&&hh<2.2){if(CRASH.t-(b._cx||-9)>1){b._cx=CRASH.t;c.v*=.8;crashFx(G,c,.15,v*.8);}return false;}
+  return true;
+}
+/* політ після блока */
+function crashAir(G,c,dt){
+  c.jv=(c.jv||0)-9.81*dt;c.jy=(c.jy||0)+c.jv*dt;
+  if(c.jy<=0){const hard=-c.jv;c.jy=0;c.jv=0;c.v*=.9;crashFx(G,c,Math.min(.7,hard*.09),hard*1.6*3500/crashMass(c));try{sfx('bomb',null,.5,.55);}catch(e){}return;}
+  c.g.position.y+=c.jy;try{c.g.rotateZ(Math.max(-.2,Math.min(.2,c.jv*.035)));}catch(e){}
+  const gp=c.g.position;c.e.c.y=gp.y+c.size[1]*.5;c.e.bb.min.y=gp.y;c.e.bb.max.y=gp.y+c.size[1];
+}
+/* інші машини: список із позицією, курсом, габаритом, масою й швидкістю вздовж власного курсу */
+function crashOthers(c,out){
+  out.length=0;
+  for(const o of LIFE.cars){if(o.dead||!o.g)continue;const p=o.g.position;if(Math.abs(p.x-c.x)>14||Math.abs(p.z-c.z)>14)continue;const van=o.wr>.36;out.push({k:'car',o:o,x:p.x,y:p.y,z:p.z,yaw:o.g.rotation.y,L:van?5.2:4.4,W:van?2:1.8,m:van?CRASH.M.van:CRASH.M.car,v:o.wreck||o.crash?0:o.v||0});}
+  if(typeof WAR!=='undefined')for(const o of WAR.veh){const p=o.g.position;if(Math.abs(p.x-c.x)>16||Math.abs(p.z-c.z)>16)continue;out.push({k:'veh',o:o,x:p.x,y:p.y,z:p.z,yaw:o.g.rotation.y,L:o.size[0],W:o.size[2],m:CRASH.M[o.kind]||6000,v:o.e.dead||o.crash?0:o.v||0});}
+  for(const o of DRV.list){if(o===c||Math.abs(o.x-c.x)>16||Math.abs(o.z-c.z)>16)continue;out.push({k:'drv',o:o,x:o.x,y:o.g.position.y,z:o.z,yaw:o.yaw,L:o.size[0],W:o.size[2],m:crashMass(o),v:o.v||0});}
+  return out;
+}
+function crashCars(G,c,cs,sn){
+  const L1=c.size[0],W1=c.size[2],m1=crashMass(c),list=crashOthers(c,CRASH._l||(CRASH._l=[]));
+  for(const q of list){const o=q.o;if(CRASH.t-(o._crT||-9)<.35||Math.abs(q.y-(c.g.position.y-(c.jy||0)))>2.2||c.jy>1.1)continue;
+    const rx=q.x-c.x,rz=q.z-c.z,f=rx*cs+rz*sn,s=-rx*sn+rz*cs,da=q.yaw-c.yaw,ca=Math.abs(Math.cos(da)),sa=Math.abs(Math.sin(da)),ex=ca*q.L/2+sa*q.W/2,ez=sa*q.L/2+ca*q.W/2;
+    const pf=L1/2+ex-Math.abs(f),ps=W1/2+ez-Math.abs(s);if(pf<=0||ps<=0)continue;
+    const oc=Math.cos(q.yaw),os=-Math.sin(q.yaw),v2=q.v*(oc*cs+os*sn),sg=Math.sign(f)||1,rel=(c.v-v2)*sg;if(rel<.6)continue;                     // зближення вздовж нашого курсу
+    o._crT=CRASH.t;const e=.2,sum=m1+q.m,nv1=(m1*c.v+q.m*v2-q.m*e*(c.v-v2))/sum,nv2=(m1*c.v+q.m*v2+m1*e*(c.v-v2))/sum,E=rel*rel;
+    const d2=E*1.0*m1/sum,d1=E*.6*q.m/sum,off=Math.max(-1,Math.min(1,s/(W1/2+ez)));
+    /* її відносить уздовж нашого курсу, трохи вбік від точки удару, і розвертає */
+    const sl={q:q,o:o,k:q.k,x:q.x+cs*sg*Math.min(pf,.8),z:q.z+sn*sg*Math.min(pf,.8),yaw:q.yaw,vx:cs*nv2+(-sn)*off*rel*.22,vz:sn*nv2+cs*off*rel*.22,wy:-off*rel*.28*Math.sign(Math.cos(da)||1)*sg,L:q.L,W:q.W};
+    if(q.k==='car'){o.crash=true;o.v=0;o.vmax=0;o.hp=(o.hp==null?140:o.hp)-d2;if(o.hp<=0&&!o.wreck)try{saltCarKill(o);}catch(_){}else if(!o.wreck&&!o.steam){o.steam=true;(SALT.smokeAt||(SALT.smokeAt=[])).push({x:sl.x,y:q.y+1,z:sl.z,ck:null,car:o,col:0xb8b8b8,a:.22,sz:.5,life:2.2});}}
+    else if(q.k==='veh'){o.crash=true;o.v=0;o.e.hp-=d2;if(o.e.hp<=0&&!o.e.dead)try{saltDestKill(o.e,o.e.c);}catch(_){}}
+    else{o.v=0;o.e.hp-=d2;if(o.e.hp<=0&&!o.e.dead)try{saltDestKill(o.e,o.e.c);}catch(_){}}
+    CRASH.sl.push(sl);c.v=nv1;crashFx(G,c,Math.min(.8,.15+rel*.05),d1);CRASH.stat.car++;
+    try{const px=c.x+cs*sg*L1/2,pz=c.z+sn*sg*L1/2,py=c.g.position.y+.8;sfx('bomb',{x:px,y:py,z:pz},Math.min(1,.35+rel*.05),.8);sfx('wh',null,.9,.45);
+      crashDebris(G,px,py-.4,pz,cs*sg,sn*sg,rel*.6,Math.min(8,3+(rel*.4|0)),0x8d9aa3,[.22,.02,.16]);G.fx.smoke(new G.THREE.Vector3(px,py,pz),{size:1.2,life:1.6,rise:1,count:2,color:0x8a8a84,alpha:.35});}catch(_){}
+    if(c===DRV.cur&&rel>9)try{G.player.damage&&!G.player.invulnerable&&G.player.damage(Math.min(40,(rel-9)*3));}catch(_){}
+  }
+}
+function crashStep(G,dt){
+  if(SALT_FEAT.crash===false)return;dt=Math.min(dt,.05);CRASH.t+=dt;
+  for(let i=CRASH.sl.length-1;i>=0;i--){const s=CRASH.sl[i],o=s.o,sp=Math.hypot(s.vx,s.vz);
+    let nx=s.x+s.vx*dt,nz=s.z+s.vz*dt;try{if(saltInBld(nx,nz)||landAt(SALT.ox+nx,SALT.oz+nz)===6){s.vx=s.vz=0;nx=s.x;nz=s.z;}}catch(e){}
+    s.x=nx;s.z=nz;s.yaw+=s.wy*dt;const f=7.5*dt;if(sp<=f){s.vx=0;s.vz=0;}else{s.vx-=s.vx/sp*f;s.vz-=s.vz/sp*f;}s.wy*=Math.max(0,1-2.6*dt);
+    try{saltSit(o.g,s.x,s.z,s.yaw,s.L*.4,s.W*.4);o.g.position.y+=.04;if(s.k==='car'&&o.wreck)o.g.rotation.z+=.06;}catch(e){}
+    const gp=o.g.position;
+    if(s.k==='drv'){o.x=s.x;o.z=s.z;o.yaw=s.yaw;}
+    if(o.e&&o.e.bb){const h=Math.max(s.L,s.W)*.5,hy=o.size?o.size[1]:1.6;o.e.c.set(gp.x,gp.y+hy*.5,gp.z);o.e.bb.min.set(gp.x-h,gp.y,gp.z-h);o.e.bb.max.set(gp.x+h,gp.y+hy,gp.z+h);}
+    if(SALT.smokeAt)for(const sm of SALT.smokeAt)if(sm.car===o){sm.x=gp.x;sm.z=gp.z;sm.y=gp.y+1;}
+    if(sp<.05&&Math.abs(s.wy)<.03)CRASH.sl.splice(i,1);
+  }
+  /* повалені дерева: падають із розгоном, лягають, згодом зникають */
+  const T=G.THREE;
+  for(let i=CRASH.fell.length-1;i>=0;i--){const f=CRASH.fell[i];f.t+=dt;if(f.a<f.max){f.w+=2.6*dt*(.25+Math.sin(Math.min(1.5,f.a+.15)));f.a=Math.min(f.max,f.a+f.w*dt);f.g.quaternion.setFromAxisAngle(f.ax,f.a);if(f.a>=f.max)try{sfx('ruin',f.g.position,.6,1.3);}catch(e){}}
+    if(f.t>150||Math.hypot(f.g.position.x-G.camera.position.x,f.g.position.z-G.camera.position.z)>420){G.scene.remove(f.g);CRASH.fell.splice(i,1);}}
+}
+
+/* ===== майданчики Saltline на реальній мапі (прапорець SALT_FEAT.sites) =====
+   Реквізит рушія складається не розсипом, а «місцями», які читаються з дороги й з повітря:
+   · асфальтовий майданчик із розміткою — під контейнерним двором, довкола складу, під кожним новим майданчиком;
+   · склад просто неба: огорожа з сітки з проїздом, шлагбаум, будка, прожектори на тринозі, генератор — і кабелі від нього по землі;
+     усередині один із трьох наборів: піддони й стелажі / кабельний двір (котушки, труби) / контейнери з бочками й єврокубами;
+   · обвʼязка складу Saltline: техніка й тара біля воріт, контейнер під стіною, кабель від щитка.
+   Де: промзона — майже на кожній ділянці; пустир із дорогою — зрідка. Житлові квартали й ліс не чіпаємо.
+   Усе ставиться тим самим put(), що й решта реквізиту ділянки: зайняті місця, дороги, вода й схили враховані, руйнівне лишається руйнівним.
+   Додаткові правила розсипу дописуються в SALT_RULES.scatter (нічого не замінюють). */
+const SITES={stat:{depot:0,apron:0,cable:0,shed:0},dbg:{ch:0,nosrc:0,dice:0,busy:0,flat:0,near:0}};
+try{if(typeof SALT_RULES!=='undefined'&&SALT_RULES.scatter&&!SALT_RULES._sites){SALT_RULES._sites=true;SALT_RULES.scatter.push(
+  {zone:'industrial',items:['gas_cylinders','tarp_cargo','generator','cable_reel','pipe_stack','ibc_tote','pallet_stack','crate_stack','toolbox_cart','barrel','forklift'],every:12,maxEach:2,pad:1.7,sep:4.5},
+  {zone:'open',items:['cable_reel','pipe_stack','tarp_cargo','pallet_stack','tire_stack'],count:1,chance:.3,pad:1.7,sep:7},
+  {along:['street','avenue'],when:'city',items:['dumpster','bollard_post','sign_post','traffic_cone'],every:8,off:2.7});}}catch(e){}
+function siteMat(C,name){return (SITES.m||(SITES.m={}))[name]||(SITES.m[name]=C.t.mats.get(name,name==='asphalt'||name==='concrete_dirty'?{triplanar:true}:undefined));}
+/* асфальт, що лягає по рельєфу: сітка 2 м, клітинки на дорозі, у воді й під будинками пропускаються */
+function siteApron(C,cx,cz,yaw,len,wid,marks){
+  const T=C.T,c=Math.cos(yaw),s=Math.sin(yaw),W=(lx,lz)=>[cx+lx*c+lz*s,cz-lx*s+lz*c],st=2,nx=Math.round(len/st),nz=Math.round(wid/st),P=[],N=[],U=[];
+  const pt=[];for(let j=0;j<=nz;j++)for(let i=0;i<=nx;i++){const w=W(-len/2+i*st,-wid/2+j*st);let ok=true;try{ok=landAt(SALT.ox+w[0],SALT.oz+w[1])!==6&&!saltInBld(w[0],w[1]);}catch(e){}pt.push([w[0],saltY(w[0],w[1])+.05,w[1],ok]);}
+  for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){const a=pt[j*(nx+1)+i],b=pt[j*(nx+1)+i+1],d=pt[(j+1)*(nx+1)+i],e=pt[(j+1)*(nx+1)+i+1];if(!(a[3]&&b[3]&&d[3]&&e[3]))continue;
+    if(C.roadEdge((a[0]+e[0])/2,(a[2]+e[2])/2,-1)<-.4)continue;                                         // на проїзній частині вже є свій асфальт
+    for(const q of [a,d,e,a,e,b]){P.push(q[0],q[1],q[2]);N.push(0,1,0);U.push(q[0]/4,q[2]/4);}}
+  if(P.length<18)return null;
+  const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(P,3));g.setAttribute('normal',new T.Float32BufferAttribute(N,3));g.setAttribute('uv',new T.Float32BufferAttribute(U,2));g.computeVertexNormals();
+  const m=new T.Mesh(g,siteMat(C,'asphalt'));m.name='real-apron';m.receiveShadow=true;m.renderOrder=1;m.userData.noMerge=true;C.kit.dynRoot.add(m);SITES.stat.apron++;
+  if(marks){                                                                                          // розмітка: рамка й «кишені» вздовж довгого боку
+    const MP=[],MN=[],MU=[],strip=(x0,z0,x1,z1,w)=>{const L=Math.hypot(x1-x0,z1-z0),n=Math.max(1,Math.round(L/1.5)),ux=(x1-x0)/L,uz=(z1-z0)/L;
+        for(let k=0;k<n;k++){const a0=W(x0+ux*L*k/n-uz*w,z0+uz*L*k/n+ux*w),a1=W(x0+ux*L*k/n+uz*w,z0+uz*L*k/n-ux*w),b0=W(x0+ux*L*(k+1)/n-uz*w,z0+uz*L*(k+1)/n+ux*w),b1=W(x0+ux*L*(k+1)/n+uz*w,z0+uz*L*(k+1)/n-ux*w);
+          let ok=true;try{ok=!saltInBld((a0[0]+b1[0])/2,(a0[1]+b1[1])/2)&&C.roadEdge((a0[0]+b1[0])/2,(a0[1]+b1[1])/2,-1)>0;}catch(e){}if(!ok||((k*7+n)%11)===0)continue;        // місцями стерта
+          for(const q of [a0,b0,b1,a0,b1,a1]){MP.push(q[0],saltY(q[0],q[1])+.07,q[1]);MN.push(0,1,0);MU.push(0,0);}}};
+    const hl=len/2-1,hw=wid/2-1;strip(-hl,-hw,hl,-hw,.06);strip(-hl,hw,hl,hw,.06);strip(-hl,-hw,-hl,hw,.06);strip(hl,-hw,hl,hw,.06);
+    for(let x=-hl+3;x<hl-1;x+=3)strip(x,hw,x,hw-4.5,.05);
+    if(MP.length){const mg=new T.BufferGeometry();mg.setAttribute('position',new T.Float32BufferAttribute(MP,3));mg.setAttribute('normal',new T.Float32BufferAttribute(MN,3));mg.setAttribute('uv',new T.Float32BufferAttribute(MU,2));
+      const mm=new T.Mesh(mg,SITES.lm||(SITES.lm=new T.MeshStandardMaterial({color:0xcfc9b4,roughness:.9,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2})));mm.name='real-apron-mark';mm.receiveShadow=true;mm.renderOrder=2;mm.userData.noMerge=true;C.kit.dynRoot.add(mm);}}
+  return m;
+}
+/* кабель по землі між точками: лежить на рельєфі, злегка петляє */
+function siteCable(C,pts,r){
+  const T=C.T,V=[];for(let k=0;k+1<pts.length;k++){const a=pts[k],b=pts[k+1],L=Math.hypot(b[0]-a[0],b[1]-a[1]),n=Math.max(2,Math.round(L/.7)),px=-(b[1]-a[1])/(L||1),pz=(b[0]-a[0])/(L||1),ph=C.rnd()*6;
+    for(let i=k?1:0;i<=n;i++){const t=i/n,wv=Math.sin(t*Math.PI)*Math.sin(t*5+ph)*Math.min(.45,L*.05),x=a[0]+(b[0]-a[0])*t+px*wv,z=a[1]+(b[1]-a[1])*t+pz*wv;V.push(new T.Vector3(x,saltY(x,z)+.03,z));}}
+  if(V.length<2)return null;const cv=new T.CatmullRomCurve3(V),m=new T.Mesh(new T.TubeGeometry(cv,Math.min(160,V.length*2),r||.02,5,false),siteMat(C,'rubber'));m.castShadow=false;m.receiveShadow=true;C.kit.dynRoot.add(m);SITES.stat.cable++;return m;   // без noMerge: зіллється з рештою реквізиту ділянки
+}
+/* бухта кабелю, що лежить на землі */
+function siteCoil(C,x,z){const T=C.T,m=new T.Mesh(SITES.cg||(SITES.cg=new T.TorusGeometry(.42,.05,6,22)),siteMat(C,'rubber'));m.rotation.x=Math.PI/2;m.position.set(x,saltY(x,z)+.06,z);m.castShadow=true;C.kit.dynRoot.add(m);
+  const m2=new T.Mesh(SITES.cg,siteMat(C,'rubber'));m2.rotation.x=Math.PI/2;m2.position.set(x+.03,saltY(x,z)+.16,z-.02);m2.scale.setScalar(.94);C.kit.dynRoot.add(m2);}
+function siteFlat(C,cx,cz,yaw,hl,hw,lim){
+  const c=Math.cos(yaw),s=Math.sin(yaw),D=SITES.dbg;let lo=1e9,hi=-1e9;
+  for(let a=-1;a<=1;a+=.5)for(let b=-1;b<=1;b+=.5){const x=cx+a*hl*c+b*hw*s,z=cz-a*hl*s+b*hw*c;let cl=-1;try{cl=landAt(SALT.ox+x,SALT.oz+z);}catch(e){}
+    if(cl===6||cl===8||cl===7||cl<0){D.fCls=(D.fCls||0)+1;return false;}if(!C.free(x,z,1.4)){D.fFree=(D.fFree||0)+1;return false;}if(C.busy(x,z,1)){D.fBusy=(D.fBusy||0)+1;return false;}if(C.roadEdge(x,z,-1)<1.5){D.fRoad=(D.fRoad||0)+1;return false;}const h=saltH(x,z);if(h<lo)lo=h;if(h>hi)hi=h;}
+  if(hi-lo>lim){D.fSlope=(D.fSlope||0)+1;return false;}return true;
+}
+function siteDepot(C,cx,cz,yaw,kind){
+  const R=C.rnd,put=C.put,c=Math.cos(yaw),s=Math.sin(yaw),L=(lx,lz)=>[cx+lx*c+lz*s,cz-lx*s+lz*c],HL=13,HW=9;
+  siteApron(C,cx,cz,yaw,HL*2+2,HW*2+2,true);
+  /* огорожа: три боки повністю, передній (до дороги, −z) — із проїздом посередині */
+  const fence=(x0,z0,x1,z1,gap)=>{const Ln=Math.hypot(x1-x0,z1-z0),n=Math.round(Ln/3),ux=(x1-x0)/Ln,uz=(z1-z0)/Ln,fy=yaw+Math.atan2(-uz,ux);for(let k=0;k<n;k++){const t=(k+.5)*3-Ln/2;if(gap&&Math.abs(t)<3.6)continue;const p=L(x0+ux*(k+.5)*3,z0+uz*(k+.5)*3);put('fence_panel',p[0],p[1],fy,{},0,.35,0);}};
+  fence(-HL,HW,HL,HW);fence(-HL,-HW,-HL,HW);fence(HL,-HW,HL,HW);fence(-HL,-HW,HL,-HW,true);
+  {const p=L(-3.2,-HW-.2);put('gate_arm',p[0],p[1],yaw,{},0,.6,0);}{const p=L(5.6,-HW+2.2);put('guard_booth',p[0],p[1],yaw,{},0,1.6,0);}{const p=L(-5,-HW-1.6);put('sign_post',p[0],p[1],yaw,{},0,.4,0);}
+  /* світло й живлення */
+  const gen=L(HL-2.4,HW-2.2),f1=L(-HL+1.6,HW-1.6),f2=L(HL-1.6,-HW+1.8),bt=L(5.6,-HW+3.6);
+  const og=put('generator',gen[0],gen[1],yaw+Math.PI/2,{},0,1.5,0);put('floodlight_stand',f1[0],f1[1],yaw+.8,{},0,.7,0);put('floodlight_stand',f2[0],f2[1],yaw-2.3,{},0,.7,0);
+  if(og){siteCable(C,[gen,L(2,HW-1.4),L(-HL+4,HW-1.2),f1],.022);siteCable(C,[gen,L(HL-1.2,0),f2],.022);siteCable(C,[L(HL-3.2,HW-2.6),L(8,2),bt],.016);}
+  {const p=L(HL-4.4,HW-1.4);put('jerry_can',p[0],p[1],R()*6.28,{},0,.3,0);}
+  /* наповнення */
+  if(kind===0){                                                                                       // піддони, тара, стелажі
+    const tare=['pallet_stack','pallet_stack','crate_stack','ibc_tote','tarp_cargo','crate_wood','cardboard_boxes','pallet'];
+    for(let i=0;i<5;i++)for(let j=0;j<3;j++){if(R()<.22)continue;const p=L(-HL+3+i*2.7,-2.2+j*2.5);put(tare[(R()*tare.length)|0],p[0]+(R()-.5)*.25,p[1]+(R()-.5)*.25,yaw+((R()*4)|0)*Math.PI/2+(R()-.5)*.08,{},0,.9,0);}
+    for(let k=0;k<3;k++){const p=L(-HL+3.2+k*3.1,HW-1.5);put('shelf_rack',p[0],p[1],yaw,{},0,1.2,0);}
+    {const p=L(4,-1);put('forklift',p[0],p[1],yaw+R()*6.28,{},0,2,0);}{const p=L(6.5,3);put('toolbox_cart',p[0],p[1],R()*6.28,{},0,.6,0);}{const p=L(8.5,5.6);put('gas_cylinders',p[0],p[1],yaw,{},0,.8,0);}
+  }else if(kind===1){                                                                                 // кабельний двір
+    for(let k=0;k<5;k++){const p=L(-HL+3.2+k*2.1,HW-3.2+(k%2)*.5);put('cable_reel',p[0],p[1],yaw+Math.PI/2+(R()-.5)*.3,{},0,.9,0);}
+    for(let k=0;k<2;k++){const p=L(-HL+4.5+k*.2,-3.4+k*2.2);put('pipe_stack',p[0],p[1],yaw+(R()-.5)*.05,{},0,1.6,0);}
+    {const p=L(5.5,5.2);put('container20',p[0],p[1],yaw,{doors:.6},0,2.2,0);}
+    for(let k=0;k<4;k++){const p=L(-1+R()*7,-5+R()*6);siteCoil(C,p[0],p[1]);}
+    {const a=L(-HL+7,HW-3.6),b=L(1,1.5),d=L(4,-HW+1);siteCable(C,[a,b,d,L(9,-HW-3)],.03);siteCable(C,[L(-HL+9,HW-3.4),L(-2,-2),L(-9,-HW+1.2)],.026);}
+    {const p=L(2.5,-4.6);put('toolbox_cart',p[0],p[1],R()*6.28,{},0,.6,0);}{const p=L(8.6,-1.5);put('pallet_stack',p[0],p[1],yaw,{},0,.9,0);}{const p=L(-HL+2,-HW+2);put('tire_stack',p[0],p[1],0,{},0,.6,0);}
+  }else{                                                                                              // контейнери, бочки, єврокуби
+    const cn=['container20','container40','container20'];for(let k=0;k<3;k++){const nm=cn[k],p=L(-HL+(nm==='container40'?7.4:4.4),-4.6+k*4.4),o=put(nm,p[0],p[1],yaw+(R()<.5?0:Math.PI),{doors:R()<.35?.6:0},0,2.2,0);
+      if(o&&k===0&&R()<.6)put('container20',p[0],p[1],yaw,{},2.6,0,0);}
+    for(let i=0;i<4;i++)for(let j=0;j<3;j++){if(R()<.15)continue;const p=L(3+i*.85,2+j*.85);put('barrel',p[0],p[1],R()*6.28,R()<.25?{color:'red'}:{},0,.38,0);}
+    for(let k=0;k<3;k++){const p=L(3.4+k*1.5,-3.6);put('ibc_tote',p[0],p[1],yaw,{},0,.8,0);}
+    {const p=L(9.6,5.4);put('dumpster',p[0],p[1],yaw+Math.PI/2,{},0,1.4,0);}{const p=L(8.4,-.6);put('tire_stack',p[0],p[1],0,{},0,.6,0);}{const p=L(1.5,6);put('reefer_unit',p[0],p[1],yaw,{},0,.9,0);}
+    for(let k=0;k<3;k++){const p=L(7+R()*3,1.5+R()*2);put('jerry_can',p[0],p[1],R()*6.28,{},0,.3,0);}
+  }
+  for(let a=-HL;a<=HL;a+=4.3)for(let b=-HW;b<=HW;b+=4.5){const p=L(a,b);C.taken.push({x:p[0],z:p[1],r:3});}
+  (SALT.pois||(SALT.pois=[])).push({x:cx,z:cz,kind:'depot',ck:C.ch});SITES.stat.depot++;return true;
+}
+/* обвʼязка складу Saltline: асфальт довкола, тара й техніка під стінами, кабель до генератора */
+function siteShed(C,sd){
+  const R=C.rnd,put=C.put,q=sd.q|0,yaw=q*Math.PI/2,ex=q%2?10.5:16,ez=q%2?16:10.5;
+  siteApron(C,sd.x,sd.z,0,ex*2+12,ez*2+12,false);
+  const ring=['pallet_stack','crate_stack','forklift','cable_reel','gas_cylinders','dumpster','ibc_tote','tarp_cargo','barrel','tire_stack','pipe_stack','toolbox_cart'];let made=0;
+  for(let k=0;k<26&&made<9;k++){const sideX=R()<.5,sg=R()<.5?-1:1,x=sd.x+(sideX?sg*(ex+2.2+R()*2.6):(R()*2-1)*(ex+3)),z=sd.z+(sideX?(R()*2-1)*(ez+3):sg*(ez+2.2+R()*2.6)),nm=ring[(R()*ring.length)|0];
+    if(put(nm,x,z,((R()*4)|0)*Math.PI/2+(R()-.5)*.1,{},0,nm==='forklift'||nm==='pipe_stack'?2.4:1.1,2.4))made++;}
+  for(let k=0;k<6;k++){const sg=R()<.5?-1:1,along=q%2===0,x=sd.x+(along?(R()*2-1)*(ex-6):sg*(ex+4.6)),z=sd.z+(along?sg*(ez+4.6):(R()*2-1)*(ez-6));if(put('container20',x,z,along?0:Math.PI/2,{doors:R()<.4?.6:0},0,2.2,5)){
+      const g=put('generator',x+(along?5:0),z+(along?0:5),along?0:Math.PI/2,{},0,1.4,2);if(g)siteCable(C,[[x+(along?5:0),z+(along?0:5)],[sd.x+(along?(x-sd.x)*.6:sg*(ex+1.2)),sd.z+(along?sg*(ez+1.2):(z-sd.z)*.6)]],.024);break;}}
+  SITES.stat.shed++;
+}
+function siteBuild(C){
+  const ch=C.ch,R=C.rnd;if(!ch||ch.lite||SALT.droneOnly)return;
+  for(const p of SALT.pois||[])if(p.ck===ch&&p.kind==='yard'&&p.cx!=null)try{siteApron(C,p.cx,p.cz,p.yaw||0,34,17,true);}catch(e){}
+  for(const s of SALT.sheds||[])if(s.ck===ch)try{siteShed(C,s);}catch(e){if(!SITES.se){SITES.se=1;console.error('site shed',e);}}
+  const nInd=C.ind.length,nOpen=C.cellsOf(c=>c===0).length,veh=C.rdPieces.filter(p=>p.r&&p.r.veh);
+  const src=nInd>=8?C.ind:(nOpen>=45&&veh.length>=2?C.cellsOf(c=>c===0):null),D=SITES.dbg;D.ch++;if(!src||!src.length){D.nosrc++;return;}
+  if(R()>(nInd>=8?.8:.16)){D.dice++;return;}
+  for(let k=0;k<14;k++){const xy=C.cellXY(...C.pick(src)),x=xy[0],z=xy[1];if(Math.hypot(x,z)<26){D.near++;continue;}if(C.busy(x,z,1.5)){D.busy++;continue;}
+    /* довгим боком уздовж найближчої дороги, проїздом до неї */
+    let yaw=R()<.5?0:Math.PI/2,bd=1e9;for(const pc of veh){const d=Math.hypot(pc.mx-x,pc.mz-z);if(d<bd){bd=d;const r=pc.r,side=(pc.mx-x)*(-r.uz)+(pc.mz-z)*r.ux;yaw=Math.atan2(-r.uz,r.ux)+(side>0?Math.PI:0);}}
+    if(bd<70){const c=Math.cos(yaw),s=Math.sin(yaw),fx=x+(-9)*s,fz=z+(-9)*c,bx=x+9*s,bz=z+9*c;                    // проїзд (−z майданчика) має дивитись на дорогу
+      let df=1e9,db=1e9;for(const pc of veh){df=Math.min(df,Math.hypot(pc.mx-fx,pc.mz-fz));db=Math.min(db,Math.hypot(pc.mx-bx,pc.mz-bz));}if(db<df)yaw+=Math.PI;}
+    if(!siteFlat(C,x,z,yaw,14.5,10.5,1.5)){D.flat++;continue;}
+    try{if(siteDepot(C,x,z,yaw,(R()*3)|0))break;}catch(e){if(!SITES.de){SITES.de=1;console.error('site depot',e);}break;}}
+}
 
 /* ═══════════ ПІХОТИНЕЦЬ ВІД ПЕРШОЇ ОСОБИ ═══════════
    craft==='foot': гравець — боєць на землі. Стан гравця лишається в `drone` (позиція = центр мас,
