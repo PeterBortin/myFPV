@@ -1572,6 +1572,10 @@ html.ui-salt #salt-drv i{font-style:normal;color:#8d9aa3;font-size:10px}
 #salt-gun{display:none}
 html.ui-salt #salt-gun{position:fixed;left:50%;bottom:78px;transform:translateX(-50%);z-index:30;padding:6px 12px;background:rgba(11,13,15,.72);border:1px solid rgba(232,228,218,.16);border-left:2px solid #ffb347;font:500 12px/1 "Ubuntu Mono","Ubuntu",monospace;color:#e8e4da;letter-spacing:.04em;pointer-events:none}
 html.ui-salt #salt-gun.on{display:block}
+
+/* телефон, піхотинець: приціл по центру (автовогонь наводиться ним) */
+body.salt.salt-mob.salt-foot:not(.salt-fly) #salt-ret{display:block!important;position:fixed;z-index:30;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;pointer-events:none;border:0;border-radius:0;
+  background:linear-gradient(#e8e4da,#e8e4da) 50% 0/2px 7px no-repeat,linear-gradient(#e8e4da,#e8e4da) 50% 100%/2px 7px no-repeat,linear-gradient(#e8e4da,#e8e4da) 0 50%/7px 2px no-repeat,linear-gradient(#e8e4da,#e8e4da) 100% 50%/7px 2px no-repeat,linear-gradient(#ffb347,#ffb347) 50% 50%/2px 2px no-repeat;filter:drop-shadow(0 0 1px rgba(0,0,0,.8));}
 </style>
 <script id="ui-salt">/* UI мовою Saltline (модуль ui): клас на <html> ставиться до побудови титулу, щоб не блимало; ?off=ui — старе оформлення */
 try{performance.setResourceTimingBufferSize(8000);}catch(e){}   /* фікстура мапи читає список завантажених тайлів */
@@ -14788,7 +14792,7 @@ function saltLifeStep(t,dt){
   const G=SALT.G;if(!G||!G.player||G.game.state!=='playing')return;
   if(SALT.droneOnly){                                              // телефон: піхоти немає — оператор стоїть у тилу, гравець завжди в дроні
     G.player.invulnerable=!SALT.mobFoot||!!SALT.god;
-    if(SALT.mobFoot){SALT.relT=1.4;}else if(!SALT.fly.on){SALT.relT=(SALT.relT==null?0:SALT.relT)-dt;if(SALT.relT<=0){SALT.relT=1.4;try{saltFlyToggle(SALT.flyKind||'fpv');}catch(e){}}}
+    if(SALT.mobFoot||(SALT.mobFoot==null&&SALT_FEAT.mobfoot!==false)){SALT.relT=1.4;}else if(!SALT.fly.on){SALT.relT=(SALT.relT==null?0:SALT.relT)-dt;if(SALT.relT<=0){SALT.relT=1.4;try{saltFlyToggle(SALT.flyKind||'fpv');}catch(e){}}}
     else SALT.flyKind=SALT.fly.kind;
   }
   const T=G.THREE,P=G.player,ph=G.physics,nav=ph.nav,mv=LIFE.mv,cam=G.camera;LIFE.t+=dt;
@@ -21721,7 +21725,12 @@ function k12Init(G){
 function k12Step(G,dt){
   if(typeof K10D==='undefined'||typeof K11==='undefined')return;
   try{k12Audio(G,dt);}catch(e){if(!K12.ae){K12.ae=1;console.error('k12 audio',e);}}
-  if(SALT.droneOnly&&SALT.mobFoot&&SALT.fly.on)SALT.mobFoot=false;                                                                         // знову запустив борт — режим піхотинця знято
+  if(SALT.droneOnly&&SALT_FEAT.mobfoot!==false){
+    if(SALT.mobFoot==null&&G.game&&G.game.state==='playing'){SALT.mobFoot=true;try{if(SALT.fly.on)saltFlyOff(false);G.weapon.setVisible(true);}catch(e){}                       // телефон стартує піхотинцем; борт — кнопкою FPV/крило
+      saltFlyMsg('піхотинець · лівий джойстик — хода, правий — огляд · вогонь сам, коли приціл на ворогові · кнопка дрона — на борт');}
+    if(SALT.mobFoot&&SALT.fly.on)SALT.mobFoot=false;
+    const ft=!!SALT.mobFoot;if(K12.ftC!==ft){K12.ftC=ft;document.body.classList.toggle('salt-foot',ft);try{const b=MOB.b.foot;if(b)b.classList.toggle('on',ft);if(ft)G.weapon.setVisible(true);}catch(e){}}
+  }                                                                         // знову запустив борт — режим піхотинця знято
   if(SALT_FEAT.kit12===false)return;k12Init(G);
   /* оператор дрона й тіло гравця — той самий штурмовик, що й відділення */
   if(!K12.op&&SALT.fly&&SALT.fly.bodyM&&typeof k10Assault==='function'&&k10bOn()){K12.op=true;try{k10Assault(SALT.fly.bodyM,'zsu');if(LIFE.me)k10Assault(LIFE.me,'zsu');}catch(e){saltFeatFail('kit12',e);}}
