@@ -1574,8 +1574,61 @@ html.ui-salt #salt-gun{position:fixed;left:50%;bottom:78px;transform:translateX(
 html.ui-salt #salt-gun.on{display:block}
 
 /* телефон, піхотинець: приціл по центру (автовогонь наводиться ним) */
-body.salt.salt-mob.salt-foot:not(.salt-fly) #salt-ret{display:block!important;position:fixed;z-index:30;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;pointer-events:none;border:0;border-radius:0;
+body.salt.salt-mob.salt-foot:not(.salt-fly) #salt-ret{display:block!important;position:fixed;z-index:5003;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;pointer-events:none;border:0;border-radius:0;
   background:linear-gradient(#e8e4da,#e8e4da) 50% 0/2px 7px no-repeat,linear-gradient(#e8e4da,#e8e4da) 50% 100%/2px 7px no-repeat,linear-gradient(#e8e4da,#e8e4da) 0 50%/7px 2px no-repeat,linear-gradient(#e8e4da,#e8e4da) 100% 50%/7px 2px no-repeat,linear-gradient(#ffb347,#ffb347) 50% 50%/2px 2px no-repeat;filter:drop-shadow(0 0 1px rgba(0,0,0,.8));}
+
+/* ───── телефон: сенсорне керування шутера (touch2.js) ───── */
+#t2,#t2-b,#t2-top{display:none;}
+body.salt.salt-t2 #salt-bar,body.salt.salt-t2 #joystick-left,body.salt.salt-t2 #joystick-right{display:none!important;}
+body.salt.salt-t2:not(.t2-off) #t2{display:block;position:fixed;inset:0;z-index:5004;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
+body.salt.salt-t2:not(.t2-off) #t2-b,body.salt.salt-t2:not(.t2-off) #t2-top{display:block;}
+#t2-b button,#t2-top button{position:fixed;z-index:5021;padding:0;margin:0;border-radius:50%;border:1.5px solid rgba(232,228,218,.42);background:rgba(11,13,15,.46);color:#e8e4da;display:none;align-items:center;justify-content:center;touch-action:none;-webkit-tap-highlight-color:transparent;box-sizing:border-box;}
+#t2-b svg,#t2-top svg{width:52%;height:52%;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;}
+#t2-b button.hit,#t2-top button.hit{transform:scale(.93);background:rgba(255,179,71,.34);border-color:#ffb347;}
+#t2-b button.on,#t2-top button.on{border-color:#ffb347;color:#ffb347;background:rgba(255,179,71,.16);}
+#t2-b button.off,#t2-top button.off{opacity:.4;}
+#t2-b i,#t2-top i{position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;padding:0 3px;background:#ffb347;color:#0b0d0f;font:500 10px/16px "Ubuntu Mono",monospace;font-style:normal;text-align:center;box-sizing:border-box;}
+#t2-b i:empty,#t2-top i:empty{display:none;}
+body.t2-foot #t2-b .t2-foot,body.t2-fly #t2-b .t2-fly{display:flex;}
+/* розмір і місце — від висоти екрана: великі пальці лежать у нижніх кутах */
+#t2-b{--u:clamp(40px,13.5vh,58px);--R:calc(var(--sr,0px) + 14px);--B:calc(var(--sb,0px) + 12px);}
+#t2-b [data-k=fire]{width:calc(var(--u)*1.42);height:calc(var(--u)*1.42);right:calc(var(--R) + var(--u)*.55);bottom:calc(var(--B) + var(--u)*.55);border-color:rgba(210,98,42,.9);background:rgba(210,98,42,.2);color:#f4c6ad;}
+#t2-b [data-k=fire].hit{background:rgba(210,98,42,.6);}
+#t2-b [data-k=ads]{width:var(--u);height:var(--u);right:calc(var(--R) + var(--u)*2.2);bottom:calc(var(--B) + var(--u)*.2);}
+#t2-b [data-k=reload]{width:calc(var(--u)*.9);height:calc(var(--u)*.9);right:calc(var(--R) + var(--u)*.1);bottom:calc(var(--B) + var(--u)*2.25);}
+#t2-b [data-k=jump]{width:var(--u);height:var(--u);right:calc(var(--R) + var(--u)*2.15);bottom:calc(var(--B) + var(--u)*1.45);}
+#t2-b [data-k=crouch]{width:calc(var(--u)*.9);height:calc(var(--u)*.9);right:calc(var(--R) + var(--u)*3.4);bottom:calc(var(--B));}
+#t2-b [data-k=swap]{width:calc(var(--u)*.82);height:calc(var(--u)*.82);right:calc(var(--R) + var(--u)*1.2);bottom:calc(var(--B) + var(--u)*2.7);}
+#t2-b [data-k=boom]{width:calc(var(--u)*1.25);height:calc(var(--u)*1.25);right:var(--R);top:calc(var(--st,0px) + 92px);border-color:rgba(210,98,42,.9);background:rgba(210,98,42,.2);color:#f4c6ad;}
+#t2-b [data-k=boom].hit{background:rgba(210,98,42,.65);}
+#t2-b [data-k=msl]{width:var(--u);height:var(--u);right:calc(var(--R) + var(--u)*1.45);top:calc(var(--st,0px) + 92px);}
+#t2-b [data-k=msl].rdy{border-color:#ffb347;color:#ffb347;}
+#t2-b [data-k=bomb]{width:var(--u);height:var(--u);right:calc(var(--R) + var(--u)*2.6);top:calc(var(--st,0px) + 92px);}
+#t2-b [data-k=lock]{width:var(--u);height:var(--u);right:calc(var(--R) + var(--u)*.12);top:calc(var(--st,0px) + 96px + var(--u)*1.35);}
+/* рідкісне — рядком угорі праворуч */
+#t2-top{position:fixed;z-index:5021;top:calc(var(--st,0px) + 42px);right:calc(var(--sr,0px) + 10px);height:0;}
+#t2-top button{position:relative;width:34px;height:34px;margin-left:6px;border-radius:0;border-width:1px;border-color:rgba(232,228,218,.28);background:rgba(8,10,12,.6);vertical-align:top;}
+body.salt.salt-t2:not(.t2-off) #t2-top{display:flex;flex-direction:row;}
+#t2-top .t2-top{display:flex;}body.t2-foot #t2-top .t2-top-foot,body.t2-fly #t2-top .t2-top-fly{display:flex;}
+/* стіки */
+.t2-stk{position:absolute;left:0;top:0;width:116px;height:116px;opacity:0;pointer-events:none;transition:opacity .12s;will-change:transform;}
+.t2-stk.on{opacity:1;}
+.t2-stk i{position:absolute;inset:0;border-radius:50%;border:1.5px solid rgba(232,228,218,.4);background:radial-gradient(circle,rgba(11,13,15,.05) 40%,rgba(11,13,15,.38));}
+.t2-stk b{position:absolute;left:33px;top:33px;width:50px;height:50px;border-radius:50%;background:rgba(232,228,218,.82);box-shadow:0 2px 8px rgba(0,0,0,.5);will-change:transform;}
+/* підказка, де лягають пальці: кола в нижніх кутах, зникають під час дотику */
+body.salt.salt-t2:not(.t2-off) #t2::before,body.salt.salt-t2.t2-fly:not(.t2-off) #t2::after{content:"";position:absolute;bottom:calc(var(--sb,0px) + 26px);width:96px;height:96px;border-radius:50%;border:1.5px dashed rgba(232,228,218,.22);pointer-events:none;}
+body.salt.salt-t2 #t2::before{left:calc(var(--sl,0px) + 34px);}body.salt.salt-t2 #t2::after{right:calc(var(--sr,0px) + 34px);}
+#t2-run{position:absolute;left:calc(var(--sl,0px) + 52px);bottom:calc(var(--sb,0px) + 132px);padding:3px 9px;font:500 11px/1 "Ubuntu",sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#0b0d0f;background:#ffb347;opacity:0;pointer-events:none;}
+#t2-run.on{opacity:1;}
+/* приціл по центру: пішки — хрест із просвітом, на цілі жовтіє; у польоті — кутики, у захваті замикаються */
+body.salt.salt-mob.salt-t2:not(.t2-off) #salt-ret{display:block!important;position:fixed;z-index:5003!important;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;pointer-events:none;border:0;border-radius:0;--c:#e8e4da;filter:drop-shadow(0 0 1px rgba(0,0,0,.9));
+  background:linear-gradient(var(--c),var(--c)) 50% 0/2px 8px no-repeat,linear-gradient(var(--c),var(--c)) 50% 100%/2px 8px no-repeat,linear-gradient(var(--c),var(--c)) 0 50%/8px 2px no-repeat,linear-gradient(var(--c),var(--c)) 100% 50%/8px 2px no-repeat,linear-gradient(#ffb347,#ffb347) 50% 50%/2px 2px no-repeat;transition:width .1s,height .1s,margin .1s;}
+body.salt.salt-mob.salt-t2.t2-aim #salt-ret{--c:#ffb347;width:20px;height:20px;margin:-10px 0 0 -10px;}
+body.salt.salt-mob.salt-t2.t2-ads.t2-foot:not(.t2-off):not(.x) #salt-ret{display:none!important;}
+body.salt.salt-mob.salt-t2.t2-fly:not(.t2-off) #salt-ret{width:44px;height:44px;margin:-22px 0 0 -22px;
+  background:linear-gradient(var(--c),var(--c)) 0 0/11px 2px no-repeat,linear-gradient(var(--c),var(--c)) 0 0/2px 11px no-repeat,linear-gradient(var(--c),var(--c)) 100% 0/11px 2px no-repeat,linear-gradient(var(--c),var(--c)) 100% 0/2px 11px no-repeat,linear-gradient(var(--c),var(--c)) 0 100%/11px 2px no-repeat,linear-gradient(var(--c),var(--c)) 0 100%/2px 11px no-repeat,linear-gradient(var(--c),var(--c)) 100% 100%/11px 2px no-repeat,linear-gradient(var(--c),var(--c)) 100% 100%/2px 11px no-repeat,linear-gradient(#ffb347,#ffb347) 50% 50%/3px 3px no-repeat;}
+body.salt.salt-mob.salt-t2.t2-fly.t2-lock #salt-ret{--c:#ffb347;width:30px;height:30px;margin:-15px 0 0 -15px;}
+@media (orientation:portrait){#t2-b{--u:clamp(40px,7vh,56px);}}
 </style>
 <script id="ui-salt">/* UI мовою Saltline (модуль ui): клас на <html> ставиться до побудови титулу, щоб не блимало; ?off=ui — старе оформлення */
 try{performance.setResourceTimingBufferSize(8000);}catch(e){}   /* фікстура мапи читає список завантажених тайлів */
@@ -14860,6 +14913,7 @@ function saltLifeStep(t,dt){
   if(typeof supStep==='function')try{supStep(G,dt);}catch(e){saltFeatFail('supply',e);}
   if(typeof k11Step==='function')try{k11Step(G,dt);}catch(e){saltFeatFail('kit11',e);}
   if(typeof k12Step==='function')try{k12Step(G,dt);}catch(e){saltFeatFail('kit12',e);}
+  if(typeof t2Step==='function')try{t2Step(G,dt);}catch(e){saltFeatFail('touch2',e);}                                // телефон: сенсорне керування шутера (touch2.js)
   if(typeof pushStep==='function')try{pushStep(G,dt);}catch(e){saltFeatFail('push',e);}                             // рухомий реквізит: копнув, зсунув (push.js)
   if(typeof crashStep==='function')try{crashStep(G,dt);}catch(e){saltFeatFail('crash',e);}                           // аварії: інерція збитих машин, повалені дерева (crash.js)                             // третій набір: цивільні-люди, хатини, блоки, сенсори, контейнери, музика, сигнал ракет, піхотинець на телефоні (kit12.js)                             // другий набір зразків: цивільні, бронемашина, голуби, покинуті авто (kit11.js)                            // схрони й скид постачання (supply.js)
   if(typeof nobldStep==='function')try{nobldStep(G,dt);}catch(e){saltFeatFail('nobld',e);}                         // у монолітні будинки не заходять (nobld.js)
@@ -15882,7 +15936,7 @@ function saltViaOf(road,x,z){
 
 /* ===== бойові системи: виявлення / захват / супровід цілі, режими бачення, РЕБ, пускові й ракети, колони на дорогах, ніші у вікнах, ходові завдання ===== */
 /* прапорці доповнень: window.MYFPV_FEATURES={proto:false,...} або SALT_RULES.features. Модуль, що впав, вимикається сам із повідомленням про справжню помилку. */
-const SALT_FEAT=Object.assign({war:true,strike:true,loot:true,proto:true,world2:true,sat:true,heat:true,sfx:true,vfx:true,bvh:true,bots:true,botsSquad:true,botsCiv:true,botsTraffic:true,feel:true,roads2:true,grav:true,sat2:true,detail:true,tex:true,geo:true,traffic2:true,walk2:true,solid:true,frac:true,trees2:true,facade2:true,ik:true,susp:true,mobile:true,mg:true,pfd:true,blood:true,nrk:true,nobld:true,ramp:true,calm:true,hitfit:true,civ2:true,perf:true,autoq:true,far:true,fixture:true,gen2:true,fields:true,lsm:true,reeds:true,yards:true,ruins:true,trench:true,smoke2:true,lep:true,flares:true,tac:true,sqcmd:true,vehfpv:true,mines:true,snd2:true,hunter:true,civ3:true,tmap:true,camp:true,kit10:true,kit10baked:true,cabin:true,kit11:true,pigeons:true,kit12:true,mobfoot:true,music2:true,push:true,crash:true,sites:true,arms2:true,drive:true,supply:true},(typeof SALT_RULES!=='undefined'&&SALT_RULES.features)||{},window.MYFPV_FEATURES||{});
+const SALT_FEAT=Object.assign({war:true,strike:true,loot:true,proto:true,world2:true,sat:true,heat:true,sfx:true,vfx:true,bvh:true,bots:true,botsSquad:true,botsCiv:true,botsTraffic:true,feel:true,roads2:true,grav:true,sat2:true,detail:true,tex:true,geo:true,traffic2:true,walk2:true,solid:true,frac:true,trees2:true,facade2:true,ik:true,susp:true,mobile:true,mg:true,pfd:true,blood:true,nrk:true,nobld:true,ramp:true,calm:true,hitfit:true,civ2:true,perf:true,autoq:true,far:true,fixture:true,gen2:true,fields:true,lsm:true,reeds:true,yards:true,ruins:true,trench:true,smoke2:true,lep:true,flares:true,tac:true,sqcmd:true,vehfpv:true,mines:true,snd2:true,hunter:true,civ3:true,tmap:true,camp:true,kit10:true,kit10baked:true,cabin:true,kit11:true,pigeons:true,kit12:true,mobfoot:true,music2:true,push:true,crash:true,sites:true,touch2:true,arms2:true,drive:true,supply:true},(typeof SALT_RULES!=='undefined'&&SALT_RULES.features)||{},window.MYFPV_FEATURES||{});
 /* вимкнути модулі з адреси сторінки: ?off=roads2,vfx — щоб порівняти «до» і «після» на тій самій точці */
 try{const m=/[?&]off=([\w,]+)/.exec(location.search);if(m)m[1].split(',').forEach(k=>{if(k in SALT_FEAT)SALT_FEAT[k]=false;});}catch(e){}
 function saltFeatFail(name,e){if(SALT_FEAT[name]===false)return;SALT_FEAT[name]=false;const msg=String(e&&e.message||e).slice(0,120);console.error('module '+name+':',e);if(name==='vfx')try{vfxDispose();}catch(_){}try{saltFlyMsg('модуль «'+name+'» вимкнено: '+msg);}catch(_){}}
@@ -21712,7 +21766,7 @@ function k12Foot(){
   const G=SALT.G,F=SALT.fly;if(!SALT.droneOnly||SALT_FEAT.mobfoot===false||!G||!G.game||G.game.state!=='playing')return;
   if(SALT.mobFoot){SALT.mobFoot=false;SALT.relT=0;saltFlyMsg('назад на борт');return;}
   SALT.mobFoot=true;try{if(F.on)saltFlyOff(false);G.weapon.setVisible(true);}catch(e){}
-  saltFlyMsg('пішки · лівий джойстик — хода, правий — огляд · вогонь сам, коли приціл на ворогові');
+  saltFlyMsg(typeof T2!=='undefined'&&T2.on?'пішки · ліворуч — хода, праворуч — огляд свайпом':'пішки · лівий джойстик — хода, правий — огляд · вогонь сам, коли приціл на ворогові');
 }
 function k12FootIn(inp,dt){
   const G=SALT.G,S=SALT.rs||{},Z={x:0,y:0},L=S.L||(typeof touchL!=='undefined'&&touchL?input.left:Z),R=S.R||(typeof touchR!=='undefined'&&touchR?input.right:Z);
@@ -21726,6 +21780,7 @@ function k12FootIn(inp,dt){
       if(r&&r.enemy&&r.enemy.alive!==false&&r.dist>0){const w=G.physics.raycast(o,d,r.dist);on=!(w&&w.dist<r.dist-.35);}}catch(e){}
     if(on)F.hold=.22;}
   if(S.fire)S.fire=false;if(F.hold>0){F.hold-=dt;inp.fire=true;}else inp.fire=false;
+  if(typeof t2FootPost==='function')t2FootPost(inp,dt);                                                                       // свайп-огляд і кнопки шутера (touch2.js)
 }
 function k12Init(G){
   if(K12.init)return;K12.init=true;
@@ -21736,7 +21791,7 @@ function k12Step(G,dt){
   try{k12Audio(G,dt);}catch(e){if(!K12.ae){K12.ae=1;console.error('k12 audio',e);}}
   if(SALT.droneOnly&&SALT_FEAT.mobfoot!==false){
     if(SALT.mobFoot==null&&G.game&&G.game.state==='playing'){SALT.mobFoot=true;try{if(SALT.fly.on)saltFlyOff(false);G.weapon.setVisible(true);}catch(e){}                       // телефон стартує піхотинцем; борт — кнопкою FPV/крило
-      saltFlyMsg('піхотинець · лівий джойстик — хода, правий — огляд · вогонь сам, коли приціл на ворогові · кнопка дрона — на борт');}
+      saltFlyMsg(typeof T2!=='undefined'&&SALT_FEAT.touch2!==false?'піхотинець · ліворуч — хода, праворуч — огляд свайпом · дрон і крило — вгорі':'піхотинець · лівий джойстик — хода, правий — огляд · вогонь сам, коли приціл на ворогові · кнопка дрона — на борт');}
     if(SALT.mobFoot&&SALT.fly.on)SALT.mobFoot=false;
     const ft=!!SALT.mobFoot;if(K12.ftC!==ft){K12.ftC=ft;document.body.classList.toggle('salt-foot',ft);try{const b=MOB.b.foot;if(b)b.classList.toggle('on',ft);if(ft)G.weapon.setVisible(true);}catch(e){}}
   }                                                                         // знову запустив борт — режим піхотинця знято
@@ -22086,6 +22141,130 @@ function siteBuild(C){
       let df=1e9,db=1e9;for(const pc of veh){df=Math.min(df,Math.hypot(pc.mx-fx,pc.mz-fz));db=Math.min(db,Math.hypot(pc.mx-bx,pc.mz-bz));}if(db<df)yaw+=Math.PI;}
     if(!siteFlat(C,x,z,yaw,14.5,10.5,1.5)){D.flat++;continue;}
     try{if(siteDepot(C,x,z,yaw,(R()*3)|0))break;}catch(e){if(!SITES.de){SITES.de=1;console.error('site depot',e);}break;}}
+}
+
+/* ===== телефон: керування як у мобільних шутерах (прапорець SALT_FEAT.touch2) =====
+   Власний сенсорний шар замість двох «грибків» nipplejs (вони лишаються, якщо прапорець вимкнено).
+   Пішки:  ліва частина екрана — плаваючий стік ходи (мертва зона, до упору вперед — біг, витягнув далеко вгору й відпустив — біжить сам);
+           права частина — огляд свайпом: палець повів — приціл повів, без «швидкості стіка»; швидкий рух трохи прискорюється, у прицілі — повільніше;
+           кнопка вогню під великим пальцем: тримаєш — стріляє, ведеш пальцем по ній — цілишся; автовогонь по цілі в прицілі вмикається й вимикається кнопкою «А».
+   У польоті (FPV і крило): два плаваючі стіки з мертвою зоною та згладжуванням, центр там, де ліг палець, і їде за пальцем, якщо той вийшов за край;
+           тап по позначці цілі на екрані — захват.
+   Кнопки за пріоритетом: бойове — дугою під правим великим пальцем (свої для піхоти й польоту), рідкісне — дрібним рядом угорі праворуч.
+   Приціл по центру в обох режимах: пішки жовтіє на цілі, в польоті показує захват. */
+const T2={on:false,el:null,ptr:new Map(),L:{id:-1,ox:0,oy:0,x:0,y:0},R:{id:-1,ox:0,oy:0,x:0,y:0},oL:{x:0,y:0},oR:{x:0,y:0},lk:{dx:0,dy:0},fire:false,ads:false,auto:true,crouch:false,run:false,b:{},cls:'',tap:null,RAD:58,stat:{look:0,tap:0,lock:0}};
+const T2_ICO={
+  fire:'<circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>',
+  ads:'<circle cx="10.5" cy="10.5" r="6.5"/><path d="M10.5 6.5v8M6.5 10.5h8M15.5 15.5L21 21"/>',
+  reload:'<path d="M19.5 12a7.5 7.5 0 1 1-2.6-5.7"/><path d="M17.5 2.5v4.2h-4.2"/>',
+  jump:'<path d="M5 14l7-7 7 7"/><path d="M5 19.5l7-7 7 7"/>',
+  crouch:'<path d="M5 6l7 7 7-7"/><path d="M4 19h16"/>',
+  swap:'<path d="M4 8h13l-3.5-3.5M20 16H7l3.5 3.5"/>',
+  auto:'<circle cx="12" cy="12" r="8.5"/><path d="M8.6 16.2L12 7.2l3.4 9M9.8 13.4h4.4"/>'};
+function t2Ico(k){return '<svg viewBox="0 0 24 24" aria-hidden="true">'+(T2_ICO[k]||MOB_ICO[k]||'')+'</svg>';}
+function t2Key(code,down){try{document.dispatchEvent(new KeyboardEvent(down?'keydown':'keyup',{code:code,key:code==='Space'?' ':code.replace('Key','').toLowerCase(),bubbles:true,cancelable:true}));}catch(e){}}   // на document: подія спливає й до window — рушій отримає її рівно раз
+function t2Buzz(n){try{if(navigator.vibrate)navigator.vibrate(n||8);}catch(e){}}
+/* кнопки: [ключ, підпис, набір ('foot' | 'fly' | 'top-foot' | 'top-fly' | 'top'), лічильник] */
+const T2_BTN=[['fire','Вогонь','foot'],['ads','Приціл','foot'],['reload','Перезарядка','foot'],['jump','Стрибок','foot'],['crouch','Присісти','foot'],['swap','Інша зброя','foot'],
+  ['boom','Підрив борта','fly'],['msl','Пуск ракети по цілі в захваті','fly',1],['bomb','Скид боєприпасу','fly',1],['lock','Захват цілі','fly'],
+  ['foot','Пішки','top-fly'],['craft','FPV або крило','top-fly'],['fpv','Підняти FPV','top-foot'],['wing','Підняти крило','top-foot'],['auto','Автовогонь по цілі','top-foot'],
+  ['vis','Режим бачення','top',1],['wh','Бойова частина','top-fly',1],['strike','Удар по точці','top'],['god','Безсмертя','top'],['gear','Налаштування','top']];
+function t2Act(k,down,e){
+  const G=SALT.G;
+  if(k==='fire'){T2.fire=down;if(down)T2.ptr.set(e.pointerId,{k:'firelook',x:e.clientX,y:e.clientY,t:performance.now()});return;}
+  if(!down)return;t2Buzz(k==='boom'?26:8);
+  if(k==='ads'){T2.ads=!T2.ads;T2.b.ads.classList.toggle('on',T2.ads);}
+  else if(k==='reload'){t2Key('KeyR',true);setTimeout(()=>t2Key('KeyR',false),60);}
+  else if(k==='swap'){t2Key('KeyQ',true);setTimeout(()=>t2Key('KeyQ',false),60);T2.ads=false;T2.b.ads.classList.remove('on');}
+  else if(k==='jump'){if(T2.crouch){T2.crouch=false;T2.b.crouch.classList.remove('on');}t2Key('Space',true);setTimeout(()=>t2Key('Space',false),90);}
+  else if(k==='crouch'){T2.crouch=!T2.crouch;T2.b.crouch.classList.toggle('on',T2.crouch);}
+  else if(k==='auto'){T2.auto=!T2.auto;T2.b.auto.classList.toggle('on',T2.auto);try{localStorage.setItem('myfpv.t2.auto',T2.auto?'1':'0');}catch(_){}try{saltFlyMsg(T2.auto?'автовогонь увімкнено':'автовогонь вимкнено — стріляєш сам');}catch(_){}}
+  else if(k==='fpv'||k==='wing'){try{SALT.mobFoot=false;saltFlyToggle(k);}catch(_){}}
+  else mobAct(k);
+}
+function t2Init(G){
+  if(T2.init)return T2.on;T2.init=true;
+  if(SALT_FEAT.touch2===false||!SALT.droneOnly||typeof MOB==='undefined'||!MOB.on)return false;
+  if(!((typeof IS_TOUCH!=='undefined'&&IS_TOUCH)||/[?&]rstick=1/.test(location.search)))return false;
+  try{T2.auto=localStorage.getItem('myfpv.t2.auto')!=='0';}catch(e){}
+  const D=document,L=T2.el=D.createElement('div');L.id='t2';L.innerHTML='<div class="t2-stk t2-l"><i></i><b></b></div><div class="t2-stk t2-r"><i></i><b></b></div><div id="t2-run">біг</div>';D.body.appendChild(L);
+  T2.sL=L.querySelector('.t2-l');T2.sR=L.querySelector('.t2-r');T2.runEl=L.querySelector('#t2-run');
+  const box=D.createElement('div');box.id='t2-b';const top=D.createElement('div');top.id='t2-top';
+  for(const q of T2_BTN){const b=D.createElement('button');b.type='button';b.dataset.k=q[0];b.className='t2-'+q[2];b.setAttribute('aria-label',q[1]);b.innerHTML=t2Ico(q[0]==='craft'?'fpv':q[0])+(q[3]?'<i></i>':'');
+    (q[2].indexOf('top')===0?top:box).appendChild(b);T2.b[q[0]]=b;
+    b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();try{b.setPointerCapture(e.pointerId);}catch(_){}b.classList.add('hit');try{t2Act(q[0],true,e);}catch(er){console.warn('t2',er);}});
+    const up=e=>{e.preventDefault();e.stopPropagation();b.classList.remove('hit');if(q[0]==='fire'){T2.ptr.delete(e.pointerId);try{t2Act('fire',false,e);}catch(_){}}};
+    b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);
+    if(q[0]==='fire')b.addEventListener('pointermove',e=>{const p=T2.ptr.get(e.pointerId);if(p&&p.k==='firelook'){e.preventDefault();t2Look(e.clientX-p.x,e.clientY-p.y,e);p.x=e.clientX;p.y=e.clientY;}});
+    ['touchstart','touchmove','touchend','contextmenu'].forEach(n=>b.addEventListener(n,e=>{e.preventDefault();e.stopPropagation();},{passive:false}));}
+  D.body.appendChild(box);D.body.appendChild(top);
+  /* стан старих кнопок оновлює mobHud — підставляємо йому нові */
+  for(const k of ['bomb','msl','lock','vis','wh','god','craft','strike','foot','gear','boom'])if(T2.b[k])MOB.b[k]=T2.b[k];MOB.last.kind=null;
+  T2.b.auto.classList.toggle('on',T2.auto);
+  L.addEventListener('pointerdown',t2Down,{passive:false});L.addEventListener('pointermove',t2Move,{passive:false});L.addEventListener('pointerup',t2Up,{passive:false});L.addEventListener('pointercancel',t2Up,{passive:false});
+  ['touchstart','touchmove','touchend','contextmenu'].forEach(n=>L.addEventListener(n,e=>{e.preventDefault();},{passive:false}));
+  (SALT.rs||(SALT.rs={})).L=T2.oL;SALT.rs.R=T2.oR;
+  D.body.classList.add('salt-t2');T2.on=true;return true;
+}
+function t2Fly(){return !!(SALT.fly&&SALT.fly.on);}
+function t2Look(dx,dy,e){
+  const now=performance.now(),p=T2.ptr.get(e.pointerId),dtm=Math.max(4,now-((p&&p.t)||now-16));if(p)p.t=now;
+  const sp=Math.hypot(dx,dy)/dtm,acc=1+Math.min(1.1,Math.max(0,sp-.35)*.9),k=.0034*acc*(T2.ads?.45:1);                 // повільний рух — точний, швидкий — розгін до ×2
+  T2.lk.dx+=dx*k;T2.lk.dy+=dy*k;T2.stat.look++;
+}
+function t2Stick(S,x,y){
+  const R=T2.RAD;let dx=x-S.ox,dy=y-S.oy,d=Math.hypot(dx,dy);
+  if(d>R*1.25){const k=(d-R*1.25)/d;S.ox+=dx*k;S.oy+=dy*k;dx=x-S.ox;dy=y-S.oy;d=Math.hypot(dx,dy);}                       // центр їде за пальцем
+  const m=Math.min(1,d/R),dz=.1,o=m<=dz?0:(m-dz)/(1-dz),ux=d?dx/d:0,uy=d?dy/d:0;S.x=ux*o;S.y=-uy*o;S.far=d/R;S.px=ux*Math.min(d,R);S.py=uy*Math.min(d,R);
+}
+function t2Down(e){
+  if(e.pointerType==='mouse'&&e.button!==0)return;e.preventDefault();try{T2.el.setPointerCapture(e.pointerId);}catch(_){}
+  const W=window.innerWidth,x=e.clientX,y=e.clientY,fly=t2Fly();
+  if(x<W*.44){if(T2.L.id<0){T2.L.id=e.pointerId;T2.L.ox=x;T2.L.oy=y;T2.L.y0=y;T2.L.ly=y;T2.L.x=T2.L.y=0;T2.L.px=T2.L.py=0;T2.run=false;T2.ptr.set(e.pointerId,{k:'L'});}return;}
+  if(fly){if(T2.R.id<0&&x>W*.56){T2.R.id=e.pointerId;T2.R.ox=x;T2.R.oy=y;T2.R.x=T2.R.y=0;T2.R.px=T2.R.py=0;T2.ptr.set(e.pointerId,{k:'R',x0:x,y0:y,t0:performance.now(),mv:0});}
+    else T2.ptr.set(e.pointerId,{k:'tap',x0:x,y0:y,t0:performance.now(),mv:0});return;}
+  T2.ptr.set(e.pointerId,{k:'look',x:x,y:y,t:performance.now()});
+}
+function t2Move(e){
+  const p=T2.ptr.get(e.pointerId);if(!p)return;e.preventDefault();
+  if(p.k==='L'){T2.L.ly=e.clientY;t2Stick(T2.L,e.clientX,e.clientY);}
+  else if(p.k==='R'){p.mv=Math.max(p.mv,Math.hypot(e.clientX-p.x0,e.clientY-p.y0));t2Stick(T2.R,e.clientX,e.clientY);}
+  else if(p.k==='tap')p.mv=Math.max(p.mv,Math.hypot(e.clientX-p.x0,e.clientY-p.y0));
+  else if(p.k==='look'){t2Look(e.clientX-p.x,e.clientY-p.y,e);p.x=e.clientX;p.y=e.clientY;}
+}
+function t2Up(e){
+  const p=T2.ptr.get(e.pointerId);if(!p)return;T2.ptr.delete(e.pointerId);
+  if(p.k==='L'){if(!t2Fly()&&(T2.L.y0-T2.L.ly)>T2.RAD*2.1&&T2.L.y>.8)T2.run=true;/* палець пішов далеко вгору від місця, де ліг */T2.L.id=-1;T2.L.x=T2.L.y=0;}
+  else if(p.k==='R'||p.k==='tap'){if(p.k==='R'){T2.R.id=-1;T2.R.x=T2.R.y=0;}
+    if(p.mv<12&&performance.now()-p.t0<260){T2.stat.tap++;try{t2Lock(p.x0,p.y0);}catch(_){}}}                              // короткий тап у польоті — захват цілі під пальцем
+}
+/* захват цілі, найближчої до точки тапу */
+function t2Lock(px,py){
+  const G=SALT.G;if(!G||typeof WAR==='undefined'||!WAR.tg)return false;const cam=G.camera,v=new G.THREE.Vector3(),nx=px/window.innerWidth*2-1,ny=-(py/window.innerHeight*2-1),asp=cam.aspect||1.7;let best=null,bs=.13;
+  for(const g of WAR.tg){if((WAR.seen.get(g.ref)||0)<WAR.t)continue;v.copy(g.c()).project(cam);if(v.z>1)continue;const r=Math.hypot(v.x-nx,(v.y-ny)/asp);if(r<bs){bs=r;best=g;}}
+  if(!best)return false;WAR.lock=best;WAR.lockLost=0;T2.stat.lock++;t2Buzz(14);try{sfx('lock',null,.8);saltFlyMsg('захват: '+WAR_LBL[best.kind]+' · '+Math.round(best.d||0)+' м · борт веде сам');}catch(e){}return true;
+}
+/* піхота: після штатного розрахунку (хода зі стіка, автовогонь) — огляд свайпом, кнопки */
+function t2FootPost(inp,dt){
+  if(!T2.on)return;const L=T2.L;
+  if(T2.run){inp.move.x=0;inp.move.y=1;inp.sprint=true;}else inp.sprint=L.y>.9&&Math.abs(L.x)<.5;
+  const sn=inp.sensitivity||1;inp.look.dx+=T2.lk.dx*sn;inp.look.dy+=T2.lk.dy*sn;T2.lk.dx=0;T2.lk.dy=0;
+  inp.ads=T2.ads;inp.crouch=T2.crouch;if(!T2.auto)inp.fire=false;if(T2.fire)inp.fire=true;
+}
+function t2Step(G,dt){
+  if(!t2Init(G))return;const fly=t2Fly(),play=G.game&&G.game.state==='playing'&&!document.body.classList.contains('sk-on'),foot=!fly&&!!SALT.mobFoot;
+  const cls=(play?'p':'')+(fly?'f':'')+(foot?'t':'');if(cls!==T2.cls){T2.cls=cls;const B=document.body.classList;B.toggle('t2-off',!play);B.toggle('t2-fly',fly);B.toggle('t2-foot',foot);
+    T2.L.id=-1;T2.R.id=-1;T2.L.x=T2.L.y=T2.R.x=T2.R.y=0;T2.ptr.clear();T2.fire=false;T2.lk.dx=T2.lk.dy=0;if(fly){T2.run=false;T2.ads=false;T2.b.ads.classList.remove('on');}}
+  /* стіки: згладжування й показ */
+  const k=Math.min(1,dt/.045),L=T2.L,R=T2.R;
+  if(fly){T2.oL.x+=(L.x-T2.oL.x)*k;T2.oL.y+=(L.y-T2.oL.y)*k;T2.oR.x+=(R.x-T2.oR.x)*k;T2.oR.y+=(R.y-T2.oR.y)*k;}
+  else{T2.oL.x=L.x;T2.oL.y=L.y;T2.oR.x=0;T2.oR.y=0;T2.lk.dx*=1;}
+  const show=(el,S,on)=>{if(on){el.style.transform='translate('+(S.ox-T2.RAD)+'px,'+(S.oy-T2.RAD)+'px)';el.lastChild.style.transform='translate('+(S.px||0)+'px,'+(S.py||0)+'px)';}if(el._on!==on){el._on=on;el.classList.toggle('on',on);}};
+  show(T2.sL,L,L.id>=0);show(T2.sR,R,fly&&R.id>=0);
+  if(T2.runEl._on!==T2.run){T2.runEl._on=T2.run;T2.runEl.classList.toggle('on',T2.run);}
+  /* приціл і стан кнопок (раз на кілька кадрів) */
+  if((T2.hT=(T2.hT||0)-dt)<=0){T2.hT=.12;const B=document.body.classList,aim=foot&&typeof K12!=='undefined'&&K12.ft.hold>0;B.toggle('t2-aim',!!aim);B.toggle('t2-ads',foot&&T2.ads);B.toggle('t2-lock',fly&&typeof WAR!=='undefined'&&!!WAR.lock);
+    try{T2.b.god.classList.toggle('on',!!SALT.god);T2.b.vis.classList.toggle('on',typeof WAR!=='undefined'&&!!WAR.vis);if(fly)T2.b.msl.classList.toggle('rdy',!!(WAR.lock));}catch(e){}}
 }
 
 /* ═══════════ ПІХОТИНЕЦЬ ВІД ПЕРШОЇ ОСОБИ ═══════════
