@@ -1770,6 +1770,23 @@ html.tt2 #set-sheet .ss-h h2{font-size:19px!important;margin-right:auto!importan
 html.tt2 #set-sheet>*{flex:none!important;}
 html.tt2 #tt2-stat{left:calc(var(--sl,0px) + var(--tt2-pad,24px) + 500px)!important;transform:none!important;}
 @media (max-width:1240px){html.tt2 #tt2-stat{display:none!important;}}
+
+/* ═════ голоси (voice2.js): субтитр ворожої репліки й стрічка рації командира ═════ */
+#vx-sub{position:fixed;z-index:5025;left:50%;bottom:calc(var(--sb,0px) + 118px);transform:translate(-50%,8px);max-width:min(78vw,720px);padding:6px 14px;font:500 15px/1.3 'Ubuntu',sans-serif;letter-spacing:.02em;color:#e8e4da;background:rgba(11,13,15,.72);border-left:2px solid #d2622a;opacity:0;transition:opacity .18s,transform .18s;pointer-events:none;text-align:center;}
+#vx-sub.on{opacity:1;transform:translate(-50%,0);}
+body.salt-mob #vx-sub{bottom:calc(var(--sb,0px) + 150px);font-size:13px;}
+#vx-band{position:fixed;z-index:5026;left:50%;top:24vh;width:min(86vw,600px);transform:translate(-50%,-10px) scaleY(.7);padding:9px 14px 10px;background:rgba(11,13,15,.82);border-top:2px solid #ffb347;border-bottom:1px solid rgba(232,228,218,.22);opacity:0;transition:opacity .22s,transform .22s;pointer-events:none;box-sizing:border-box;}
+#vx-band.on{opacity:1;transform:translate(-50%,0);}
+#vx-band.rep{border-top-color:#d2622a;}
+#vx-band .vx-h{display:flex;align-items:center;gap:9px;font:500 11px/1 'Ubuntu',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#8d9aa3;margin-bottom:6px;}
+#vx-band .vx-h i{width:8px;height:8px;border-radius:50%;background:#d2622a;animation:vxrec 1s steps(2) infinite;}
+#vx-band .vx-h b{color:#ffb347;font-weight:500;}
+#vx-band .vx-h span{margin-left:auto;font-family:'Ubuntu Mono',monospace;letter-spacing:.08em;}
+#vx-band canvas{display:block;width:100%;height:46px;}
+#vx-band p{margin:7px 0 0;font:400 14px/1.35 'Ubuntu',sans-serif;color:#e8e4da;text-align:center;}
+@keyframes vxrec{50%{opacity:.25}}
+body:not(.salt) #vx-band,body:not(.salt) #vx-sub{display:none;}
+@media (max-height:480px){#vx-band{top:15vh;padding:6px 12px 7px;}#vx-band canvas{height:30px;}#vx-band p{font-size:12px;}}
 </style>
 <script id="ui-salt">/* UI мовою Saltline (модуль ui): клас на <html> ставиться до побудови титулу, щоб не блимало; ?off=ui — старе оформлення */
 try{performance.setResourceTimingBufferSize(8000);}catch(e){}   /* фікстура мапи читає список завантажених тайлів */
@@ -15074,6 +15091,9 @@ function saltLifeStep(t,dt){
   if(typeof ai3Step==='function')try{ai3Step(G,dt);}catch(e){saltFeatFail('ai3',e);}
   if(typeof mvehStep==='function')try{mvehStep(G,dt);}catch(e){saltFeatFail('mveh',e);}
   if(typeof anim2Step==='function')try{anim2Step(G,dt);}catch(e){saltFeatFail('anim2',e);}
+  if(typeof psStep==='function')try{psStep(G,dt);}catch(e){saltFeatFail('psnd',e);}
+  if(typeof vxStep==='function')try{vxStep(G,dt);}catch(e){saltFeatFail('voice2',e);}
+  if(typeof cap2Step==='function')try{cap2Step(G,dt);}catch(e){saltFeatFail('cap2',e);}
   if(typeof civ4Step==='function')try{civ4Step(G,dt);}catch(e){saltFeatFail('civ4',e);}
   if(typeof net2Step==='function')try{net2Step(G,dt);}catch(e){saltFeatFail('net2',e);}                             // вода: плавання гравця й ботів (swim.js)                           // аварії: інерція збитих машин, повалені дерева (crash.js)                             // третій набір: цивільні-люди, хатини, блоки, сенсори, контейнери, музика, сигнал ракет, піхотинець на телефоні (kit12.js)                             // другий набір зразків: цивільні, бронемашина, голуби, покинуті авто (kit11.js)                            // схрони й скид постачання (supply.js)
   if(typeof nobldStep==='function')try{nobldStep(G,dt);}catch(e){saltFeatFail('nobld',e);}                         // у монолітні будинки не заходять (nobld.js)
@@ -16097,7 +16117,7 @@ function saltViaOf(road,x,z){
 
 /* ===== бойові системи: виявлення / захват / супровід цілі, режими бачення, РЕБ, пускові й ракети, колони на дорогах, ніші у вікнах, ходові завдання ===== */
 /* прапорці доповнень: window.MYFPV_FEATURES={proto:false,...} або SALT_RULES.features. Модуль, що впав, вимикається сам із повідомленням про справжню помилку. */
-const SALT_FEAT=Object.assign({war:true,strike:true,loot:true,proto:true,world2:true,sat:true,heat:true,sfx:true,vfx:true,bvh:true,bots:true,botsSquad:true,botsCiv:true,botsTraffic:true,feel:true,roads2:true,grav:true,sat2:true,detail:true,tex:true,geo:true,traffic2:true,walk2:true,solid:true,frac:true,trees2:true,facade2:true,ik:true,susp:true,mobile:true,mg:true,pfd:true,blood:true,nrk:true,nobld:true,ramp:true,calm:true,hitfit:true,civ2:true,perf:true,autoq:true,far:true,fixture:true,gen2:true,fields:true,lsm:true,reeds:true,yards:true,ruins:true,trench:true,smoke2:true,lep:true,flares:true,tac:true,sqcmd:true,vehfpv:true,mines:true,snd2:true,hunter:true,civ3:true,tmap:true,camp:true,kit10:true,kit10baked:true,cabin:true,kit11:true,pigeons:true,kit12:true,mobfoot:true,music2:true,push:true,crash:true,sites:true,touch2:true,armhi:true,swim:true,seams:true,rjoin:true,mveh:true,anim2:true,sat3:true,surf:true,btex:true,t2mid:true,ai3:true,ai2:true,civ4:true,net2:true,title2:true,arms2:true,drive:true,supply:true},(typeof SALT_RULES!=='undefined'&&SALT_RULES.features)||{},window.MYFPV_FEATURES||{});
+const SALT_FEAT=Object.assign({war:true,strike:true,loot:true,proto:true,world2:true,sat:true,heat:true,sfx:true,vfx:true,bvh:true,bots:true,botsSquad:true,botsCiv:true,botsTraffic:true,feel:true,roads2:true,grav:true,sat2:true,detail:true,tex:true,geo:true,traffic2:true,walk2:true,solid:true,frac:true,trees2:true,facade2:true,ik:true,susp:true,mobile:true,mg:true,pfd:true,blood:true,nrk:true,nobld:true,ramp:true,calm:true,hitfit:true,civ2:true,perf:true,autoq:true,far:true,fixture:true,gen2:true,fields:true,lsm:true,reeds:true,yards:true,ruins:true,trench:true,smoke2:true,lep:true,flares:true,tac:true,sqcmd:true,vehfpv:true,mines:true,snd2:true,hunter:true,civ3:true,tmap:true,camp:true,kit10:true,kit10baked:true,cabin:true,kit11:true,pigeons:true,kit12:true,mobfoot:true,music2:true,push:true,crash:true,sites:true,touch2:true,armhi:true,swim:true,seams:true,psnd:true,voice2:true,cap2:true,rjoin:true,mveh:true,anim2:true,sat3:true,surf:true,btex:true,t2mid:true,ai3:true,ai2:true,civ4:true,net2:true,title2:true,arms2:true,drive:true,supply:true},(typeof SALT_RULES!=='undefined'&&SALT_RULES.features)||{},window.MYFPV_FEATURES||{});
 /* вимкнути модулі з адреси сторінки: ?off=roads2,vfx — щоб порівняти «до» і «після» на тій самій точці */
 try{const m=/[?&]off=([\w,]+)/.exec(location.search);if(m)m[1].split(',').forEach(k=>{if(k in SALT_FEAT)SALT_FEAT[k]=false;});}catch(e){}
 function saltFeatFail(name,e){if(SALT_FEAT[name]===false)return;SALT_FEAT[name]=false;const msg=String(e&&e.message||e).slice(0,120);console.error('module '+name+':',e);if(name==='vfx')try{vfxDispose();}catch(_){}try{saltFlyMsg('модуль «'+name+'» вимкнено: '+msg);}catch(_){}}
@@ -23353,6 +23373,273 @@ function sat3Chunk(kit,T,X0,Z0,CH,ch){
     kit.dynRoot.add(g);SAT3.stat.ent++;
     try{const P=t.physics,c=Math.cos(yaw),s=Math.sin(yaw),W=(lx,lz,r)=>{const px=x+lx*c+lz*s,pz=z-lx*s+lz*c;P.addBox([px-r,y-.3,pz-r],[px+r,y+1.05,pz+r],{surface:'concrete',tag:'pole'});};
       for(const lz of [.4,1.6,2.8,4]){W(-1.5,lz,.35);W(1.5,lz,.35);}W(-.8,4.9,.4);W(0,4.9,.4);W(.8,4.9,.4);}catch(_){}}
+}
+
+/* ===== звуки кодом (у дусі Q1K3: жодного файла, кожен звук — кілька чисел і формула) + звукове оточення (прапорець SALT_FEAT.psnd) =====
+   Власний маленький синтезатор: шум, тон, фільтр, обвідна → буфер Web Audio. Не залежить від ZzFX з мережі — працює й без інтернету.
+   Оточення підбирається під місце, погоду, час доби й близькість фронту:
+   · природа: вітер (сильніший у полі), шелест крон у лісі, птахи вдень, цвіркуни й сова вночі, дощ і грім у негоду, плескіт біля води;
+   · війна вдалині: розкотиста канонада, проліт снаряда над головою, далека сирена, чуже дзижчання дрона високо в небі;
+   · місто й побут: гудіння дротів і трансформаторів, скрип і брязкіт бляхи на вітрі, собаки, далекі машини;
+   · кроки й спорядження: шар кроку за покриттям (трава, ґрунт, щебінь, бетон, вода) у гравця й ботів поруч, брязкіт спорядження на бігу, віддих після ривка.
+   Звуки рушія й sfx.js / snd2.js лишаються — це додатковий шар. */
+const PS={buf:{},loops:{},tm:{},env:{g:0,f:0,r:0,i:0,w:0,rain:0,night:0,war:.3},eT:0,st:{d:0,run:0,br:0,brN:0,surf:'asph',x:0,z:0},bots:new WeakMap(),stat:{shots:0,steps:0,bsteps:0,gen:0},seed:1};
+function psCtx(){return (typeof SFX!=='undefined'&&SFX.ctx&&SFX.out)?SFX.ctx:null;}
+function psR(s){let x=(s*9301+49297)%2147483647;return ()=>{x=(x*16807)%2147483647;return x/2147483647;};}
+/* буфер: fn(i,t,sr,R) → відлік; loop — хвіст вплавляється в початок */
+function psMake(name,dur,fn,loop,seed){
+  const ctx=psCtx();if(!ctx)return null;const sr=ctx.sampleRate,n=Math.floor(dur*sr),x=loop?Math.floor(sr*.4):0,w=new Float32Array(n+x),R=psR(seed||name.length*131+name.charCodeAt(0)*7+name.charCodeAt(name.length-1));
+  fn(w,sr,R);const s=new Float32Array(n);for(let i=0;i<n;i++)s[i]=w[i];if(x)for(let i=0;i<x;i++){const k=i/x;s[i]=w[i]*Math.sqrt(k)+w[n+i]*Math.sqrt(1-k);}
+  let pk=0;for(let i=0;i<n;i++){const a=Math.abs(s[i]);if(a>pk)pk=a;}if(pk>1e-6){const k=.9/pk;for(let i=0;i<n;i++)s[i]*=k;}
+  const b=ctx.createBuffer(1,n,sr);b.getChannelData(0).set(s);PS.stat.gen++;return PS.buf[name]=b;
+}
+/* цеглинки: шум крізь однополюсний фільтр, обвідна удару */
+function psNoise(w,R,lp,hp,g,a0,a1){let l=0,h=0;const e=a1==null?w.length:a1;for(let i=a0||0;i<e;i++){const v=R()*2-1;l+=(v-l)*lp;h+=(l-h)*(hp||0);w[i]+=(l-h)*(typeof g==='function'?g(i):g);}}
+function psTone(w,sr,f,g,a0,a1,sh){let ph=0;const e=Math.min(w.length,a1);for(let i=a0;i<e;i++){const t=(i-a0)/sr,fr=typeof f==='function'?f(t):f;ph+=fr/sr*6.2832;const s=sh===1?(ph/6.2832%1)*2-1:sh===2?(Math.sin(ph)>0?1:-1):Math.sin(ph);w[i]+=s*(typeof g==='function'?g(t):g);}}
+const PS_DEF={
+  wind:[4,(w,sr,R)=>{let l=0,l2=0;for(let i=0;i<w.length;i++){const t=i/sr,c=.012+.01*Math.sin(t*1.57)+.006*Math.sin(t*3.9+1);l+=((R()*2-1)-l)*c;l2+=(l-l2)*.25;w[i]=l2*(.7+.3*Math.sin(t*.785+.6));}},1],
+  leaves:[4,(w,sr,R)=>{let l=0,h=0,m=0;for(let i=0;i<w.length;i++){const t=i/sr;m+=((R()<.0004?1:0)-m)*.0008;l+=((R()*2-1)-l)*.55;h+=(l-h)*.08;w[i]=(l-h)*(.35+.65*Math.abs(Math.sin(t*1.57))+m*6)*(.6+.4*Math.sin(t*4.71+2));}},1],
+  rain:[3,(w,sr,R)=>{psNoise(w,R,.5,.12,.5);for(let k=0;k<420;k++){const a=(R()*(w.length-900))|0,f=2500+R()*4000,g=.15+R()*.3;for(let i=0;i<700;i++)w[a+i]+=Math.sin(i/sr*f*6.283)*Math.exp(-i/90)*g;}},1],
+  hum:[2,(w,sr)=>{for(let i=0;i<w.length;i++){const t=i/sr,p=t*6.2832;w[i]=Math.sin(p*50)*.6+Math.sin(p*100)*.5+Math.sin(p*150+.4)*.22+Math.sin(p*250)*.1+Math.sin(p*350)*.05;}},1],
+  water:[4,(w,sr,R)=>{let l=0,h=0;for(let i=0;i<w.length;i++){const t=i/sr,a=Math.pow(.5+.5*Math.sin(t*1.57),2.2)+.25*Math.pow(.5+.5*Math.sin(t*4.71+1),3);l+=((R()*2-1)-l)*(.05+.2*a);h+=(l-h)*.01;w[i]=(l-h)*(.25+a);}},1],
+  hiss:[1,(w,sr,R)=>{psNoise(w,R,.7,.25,.6);for(let i=0;i<w.length;i++)w[i]+=Math.sin(i/sr*6.2832*1900)*.02;},1],
+  rumble:[6,(w,sr,R)=>{for(let k=0;k<9;k++){const a=(R()*sr*4.2)|0,f=34+R()*30,g=.4+R()*.6,d=.35+R()*.5;for(let i=0;i<sr*1.6&&a+i<w.length;i++){const t=i/sr;w[a+i]+=Math.sin(t*f*6.283*(1-t*.12))*Math.exp(-t/d)*g*Math.min(1,t*60);}}psNoise(w,R,.004,0,i=>.6*Math.exp(-i/sr/3.5));}],
+  thunder:[5,(w,sr,R)=>{psNoise(w,R,.03,0,i=>{const t=i/sr;return (t<.25?(.4+R()*.9):1)*Math.exp(-t/1.5)*(.7+.3*Math.sin(t*9));});psNoise(w,R,.35,.2,i=>Math.exp(-i/sr/.09)*.8,0,sr*.5|0);}],
+  shell:[2.6,(w,sr,R)=>{let l=0,b=0;for(let i=0;i<w.length;i++){const t=i/sr,k=t/2.6,f=.5-.42*k,q=.9;const v=R()*2-1;l+=f*(v-l-q*b);b+=f*l;const e=Math.sin(Math.min(1,k)*Math.PI);w[i]=b*e*e*.4+Math.sin(t*6.283*(900-560*k))*e*e*.08;}}],
+  bird1:[.9,(w,sr,R)=>{let a=0;for(let k=0;k<5;k++){const f0=3200+R()*1400,d=.05+R()*.05;psTone(w,sr,t=>f0+Math.sin(t*60)*500-t*4000,t=>Math.sin(Math.min(1,t/d)*Math.PI)*.8,a,a+(d*sr|0));a+=((.09+R()*.08)*sr)|0;}}],
+  bird2:[1.1,(w,sr,R)=>{let a=0;for(let k=0;k<9;k++){const f0=4300+k*90;psTone(w,sr,t=>f0+t*9000,t=>Math.sin(Math.min(1,t/.035)*Math.PI)*.7,a,a+(.035*sr|0));a+=(.055*sr)|0;}psTone(w,sr,t=>2600-t*1500,t=>Math.sin(Math.min(1,t/.3)*Math.PI)*.6,a+800,a+800+(.3*sr|0));}],
+  bird3:[.8,(w,sr,R)=>{for(let k=0;k<2;k++){const a=(k*.36*sr)|0;psTone(w,sr,t=>520-t*300,t=>Math.sin(Math.min(1,t/.24)*Math.PI)*(.6+.4*Math.sin(t*440)),a,a+(.24*sr|0),1);psNoise(w,R,.3,.1,i=>.25*Math.sin(Math.min(1,(i-a)/(sr*.24))*Math.PI),a,a+(.24*sr|0));}}],
+  bird4:[1.4,(w,sr)=>{psTone(w,sr,t=>1180+(t>.5?-230:0),t=>(t<.42||(t>.5&&t<1.3))?.7*Math.sin(Math.min(1,(t<.5?t/.42:(t-.5)/.8))*Math.PI):0,0,(1.35*sr)|0);}],
+  cricket:[1.3,(w,sr,R)=>{const f=4100+R()*500;for(let k=0;k<3;k++){const a=(k*.4*sr)|0;psTone(w,sr,f,t=>(Math.sin(t*6.283*31)>0?1:0)*Math.sin(Math.min(1,t/.26)*Math.PI)*.5,a,a+(.26*sr|0));}}],
+  owl:[1.7,(w,sr)=>{for(const q of [[0,.3],[.5,.2],[.78,.55]])psTone(w,sr,t=>345-t*25,t=>Math.sin(Math.min(1,t/q[1])*Math.PI)*.8,(q[0]*sr)|0,((q[0]+q[1])*sr)|0);}],
+  dog:[1.2,(w,sr,R)=>{let a=0;for(let k=0;k<3;k++){const d=.11+R()*.05;psTone(w,sr,t=>330-t*900,t=>Math.sin(Math.min(1,t/d)*Math.PI)*.7,a,a+(d*sr|0),1);psNoise(w,R,.25,.08,i=>.5*Math.sin(Math.min(1,(i-a)/(sr*d))*Math.PI),a,a+(d*sr|0));a+=((.26+R()*.2)*sr)|0;}}],
+  creak:[1.4,(w,sr,R)=>{psTone(w,sr,t=>620+Math.sin(t*5)*160+t*120,t=>Math.sin(Math.min(1,t/1.3)*Math.PI)*(.35+.65*(Math.sin(t*6.283*(22+t*14))>0?1:.15))*.6,0,(1.3*sr)|0,1);psNoise(w,R,.4,.3,.05);}],
+  clank:[.7,(w,sr,R)=>{for(const f of [212,347,523,871,1310,1975])psTone(w,sr,f*(1+R()*.03),t=>Math.exp(-t/(.05+R()*.22))*.4,0,(.65*sr)|0);psNoise(w,R,.6,.3,i=>Math.exp(-i/sr/.012)*.7,0,sr*.06|0);}],
+  car:[4.5,(w,sr,R)=>{let l=0;for(let i=0;i<w.length;i++){const t=i/sr,k=t/4.5,e=Math.pow(Math.sin(k*Math.PI),2.5);l+=((R()*2-1)-l)*(.03+.05*e);w[i]=l*e+Math.sin(t*6.283*(74-10*k))*e*.12+Math.sin(t*6.283*(148-20*k))*e*.05;}}],
+  droneFar:[5,(w,sr)=>{for(let i=0;i<w.length;i++){const t=i/sr,k=t/5,e=Math.pow(Math.sin(k*Math.PI),1.6),f=176+Math.sin(t*2.1)*7-18*k,p=t*f;w[i]=(((p%1)*2-1)*.5+(((p*2.01)%1)*2-1)*.3+(((p*3.02)%1)*2-1)*.16)*e*(.8+.2*Math.sin(t*37));}}],
+  sirenFar:[7,(w,sr)=>{let ph=0,l=0;for(let i=0;i<w.length;i++){const t=i/sr,f=430+330*Math.pow(.5-.5*Math.cos(t*6.283/3.5),1.2);ph+=f/sr*6.2832;l+=((Math.sin(ph)>0?1:-1)-l)*.06;w[i]=l*Math.sin(Math.min(1,t/7)*Math.PI);}}],
+  stGrass:[.22,(w,sr,R)=>{psNoise(w,R,.45,.2,i=>Math.sin(Math.min(1,i/(sr*.18))*Math.PI)*(.5+R()*.5));}],
+  stDirt:[.2,(w,sr,R)=>{psNoise(w,R,.2,.03,i=>Math.exp(-i/sr/.045));for(let k=0;k<7;k++){const a=(R()*sr*.12)|0;for(let i=0;i<260;i++)w[a+i]+=(R()*2-1)*Math.exp(-i/50)*.5;}}],
+  stGravel:[.24,(w,sr,R)=>{for(let k=0;k<16;k++){const a=(R()*sr*.16)|0,g=.3+R()*.6;for(let i=0;i<300;i++)w[a+i]+=(R()*2-1)*Math.exp(-i/36)*g;}psNoise(w,R,.12,.02,i=>Math.exp(-i/sr/.05)*.6);}],
+  stConc:[.16,(w,sr,R)=>{psNoise(w,R,.14,.02,i=>Math.exp(-i/sr/.028));psTone(w,sr,t=>150-t*500,t=>Math.exp(-t/.03)*.6,0,sr*.1|0);psNoise(w,R,.7,.4,i=>Math.exp(-i/sr/.006)*.35,0,sr*.03|0);}],
+  stWater:[.42,(w,sr,R)=>{psNoise(w,R,.3,.05,i=>Math.sin(Math.min(1,i/(sr*.4))*Math.PI)*Math.exp(-i/sr/.16));for(let k=0;k<6;k++){const a=(R()*sr*.3)|0,f=700+R()*1500;for(let i=0;i<900;i++)w[a+i]+=Math.sin(i/sr*6.283*(f+i*.9))*Math.exp(-i/220)*.25;}}],
+  gear:[.3,(w,sr,R)=>{for(let k=0;k<5;k++){const a=(R()*sr*.2)|0,f=1700+R()*3200,g=.2+R()*.5;for(let i=0;i<500;i++)w[a+i]+=Math.sin(i/sr*6.283*f)*Math.exp(-i/(40+R()*60))*g;}psNoise(w,R,.3,.2,i=>Math.exp(-i/sr/.07)*.2);}],
+  breath:[1.1,(w,sr,R)=>{let l=0,b=0;for(let i=0;i<w.length;i++){const t=i/sr,inh=t<.45,e=inh?Math.sin(t/.45*Math.PI):t<.55?0:Math.sin((t-.55)/.55*Math.PI),f=inh?.32:.16;const v=R()*2-1;l+=f*(v-l-1.2*b);b+=f*l;w[i]=b*e*(inh?.7:1);}}],
+  squelch:[.2,(w,sr,R)=>{psNoise(w,R,.75,.35,i=>i<sr*.012?1:.5*Math.exp(-(i-sr*.012)/sr/.05));psTone(w,sr,1350,t=>t<.03?.5:0,0,sr*.03|0,2);}],
+  roger:[.16,(w,sr)=>{psTone(w,sr,t=>t<.07?1040:1480,t=>.55*(t<.15?1:0),0,sr*.15|0,2);}]
+};
+function psBuf(name){if(PS.buf[name])return PS.buf[name];const d=PS_DEF[name];if(!d)return null;return psMake(name,d[0],d[1],d[2]);}
+/* «бубніння» рації без слів: коли системного голосу немає. dur — секунди, fem — жіночий тембр */
+function psMumble(dur,fem,seed){
+  const key='mm'+Math.round(dur*4)+(fem?'f':'m')+(seed%4);if(PS.buf[key])return PS.buf[key];
+  return psMake(key,dur,(w,sr,R)=>{const f0=fem?205:118;let ph=0,i=0,l=0,b=0,l2=0,b2=0;while(i<w.length){const syl=((.09+R()*.13)*sr)|0,gap=R()<.16?((.12+R()*.2)*sr)|0:((.015+R()*.03)*sr)|0,F1=(fem?520:420)+R()*420,F2=(fem?1500:1100)+R()*900,pt=f0*(.9+R()*.22),un=R()<.2;
+      for(let k=0;k<syl&&i<w.length;k++,i++){const e=Math.sin(k/syl*Math.PI);ph+=pt/sr;const src=un?(R()*2-1)*.6:((ph%1)<.12?1:-.14)+(R()-.5)*.1,c1=2*Math.sin(Math.PI*F1/sr),c2=2*Math.sin(Math.PI*F2/sr);l+=c1*b;const h=src-l-.35*b;b+=c1*h;l2+=c2*b2;const h2=src-l2-.3*b2;b2+=c2*h2;w[i]=(b*.8+b2*.45)*e;}i+=gap;}
+    let hp=0,pv=0;for(let k=0;k<w.length;k++){const v=w[k];hp=.94*(hp+v-pv);pv=v;w[k]=Math.max(-.7,Math.min(.7,hp*1.6))+(R()-.5)*.03;}},false,seed+7);
+}
+/* разовий звук: pos — точка у світі або нічого («в навушниках») */
+function psPlay(name,pos,gain,rate,buf){
+  const ctx=psCtx();if(!ctx||SALT_FEAT.psnd===false||window.__SALT_PAUSE)return null;
+  try{const b=buf||psBuf(name);if(!b)return null;if((PS.live||0)>26)return null;const src=ctx.createBufferSource();src.buffer=b;src.playbackRate.value=(rate||1)*(.95+Math.random()*.1);const g=ctx.createGain();g.gain.value=(gain==null?1:gain)*.5;src.connect(g);
+    if(pos&&isFinite(pos.x)&&isFinite(pos.z)){const p=ctx.createPanner();p.panningModel='equalpower';p.distanceModel='inverse';p.refDistance=pos.ref||8;p.maxDistance=900;p.rolloffFactor=1;if(p.positionX){p.positionX.value=pos.x;p.positionY.value=pos.y||0;p.positionZ.value=pos.z;}else p.setPosition(pos.x,pos.y||0,pos.z);g.connect(p);p.connect(SFX.out);}else g.connect(SFX.out);
+    PS.live=(PS.live||0)+1;PS.stat.shots++;src.onended=()=>{PS.live=Math.max(0,(PS.live||1)-1);try{src.disconnect();g.disconnect();}catch(_){}};src.start();return src;}catch(e){if(!PS.err){PS.err=String(e&&e.message||e);console.warn('psnd',e);}return null;}
+}
+function psLoop(key,name,gain,rate){
+  const ctx=psCtx();if(!ctx||SALT_FEAT.psnd===false)return;try{let L=PS.loops[key];if(!L){if(!(gain>.004))return;const b=psBuf(name);if(!b)return;const src=ctx.createBufferSource();src.buffer=b;src.loop=true;const g=ctx.createGain();g.gain.value=0;src.connect(g);g.connect(SFX.out);src.start();L=PS.loops[key]={src:src,g:g};}
+    L.g.gain.setTargetAtTime(window.__SALT_PAUSE?0:Math.max(0,gain)*.5,ctx.currentTime,.6);if(rate)L.src.playbackRate.setTargetAtTime(rate,ctx.currentTime,.6);}catch(e){}
+}
+function psAround(G,r0,r1,up){const p=G.camera.position,a=Math.random()*6.283,r=r0+Math.random()*(r1-r0);return {x:p.x+Math.cos(a)*r,y:p.y+(up||0),z:p.z+Math.sin(a)*r,ref:Math.max(8,r0*.6)};}
+function psSurf(x,z){try{if(typeof swimDepth==='function'&&swimDepth(x,z)>.08)return 'water';const wx=SALT.ox+x,wz=SALT.oz+z;if(typeof g2RoadDist==='function'){const r=g2RoadDist(x,z);if(r.d<0)return r.k==='track'||r.k==='path'?'dirt':'asph';}
+    if(typeof saltInBld==='function'&&saltInBld(x,z))return 'conc';const k=saltKind(wx,wz);return k===0?'asph':k===4?'conc':k===3||k===8?'gravel':k===2?'dirt':'grass';}catch(e){return 'asph';}}
+const PS_ST={grass:['stGrass',.5],dirt:['stDirt',.55],gravel:['stGravel',.5],conc:['stConc',.5],water:['stWater',.7],asph:['stConc',.22]};
+function psStep(G,dt){
+  if(SALT_FEAT.psnd===false||!psCtx()||!SFX.ok&&!SFX.ctx)return;const P=G.player,pp=P.pos,E=PS.env,now=LIFE.t,fly=!!(SALT.fly&&SALT.fly.on),T=PS.tm;
+  /* що довкола: раз на 1,5 с */
+  if((PS.eT-=dt)<=0){PS.eT=1.5;const c=G.camera.position;let g=0,f=0,r=0,ind=0,w=0,n=0;for(let k=0;k<12;k++){const a=k/12*6.283,d=k%2?14:34;let cl=-1;try{cl=landAt(SALT.ox+c.x+Math.cos(a)*d,SALT.oz+c.z+Math.sin(a)*d);}catch(e){}n++;if(cl===2)f++;else if(cl===0||cl===1||cl===5||cl===9)g++;else if(cl===3)r++;else if(cl===4)ind++;else if(cl===6)w++;}
+    E.f=f/n;E.g=g/n;E.r=r/n;E.i=ind/n;E.w=w/n;E.rain=/storm|rain/.test(SALT.wx||'')?1:0;E.night=SALT.tod==='night'?1:SALT.tod==='evening'?.5:0;try{E.war=typeof g2War==='function'?g2War(pp.x,pp.z):.3;}catch(e){E.war=.3;}
+    E.alt=Math.max(0,c.y-saltH(c.x,c.z));E.in=!fly&&typeof saltInBld==='function'&&saltInBld(pp.x,pp.z)?1:0;}
+  const hi=Math.min(1,(E.alt||0)/60),mute=E.in?.45:1;
+  psLoop('wind','wind',(.1+.16*(1-E.f)+.14*E.rain+.3*hi)*mute,.9+.25*E.rain+.3*hi);
+  psLoop('leaves','leaves',E.f*(.2+.16*E.rain)*(1-hi)*mute,1);
+  psLoop('rain','rain',E.rain*.34*(E.in?.5:1),1);
+  psLoop('hum','hum',Math.min(.1,(E.r*.07+E.i*.14))*(1-hi),1);
+  psLoop('water','water',Math.min(.3,E.w*1.4)*(1-hi)*mute,1);
+  if(fly){PS.st.d=0;return psTimers(G,dt,E,T,true);}
+  /* кроки гравця: шар за покриттям, спорядження, віддих */
+  const S=PS.st,dx=pp.x-S.x,dz=pp.z-S.z,mv=Math.hypot(dx,dz);S.x=pp.x;S.z=pp.z;const sp=mv/Math.max(dt,.001),gr=P.onGround!==false&&!(typeof DRV!=='undefined'&&DRV.on)&&!(typeof SWIM!=='undefined'&&SWIM.on);
+  if(mv<3&&gr&&sp>.6){S.d+=mv;const run=sp>5.2,stride=run?1.25:sp>2.6?.92:.7;if(S.d>=stride){S.d=0;S.n=(S.n||0)+1;S.surf=psSurf(pp.x,pp.z);const q=PS_ST[S.surf];psPlay(q[0],null,q[1]*(run?1.25:sp<2?.6:1),run?1.08:1);PS.stat.steps++;if(run&&S.n%2===0)psPlay('gear',null,.3,1);}
+    S.run=sp>5.2?Math.min(12,S.run+dt):Math.max(0,S.run-dt*1.5);if(S.run>5)S.brN=4;}
+  else{S.run=Math.max(0,S.run-dt*2);if(typeof SWIM!=='undefined'&&SWIM.on&&mv>.01){S.d+=mv;if(S.d>1.6){S.d=0;psPlay('stWater',null,.5,.8);}}}
+  if(S.brN>0&&S.run<4.5&&(S.br-=dt)<=0){S.br=1.15;S.brN--;psPlay('breath',null,.3+.08*S.brN,1);}
+  /* кроки ботів поруч: за фазою ходи */
+  if((PS.bT=(PS.bT||0)-dt)<=0){PS.bT=.07;for(const b of LIFE.bots){if(!b.alive||!b.m||!(b.sp>.5))continue;const d=Math.hypot(b.pos.x-pp.x,b.pos.z-pp.z);if(d>20)continue;const k=Math.floor(b.m.ph/Math.PI),o=PS.bots.get(b);if(o===undefined){PS.bots.set(b,k);continue;}if(k!==o){PS.bots.set(b,k);const q=PS_ST[psSurf(b.pos.x,b.pos.z)];psPlay(q[0],{x:b.pos.x,y:b.pos.y,z:b.pos.z,ref:3},q[1]*.9,1.05);PS.stat.bsteps++;if(b.sp>4.5&&k%2===0&&b.side!=='civ')psPlay('gear',{x:b.pos.x,y:b.pos.y+1,z:b.pos.z,ref:3},.35,1);}}}
+  psTimers(G,dt,E,T,false);
+}
+/* разові звуки оточення за таймерами */
+function psTimers(G,dt,E,T,fly){
+  const tk=(k,a,b,f)=>{if(T[k]==null)T[k]=a*Math.random()+1;if((T[k]-=dt)<=0){T[k]=a+Math.random()*(b-a);try{f();}catch(e){}}},green=E.g+E.f,low=(E.alt||0)<25,q=E.in?.5:1;
+  if(low&&!E.rain&&E.night<.5&&green>.25)tk('bird',2.2,7,()=>{const r=Math.random(),n=E.f>.3?(r<.4?'bird1':r<.7?'bird2':r<.9?'bird4':'bird3'):(r<.6?'bird2':r<.85?'bird1':'bird3');psPlay(n,psAround(G,14,55,4+Math.random()*8),.5*q,.9+Math.random()*.25);});
+  if(low&&E.night>=.5&&!E.rain&&green>.2)tk('crk',.7,2.4,()=>psPlay('cricket',psAround(G,6,30,0),.3*q,.92+Math.random()*.16));
+  if(low&&E.night>=1&&E.f>.3)tk('owl',26,70,()=>psPlay('owl',psAround(G,40,110,10),.6*q,1));
+  if(low&&E.r>.15)tk('dog',14,46,()=>psPlay('dog',psAround(G,60,170,1),.8*q,.85+Math.random()*.3));
+  if(low&&(E.i>.1||E.r>.25))tk('mtl',13,38,()=>psPlay(Math.random()<.55?'creak':'clank',psAround(G,12,50,3),(.35+.3*E.rain)*q,.8+Math.random()*.4));
+  if(low&&E.night<1&&(E.r>.2||E.i>.2))tk('car',22,60,()=>psPlay('car',psAround(G,120,260,1),.8*q,.85+Math.random()*.3));
+  if(E.rain)tk('thn',14,42,()=>psPlay('thunder',psAround(G,300,700,60),1.6,.8+Math.random()*.3));
+  const I=Math.max(.05,E.war);
+  tk('rmb',9/I,26/I,()=>psPlay('rumble',psAround(G,500,800,10),1.5*q,.85+Math.random()*.3));
+  if(I>.45)tk('shl',38,95,()=>psPlay('shell',null,.45*q,.9+Math.random()*.25));
+  if(I>.35)tk('srn',130,260,()=>psPlay('sirenFar',psAround(G,500,800,10),1.2*q,1));
+  if(I>.25&&!fly)tk('drn',55,120,()=>psPlay('droneFar',psAround(G,60,140,80),.6*q,.9+Math.random()*.25));
+}
+
+/* ===== голоси: тактичні репліки ворога російською й рація командира українською (прапорець SALT_FEAT.voice2) =====
+   Озвучення — системний синтез мовлення браузера (якість і наявність чоловічого/жіночого, українського й російського голосу залежать від пристрою);
+   де голосу немає або його вимкнено — репліка йде субтитром, а звучить «бубніння» рації без слів (psnd.js).
+   Ворог: репліки привʼязані до того, що бот справді робить (помітив, обходить, придушує, під вогнем, втрата, відхід, дрон, прочісування, здача, глузування).
+     Ближче 45 м — крик із його боку (гучність за відстанню), субтитр унизу; далі — перехоплений радіообмін із тріском.
+   Командир: завдання зачитує «Гніздо» — посеред екрана зʼявляється стрічка рації з живою хвилею; чоловічий голос, зрідка — звʼязківиця.
+     Поки завдання не виконано, його нагадують раз на 5 хвилин. */
+const VX={init:false,sT:0,last:new Map(),eT:-99,sub:null,subT:0,band:null,bandT:0,amp:0,task:null,taskT:0,fem:false,stat:{bark:0,shout:0,radio:0,cmd:0,rep:0,mumble:0,tts:0},
+ E:{
+  contact:['Вижу врага!','Контакт! Укроп прямо!','Вот он, сука! Огонь!','Цель вижу, работаю!','Хохол на прицеле!','Есть контакт, мочи его!','Вон он, за укрытием! Огонь, блядь!','Противник! Дистанция малая!'],
+  flank:['Обходи его!','Заходи слева, я прикрою!','Обхожу справа, не стрелять по своим!','Зажимай его с фланга!','Двое в обход, быстро!','Бери его в клещи!'],
+  suppress:['Прижми его огнём!','Давлю, давлю! Пошёл, пошёл!','Не давай ему башку поднять!','Крой по укрытию, пусть сидит!','Патронов не жалеть!'],
+  pinned:['Меня прижали, блядь!','Не могу высунуться!','Работает по мне, сука!','Плотно бьёт, прикройте!','Башку не поднять, нахуй!'],
+  reloc:['Меняю позицию!','Ухожу влево, прикрой!','Перебегаю, не спи!','Тут пристрелялся, сваливаю!'],
+  flee:['Граната! Ложись!','В стороны, блядь, в стороны!','Накрывают! Рассыпаться!','Ёб твою мать, ложись!'],
+  hurt:['Я трёхсотый! Трёхсотый!','Зацепило, сука!','Медика, блядь, медика!','Ногу прошило, не дойду!','Попал в меня, падла!'],
+  down:['Двухсотый! У нас двухсотый!','Серёгу убили, суки!','Минус один, блядь!','Он нашего положил! Мочи тварь!','Сука, он его снял!'],
+  retreat:['Отходим! Все назад!','Валим отсюда, нахуй!','Прикрой, откатываемся!','Дымы и назад, живо!','Нас перебьют, уходим!'],
+  lost:['Потерял его! Кто видит?','Куда делся, сука?','Не вижу цель! Смотреть в оба!','Ушёл, падла. Прочёсываем!'],
+  search:['Проверь за домом!','Он где-то тут, ищи!','Выходи, укроп, не тронем!','Смотри углы, он рядом!','Тихо... слушай.','Выкурим тебя, сука, вылезай!'],
+  grenade:['Закидайте его гранатами!','Гранату ему туда!','Эфку за укрытие, быстро!','Выкуривай гранатой!','Кидай, я прикрою!'],
+  taunt:['Сдавайся, сука, живым оставим!','Тебе кранты, ублюдок!','Ну что, укроп, отвоевался?','Выходи с поднятыми, хохол!','Конец тебе, мразь!','Бросай ствол, пока цел!','Никто за тобой не придёт, слышишь?','Мы тебя из-под земли достанем!'],
+  air:['Птичка! Воздух!','Дрон над нами, в укрытие!','Сбей эту тварь!','Камикадзе! Под деревья!','Жужжит, сука, смотри в небо!'],
+  reinf:['Подмога на подходе, держитесь!','Свои идут, не стрелять!','Группа заходит с тыла!'],
+  kill:['Готов, сука!','Минус укроп!','Отработал. Чисто.','Лежит, тварь. Проверь его.','Один есть! Дальше!'],
+  order:['Вперёд, вперёд! Не лежать!','Держать сектор! Огонь по команде!','Первый — огонь, второй — в обход!','Не ссать, дави его!','Работаем, мужики, работаем!'],
+  idle:['Закурить есть?','Когда уже ротация, блядь...','Тихо сегодня. Не к добру.','Смотри в оба, не спи.','Связь опять говно.','Жрать охота, сил нет.','Слышал? Птички ихние летают.','Холодно, сука...'],
+  surr:['Не стреляй! Сдаюсь!','Всё, всё! Я без оружия!','Не убивай, братан, сдаюсь!']},
+ C:{pre:['«Сокіл», я «Гніздо». ','«Сокіл», «Гніздо» на звʼязку. ','«Сокіл», прийом. ','Увага, «Сокіл». '],rep:['«Сокіл», нагадую завдання: ','«Сокіл», завдання ще в силі: ','«Гніздо» — «Соколу». Чекаємо на виконання: ','«Сокіл», не зволікай. Завдання: '],
+    end:[' Як зрозумів? Прийом.',' Працюй. Кінець звʼязку.',' Підтверди виконання. Прийом.',' Бережи себе. Кінець звʼязку.'],done:['«Сокіл», завдання зараховано. Добра робота.','«Гніздо» — «Соколу»: підтверджую виконання. Так тримати.','Прийняв, «Сокіл». Чисто спрацював.']}};
+function vxOn(){return typeof SALT_FEAT!=='undefined'&&SALT_FEAT.voice2!==false;}
+function vxVoiceOn(){return !!(SALT.cfg&&SALT.cfg.voice)&&!!window.speechSynthesis;}
+/* голос потрібної мови й статі; якщо потрібної статі немає — беремо, який є, і зсуваємо тон */
+function vxVoice(lang,fem){
+  let vs=[];try{vs=speechSynthesis.getVoices();}catch(e){}const L=vs.filter(q=>new RegExp('^'+lang,'i').test(q.lang));if(!L.length)return null;
+  const male=/yuri|юрий|pavel|павел|dmitr|дмитр|maxim|максим|ostap|остап|volodymyr|aleksandr|artem|mykola|\bmale\b|чолов|мужск/i,fm=/milena|lesya|леся|katya|irina|anna|svetlana|alena|tatyana|polina|natalia|female|жіноч|женск/i;
+  const hit=L.find(q=>(fem?fm:male).test(q.name));if(hit)return {v:hit,p:fem?1.05:.85};const other=L.find(q=>(fem?male:fm).test(q.name));return {v:other&&L.length===1?other:(L.find(q=>!(fem?male:fm).test(q.name))||L[0]),p:fem?1.45:.55};
+}
+/* вимовити: o={lang,fem,vol,rate,pitch,force,onstart,onend,onword}; повертає true, якщо синтез узявся */
+function vxSay(txt,o){
+  try{if(!vxVoiceOn())return false;const V=vxVoice(o.lang,o.fem);if(!V)return false;const S=speechSynthesis;if(S.speaking||S.pending){if(!o.force)return false;S.cancel();}
+    const u=new SpeechSynthesisUtterance(String(txt).replace(/[«»]/g,'').replace(/[·—]/g,','));u.voice=V.v;u.lang=V.v.lang;u.rate=o.rate||1.08;u.pitch=Math.max(.1,Math.min(2,V.p*(o.pitch||1)));u.volume=Math.max(0,Math.min(1,(o.vol==null?1:o.vol)*((SALT.cfg.vol==null?70:SALT.cfg.vol)/100)));
+    if(o.onstart)u.onstart=o.onstart;if(o.onend){u.onend=o.onend;u.onerror=o.onend;}if(o.onword)u.onboundary=o.onword;S.speak(u);VX.stat.tts++;return true;}catch(e){return false;}
+}
+function vxDom(){
+  if(VX.sub)return;const D=document,s=VX.sub=D.createElement('div');s.id='vx-sub';D.body.appendChild(s);
+  const b=VX.band=D.createElement('div');b.id='vx-band';b.innerHTML='<div class="vx-h"><i></i><b>ГНІЗДО</b><span>канал 1 · прийом</span></div><canvas width="560" height="64"></canvas><p></p>';D.body.appendChild(b);VX.cv=b.querySelector('canvas');VX.bp=b.querySelector('p');VX.bh=b.querySelector('b');VX.bs=b.querySelector('span');
+}
+/* репліка ворога: b — бот, key — подія */
+function vxBark(b,key,force){
+  if(!vxOn()||!b||!b.pos)return false;const G=SALT.G,now=LIFE.t;if(!force&&now-VX.eT<4.2)return false;const lk=VX.last.get(key)||-99;if(!force&&now-lk<(key==='idle'?35:11))return false;
+  const L=VX.E[key];if(!L)return false;const P=G.camera.position,d=Math.hypot(b.pos.x-P.x,b.pos.y-P.y,b.pos.z-P.z);if(d>260)return false;if(key==='idle'&&d>45)return false;
+  let i=(Math.random()*L.length)|0;if(L._l===i)i=(i+1)%L.length;L._l=i;const txt=L[i];VX.eT=now;VX.last.set(key,now);VX.stat.bark++;vxDom();
+  const near=d<45,vol=near?Math.max(.25,1-d/60):.4,vp=b.vp||(b.vp=.8+Math.random()*.5),loud=/contact|flee|air|hurt|down|retreat|pinned/.test(key);
+  if(near){VX.stat.shout++;VX.sub.textContent='«'+txt+'»';VX.sub.className='on';VX.subT=2.6+txt.length*.045;}
+  else{VX.stat.radio++;try{(W2.rd0||G.hud.radio.bind(G.hud))('ПЕРЕХОПЛЕННЯ · «'+txt+'»',2.8);}catch(e){}try{psPlay('squelch',null,.5,1);}catch(e){}try{sfx('static',null,.25,1.3);}catch(e){}}
+  const ok=vxSay(txt,{lang:'ru',fem:false,vol:vol,rate:(loud?1.22:1.08)*(.95+Math.random()*.12),pitch:vp*(loud?1.12:1),force:!!force});
+  if(!ok)try{const bf=psMumble(Math.min(2.2,.5+txt.length*.05),false,(Math.random()*4)|0);psPlay(null,near?{x:b.pos.x,y:b.pos.y+1.5,z:b.pos.z,ref:9}:null,near?1.5:.5,(loud?1.15:1)*vp,bf);VX.stat.mumble++;}catch(e){}
+  return true;
+}
+/* рація командира: стрічка посеред екрана + голос */
+function vxCmd(txt,o){
+  if(!vxOn())return;vxDom();o=o||{};const fem=o.fem!=null?o.fem:Math.random()<.22;VX.fem=fem;VX.stat.cmd++;
+  VX.bh.textContent=fem?'ГНІЗДО · ЗВʼЯЗОК':'ГНІЗДО';VX.bs.textContent=o.rep?'канал 1 · повтор завдання':'канал 1 · прийом';VX.bp.textContent=txt;VX.band.className='on'+(o.rep?' rep':'');
+  const est=Math.max(3.5,txt.length*.075);VX.bandT=est+1.2;VX.talk=true;VX.amp=.6;
+  try{psPlay('squelch',null,.7,1);}catch(e){}try{psLoop('hiss','hiss',.09,1);}catch(e){}
+  const fin=()=>{if(!VX.talk)return;VX.talk=false;VX.bandT=Math.min(VX.bandT,1.1);try{psPlay('roger',null,.5,1);psLoop('hiss','hiss',0,1);}catch(e){}};
+  const ok=vxSay(txt,{lang:'uk',fem:fem,vol:1,rate:1.06,force:true,onend:fin,onword:()=>{VX.amp=1;}});VX.tts=ok;
+  if(!ok){try{const bf=psMumble(Math.min(9,est),fem,(Math.random()*4)|0);psPlay(null,null,.9,1,bf);VX.stat.mumble++;}catch(e){}setTimeout(fin,est*1000);}
+  else setTimeout(fin,(est+6)*1000);
+}
+function vxEvery(tk){return Math.min(300,Math.max(45,(tk&&tk.lim?tk.lim:600)*.5));}
+function vxWave(dt){
+  const c=VX.cv;if(!c)return;const x=c.getContext('2d'),W=c.width,H=c.height,t=performance.now()/1000;x.clearRect(0,0,W,H);
+  if(VX.talk){if(!VX.tts||!speechSynthesis.speaking){const s=Math.sin(t*9.3)*Math.sin(t*3.1+1);VX.amp+=((s>-.25?.55+.45*Math.abs(s):.2)-VX.amp)*Math.min(1,dt*14);}else VX.amp+=(.45-VX.amp)*Math.min(1,dt*3.2);}else VX.amp+=(0-VX.amp)*Math.min(1,dt*6);
+  const n=70,bw=W/n;for(let i=0;i<n;i++){const k=i/(n-1),env=Math.pow(Math.sin(k*Math.PI),.6),v=(.5+.5*Math.sin(i*1.7+t*13))*(.5+.5*Math.sin(i*.61-t*7.3))*.85+.15*Math.abs(Math.sin(i*12.9898+Math.floor(t*18)*78.233)*43758.5453%1),h=Math.max(2,(VX.amp*v*env)*H*.92+ (VX.talk?1.5:0));
+    x.fillStyle=i%9===4?'#e8e4da':'#ffb347';x.globalAlpha=.35+.65*Math.min(1,VX.amp*v*1.6+.15);x.fillRect(i*bw+1,(H-h)/2,bw-2.4,h);}
+  x.globalAlpha=1;
+}
+function vxInit(G){
+  if(VX.init)return;VX.init=true;vxDom();
+  try{if(SALT.cfg&&SALT.cfg.voice===undefined)SALT.cfg.voice='1';}catch(e){}                                                    // голос увімкнено, доки гравець сам не вимкне в налаштуваннях
+  /* завдання командира йдуть через стрічку рації, а не звичайним рядком */
+  if(typeof warRadio==='function'){const o=warRadio;warRadio=function(s,sec){try{if(vxOn()&&typeof s==='string'){const m=/^(Операція\. |Ходове завдання: )(.+)$/.exec(s);if(m){const body=m[2].replace(/\.$/,'')+'.';VX.task=typeof WAR!=='undefined'?WAR.task:null;VX.taskTxt=body;VX.taskT=0;VX.taskNew=true;
+          try{(W2.rd0||SALT.G.hud.radio.bind(SALT.G.hud))(s,sec||3.5);}catch(e){}vxCmd(VX.C.pre[(Math.random()*VX.C.pre.length)|0]+(m[1]==='Операція. '?'Операція. ':'Завдання: ')+body+VX.C.end[(Math.random()*VX.C.end.length)|0]);return;}}}catch(e){}return o.apply(this,arguments);};}
+  try{G.events.on('player:hit',()=>{VX.hitT=LIFE.t;});}catch(e){}
+}
+function vxStep(G,dt){
+  if(!vxOn()||typeof LIFE==='undefined')return;vxInit(G);const now=LIFE.t,P=G.player,pp=P.pos;
+  if(VX.subT>0&&(VX.subT-=dt)<=0)VX.sub.className='';
+  if(VX.bandT>0){VX.bandT-=dt;vxWave(dt);if(VX.bandT<=0){VX.band.className='';VX.talk=false;try{psLoop('hiss','hiss',0,1);}catch(e){}}}
+  /* нагадування завдання раз на 5 хвилин */
+  if(typeof WAR!=='undefined'){const tk=WAR.task;if(VX.dn==null)VX.dn=WAR.done||0;if(VX.task&&tk!==VX.task){VX.task=null;if((WAR.done||0)>VX.dn)vxCmd(VX.C.done[(Math.random()*VX.C.done.length)|0],{fem:VX.fem});}VX.dn=WAR.done||0;
+    if(tk&&VX.taskNew){VX.taskNew=false;VX.task=tk;VX.taskT=vxEvery(tk);}                                                          // завдання з коротким строком нагадуємо на половині строку, решту — раз на 5 хвилин
+    if(tk&&tk===VX.task&&(VX.taskT-=dt)<=0){VX.taskT=vxEvery(tk);VX.stat.rep++;vxCmd(VX.C.rep[(Math.random()*VX.C.rep.length)|0]+(tk.txt||VX.taskTxt||'')+'.'+VX.C.end[(Math.random()*VX.C.end.length)|0],{rep:true});}}
+  if(SALT.droneOnly||(VX.sT-=dt)>0||typeof TAC==='undefined')return;VX.sT=.45;
+  const foot=!SALT.fly.on&&P.alive!==false;
+  /* стан відділень → репліки */
+  for(const s of TAC.sq){const live=s.m.filter(o=>o.alive&&o.side==='enemy');if(!live.length)continue;const any=live[(Math.random()*live.length)|0],L=(s.off&&s.off.alive)?s.off:(s.ld&&s.ld.alive?s.ld:live[0]),aware=now-s.lkpT<14,ret=s.retreat>0,V=s.vx||(s.vx={aw:aware,rt:ret,n:live.length,sr:s.srK,awT:0,i:false});
+    if(!V.i){V.i=true;V.aw=aware;V.rt=ret;V.n=live.length;V.sr=s.srK;continue;}
+    if(live.length<V.n)vxBark(any,'down',true);else if(ret&&!V.rt)vxBark(L,'retreat',true);else if(aware&&!V.aw)vxBark(live.find(o=>o.sees)||any,'contact',true);else if(!aware&&V.aw&&!ret)vxBark(any,'lost');else if(s.srK!==V.sr)vxBark(L,'search');
+    V.awT=aware?V.awT+.45:0;
+    if(aware&&!ret){const see=live.find(o=>o.sees),d=Math.hypot(any.pos.x-pp.x,any.pos.z-pp.z);
+      if(V.awT>9&&!see&&d<60&&Math.random()<.12)vxBark(L,'grenade');
+      else if(see&&foot&&d<42&&(P.health<(P.maxHealth||100)*.4||live.length>=3&&Math.random()<.05))vxBark(see,'taunt');
+      else if(s.off&&s.off.alive&&Math.random()<.04)vxBark(s.off,'order');}
+    else if(!aware&&!ret&&Math.random()<.035){if(now-(s.srT||-99)<40&&s.srK)vxBark(any,'search');else vxBark(any,'idle');}
+    V.aw=aware;V.rt=ret;V.n=live.length;V.sr=s.srK;}
+  /* стан окремих бійців */
+  for(const b of LIFE.bots){if(b.side!=='enemy'&&!b.surr)continue;if(!b.alive)continue;const q=b.vx||(b.vx={pin:false,fl:false,rl:false,wd:!!b.wounded,air:false,fk:false,sp:false,rf:!!(b.plan&&b.plan.k==='reinf'),su:false});
+    const pin=b.pin>0,fl=!!b.fl,rl=!!b.rl,air=b.air>0,s=b.sq,fk=!!(s&&s.flank&&s.flank.indexOf(b)>=0&&now-s.lkpT<14&&!b.sees&&b.sp>2),sp=!!(s&&s.supp===b&&now-s.lkpT<14&&!b.sees);
+    if(b.surr&&!q.su){q.su=true;vxBark(b,'surr',true);}
+    else if(b.wounded&&!q.wd)vxBark(b,'hurt',true);else if(fl&&!q.fl)vxBark(b,'flee');else if(air&&!q.air)vxBark(b,'air');else if(pin&&!q.pin)vxBark(b,'pinned');else if(rl&&!q.rl)vxBark(b,'reloc');else if(fk&&!q.fk)vxBark(b,'flank');else if(sp&&!q.sp)vxBark(b,'suppress');
+    else if(b.plan&&b.plan.k==='reinf'&&!q.rf){q.rf=true;vxBark(b,'reinf');}
+    q.pin=pin;q.fl=fl;q.rl=rl;q.wd=!!b.wounded;q.air=air;q.fk=fk;q.sp=sp;}
+  /* гравця вбито */
+  const dead=P.alive===false;if(dead&&!VX.pd){let nb=null,bd=80;for(const b of LIFE.bots)if(b.alive&&b.side==='enemy'){const d=Math.hypot(b.pos.x-pp.x,b.pos.z-pp.z);if(d<bd){bd=d;nb=b;}}if(nb)vxBark(nb,'kill',true);}VX.pd=dead;
+}
+
+/* ===== рух гравця: перелазити низькі перешкоди й не застрягати (прапорець SALT_FEAT.cap2) =====
+   У прикладі three.js «games_fps» гравець — капсула, яка ковзає вздовж стін; у рушії Saltline вже є така капсула (moveCapsule: ковзання, сходинка до 0,42 м).
+   Звідти взято те, чого бракувало: коли капсула вперлась у перешкоду, вищу за сходинку, але нижчу за 0,85 м (блок, мішки, ящик, парапет), — рух пробується ще раз
+   із піднятої точки; якщо там вільно й є на що стати — гравець вилазить нагору. Плюс вихід із «клину» між двома колайдерами.
+   Обгортка над moveCapsule лише для гравця; будь-яка помилка — обгортка вимикається, лишається рух рушія. */
+const CAP2={init:false,on:true,H:.85,stat:{try:0,up:0,unstick:0,err:0},stuckT:0,cd:0};
+function cap2Init(G){
+  if(CAP2.init)return;CAP2.init=true;const P=G.physics;if(!P||!P.moveCapsule){SALT_FEAT.cap2=false;return;}const o=P.moveCapsule,T=G.THREE;CAP2.tp=new T.Vector3();CAP2.tv=new T.Vector3();
+  P.moveCapsule=function(M,v,dt,w,S,R){
+    if(!CAP2.on||SALT_FEAT.cap2===false||M!==G.player.pos||!R||!(dt>0))return o.apply(this,arguments);
+    const x0=M.x,y0=M.y,z0=M.z,vx=v.x,vy=v.y,vz=v.z,r=o.apply(this,arguments);
+    try{const ix=vx*dt,iz=vz*dt,il=Math.hypot(ix,iz);if(!r||!r.hitWall||il<.012||vy>.5||CAP2.cd>0)return r;const ax=M.x-x0,az=M.z-z0,prog=(ax*ix+az*iz)/(il*il);if(prog>.45)return r;
+      if(typeof SWIM!=='undefined'&&SWIM.on)return r;CAP2.stat.try++;const rad=w||.32,hgt=S||1.8;
+      /* друга спроба з піднятої точки: стільки ж кроку, скільки хотіли */
+      const p=CAP2.tp.set(x0,y0+CAP2.H,z0),q=CAP2.tv.set(vx,0,vz),r2=o.call(this,p,q,dt,rad,hgt,false);const bx=p.x-x0,bz=p.z-z0,prog2=(bx*ix+bz*iz)/(il*il);if(!(prog2>.8)||(r2&&r2.hitCeil))return r;
+      /* на що стаємо: точка трохи далі за рухом */
+      const fx=p.x+ix/il*rad*.9,fz=p.z+iz/il*rad*.9,gy=this.groundHeight(fx,fz,y0+CAP2.H+.1),lift=gy-y0;if(!(lift>.3&&lift<=CAP2.H+.02))return r;
+      /* над головою вільно? */
+      const up=this.raycast(new T.Vector3(x0,y0+hgt*.9,z0),new T.Vector3(0,1,0),lift+.25);if(up)return r;
+      M.x=fx;M.z=fz;M.y=gy;v.x=vx*.55;v.z=vz*.55;v.y=0;r.onGround=true;r.hitWall=false;CAP2.stat.up++;CAP2.cd=.25;try{if(typeof psPlay==='function')psPlay('gear',null,.35,.9);}catch(_){}return r;
+    }catch(e){CAP2.stat.err++;if(CAP2.stat.err>3){CAP2.on=false;try{saltFeatFail('cap2',e);}catch(_){}}return r;}
+  };
+}
+function cap2Step(G,dt){
+  if(SALT_FEAT.cap2===false||SALT.droneOnly&&!SALT.mobFoot)return;cap2Init(G);if(!CAP2.on)return;CAP2.cd=Math.max(0,CAP2.cd-dt);
+  /* клин: гравець тисне на рух, але пів секунди стоїть на місці між колайдерами — виштовхуємо в найближче вільне місце */
+  const P=G.player,I=G.input;if(!P.alive||SALT.fly.on||(typeof DRV!=='undefined'&&DRV.on))return;const mv=I&&I.move?Math.hypot(I.move.x,I.move.y):0,sp=Math.hypot(P.vel.x,P.vel.z);
+  if(mv>.5&&sp<.15&&P.onGround!==false){CAP2.stuckT+=dt;if(CAP2.stuckT>.6){CAP2.stuckT=0;const ph=G.physics;let n=0;for(const b of ph.boxes){if(b.bulletOnly)continue;if(P.pos.x>b.min.x-.3&&P.pos.x<b.max.x+.3&&P.pos.z>b.min.z-.3&&P.pos.z<b.max.z+.3&&b.max.y>P.pos.y+.45&&b.min.y<P.pos.y+1.6)n++;if(n>=2)break;}
+      if(n>=2)for(let k=0;k<12;k++){const a=k/12*6.283,x=P.pos.x+Math.cos(a)*.7,z=P.pos.z+Math.sin(a)*.7;try{if(saltFree(x,z,.4)&&ph.nav.isWalkable(x,z)){P.pos.x=x;P.pos.z=z;CAP2.stat.unstick++;break;}}catch(e){}}}}
+  else CAP2.stuckT=0;
 }
 
 /* ═══════════ ПІХОТИНЕЦЬ ВІД ПЕРШОЇ ОСОБИ ═══════════
