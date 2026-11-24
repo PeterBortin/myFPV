@@ -13955,7 +13955,7 @@ function saltDecor(kit,t,X0,Z0,ch){
           bar(bst==='pontoon'?RBk('steel_dark'):cn,r,s0,s1,0,ed*2+.3,-dk,.02);
           if(ww>1)for(const sd of [-1,1])bar(RBk('concrete_painted'),r,s0,s1,sd*(hw+ww/2),ww,0,.16);
           const rh=bst==='foot'?1.25:1.05;
-          if(SALT_FEAT.bridge2!==false&&bst!=='pontoon')try{const nx2=-r.uz,nz2=r.ux,nb=Math.max(1,Math.ceil((s1-s0)/1.1));for(const sd of [-1,1])for(let w=0;w<nb;w++){const sp=s0+(s1-s0)*(w+.5)/nb,bx=r.ax+r.ux*sp+nx2*sd*(ed+.1),bz=r.az+r.uz*sp+nz2*sd*(ed+.1),by=saltH(r.ax+r.ux*sp,r.az+r.uz*sp);   // поруччя тримає: з краю мосту більше не зійти й не зʼїхати (bridge2)
+          if(SALT_FEAT.bridge2!==false&&bst!=='pontoon')try{const nx2=-r.uz,nz2=r.ux,nb=Math.max(1,Math.ceil((s1-s0)/1.1));for(const sd of [-1,1])for(let w=0;w<nb;w++){const sp=s0+(s1-s0)*(w+.5)/nb,bx=r.ax+r.ux*sp+nx2*sd*(ed+.1),bz=r.az+r.uz*sp+nz2*sd*(ed+.1),by=saltH(r.ax+r.ux*sp,r.az+r.uz*sp);try{if(typeof g2RoadDist==='function'){const q=g2RoadDist(bx,bz);if(q.d<.6&&q.ux!=null&&Math.abs(q.ux*r.ux+q.uz*r.uz)<.97)continue;}}catch(e){}   /* де до мосту примикає інша дорога (зʼїзд, розвʼязка) — поруччя розступається */   // поруччя тримає: з краю мосту більше не зійти й не зʼїхати (bridge2)
               t.physics.addBox([bx-.42,by-.3,bz-.42],[bx+.42,by+rh+.15,bz+.42],{surface:'metal',tag:'bld'});}}catch(e){}
           for(const sd of [-1,1]){const o=sd*(ed-.02);if(bst!=='pontoon')bar(cn,r,s0,s1,o,.26,0,.34);bar(stl,r,s0,s1,o,.06,rh-.03,rh+.03);bar(stl,r,s0,s1,o,.04,.66,.7);
             const n2=Math.max(1,Math.round((s1-s0)/2));for(let w=0;w<n2;w++){const sp=s0+(s1-s0)*(w+.5)/n2;bar(stl,r,sp-.03,sp+.03,o,.06,bst==='pontoon'?.02:.34,rh);}}
@@ -15956,6 +15956,7 @@ function _brSample(pt,hw){
   return S;
 }
 function saltBridgeScan(){
+  try{saltBridgeRefresh();}catch(e){}
   if(typeof roads==='undefined'||!SALT.relief)return;
   const ox=SALT.ox,oz=SALT.oz,now=performance.now();_brEndIdx();
   for(let ri=0;ri<roads.length;ri++){
@@ -16017,7 +16018,10 @@ function saltBridgeScan(){
             for(let q=a+1;q<=b;q++)S[q].Y=Math.max(S[q].h,Math.min(S[q].Y,S[q-1].Y+SL*(S[q].s-S[q-1].s)));for(let q=b-1;q>=a;q--)S[q].Y=Math.max(S[q].h,Math.min(S[q].Y,S[q+1].Y+SL*(S[q+1].s-S[q].s)));}
           else{if(P.st!=='pontoon'&&i>a&&j<b){const y0=S[i-1].Y,y1=S[j+1].Y,ls=Math.max(.1,S[j+1].s-S[i-1].s);for(let q=i;q<=j;q++){const u=(S[q].s-S[i-1].s)/ls,ln=y0+(y1-y0)*u+Math.min(.6,wl*.005)*Math.sin(u*Math.PI);if(ln>S[q].Y)S[q].Y=ln;}}   /* прогін не провисає: не нижче прямої між опорами на берегах, з легким підйомом до середини */
             for(let q=i-1;q>=a;q--)S[q].Y=Math.max(S[q].Y,S[q+1].Y-SL*(S[q+1].s-S[q].s));for(let q=j+1;q<=b;q++)S[q].Y=Math.max(S[q].Y,S[q-1].Y-SL*(S[q].s-S[q-1].s));}}   // міст над водою: підхід (насип) дотягуємо до настилу
-        const C=BRIDGE.CELL,sp={rset:used,S:S.slice(a,b+1),i0:i-a,i1:j-a,wl:wl,hw:hw,kind:rd.k,P:P,st:P.st,name:P.n||'',wlev:wlev,mx:mid.x,mz:mid.z,sup:null};
+        if(SALT_FEAT.bridge2!==false){const SM=.16,wy=q=>S[q].wat?S[q].h+1:S[q].h;                                   // заїзд починається з землі: жодної сходинки на початку схилу, похил не крутіший за 16 % (настил над водою лишається над водою)
+          if(!oh){S[a].Y=Math.min(S[a].Y,S[a].h+.12);for(let q=a+1;q<=b;q++){const lim=S[q-1].Y+SM*(S[q].s-S[q-1].s);if(S[q].Y>lim)S[q].Y=Math.max(wy(q),lim);}}
+          if(!ot){S[b].Y=Math.min(S[b].Y,S[b].h+.12);for(let q=b-1;q>=a;q--){const lim=S[q+1].Y+SM*(S[q+1].s-S[q].s);if(S[q].Y>lim)S[q].Y=Math.max(wy(q),lim);}}}
+        const C=BRIDGE.CELL,sp={open:(oh||ot)?now:0,rset:used,S:S.slice(a,b+1),i0:i-a,i1:j-a,wl:wl,hw:hw,kind:rd.k,P:P,st:P.st,name:P.n||'',wlev:wlev,mx:mid.x,mz:mid.z,sup:null};
         BRIDGE.spans.push(sp);BRIDGE.lastNew=now;used.forEach(q=>{let l=BRIDGE.byRoad.get(q);if(!l)BRIDGE.byRoad.set(q,l=[]);l.push(sp);});
         for(let q=a;q<b;q++){
           const A=S[q],B=S[q+1],len=B.s-A.s;if(len<.05)continue;
@@ -16033,6 +16037,18 @@ function saltBridgeScan(){
       i=j+1;
     }
   }
+}
+/* шматок мосту з відкритим кінцем (продовження дороги ще не було завантажене) перебудовується, коли мапа за кінцем зʼявилась: інакше настил назавжди обривався на повній висоті й зайти на нього по схилу було неможливо */
+function saltBridgeRefresh(){
+  if(SALT_FEAT.bridge2===false||SALT_FEAT.brefresh!==true||!BRIDGE.spans.length)return 0;const now=performance.now();if(now-(BRIDGE.rfT||0)<4000)return 0;   /* вимкнено за замовчуванням: не перевірено на живій мапі */BRIDGE.rfT=now;let n=0;
+  for(let k=BRIDGE.spans.length-1;k>=0;k--){const sp=BRIDGE.spans[k];if(!sp.open||now-sp.open<6000||(sp.sup&&sp.sup.length))continue;const S=sp.S;if(!S||S.length<2)continue;
+    const unk=(tail)=>{const e=tail?S[S.length-1]:S[0],p=tail?S[S.length-2]:S[1],dx=e.x-p.x,dz=e.z-p.z,l=Math.hypot(dx,dz)||1;try{return landAt(SALT.ox+e.x+dx/l*30,SALT.oz+e.z+dz/l*30)<0;}catch(_){return true;}};
+    if(unk(true)||unk(false)){sp.open=now;continue;}
+    const grp=BRIDGE.spans.filter(o=>o.rset===sp.rset);if(grp.some(o=>o.sup&&o.sup.length)){sp.open=0;continue;}                    // прогони одного ланцюга доріг перебудовуються разом
+    BRIDGE.spans=BRIDGE.spans.filter(o=>o.rset!==sp.rset);k=Math.min(k,BRIDGE.spans.length);BRIDGE.hash.forEach((l,key)=>{let w=0;for(let i=0;i<l.length;i++)if(l[i].sp.rset!==sp.rset)l[w++]=l[i];else BRIDGE.n--;if(w!==l.length){l.length=w;if(!w)BRIDGE.hash.delete(key);}});
+    try{sp.rset.forEach(rd=>{BRIDGE.seen.delete(rd);BRIDGE.wait.delete(rd);const l=BRIDGE.byRoad.get(rd);if(l){const q=l.filter(o=>o.rset!==sp.rset);if(q.length)BRIDGE.byRoad.set(rd,q);else BRIDGE.byRoad.delete(rd);}});}catch(e){}
+    try{const CH=SALT.CH;SALT.chunks.forEach(c=>{if((c.ix+1)*CH>sp.bx0&&c.ix*CH<sp.bx1&&(c.iz+1)*CH>sp.bz0&&c.iz*CH<sp.bz1)c.dv=-1;});}catch(e){}n++;BRIDGE.rfN=(BRIDGE.rfN||0)+1;}
+  return n;
 }
 /* висота з урахуванням мосту; BRIDGE.wet — точка на прогоні над водою, BRIDGE.k — наскільки вона на настилі (1 — на ньому), BRIDGE.seg — відрізок */
 function saltBridgeH(x,z,h){
@@ -22478,7 +22494,7 @@ function t2Lock(px,py){
 function t2FootPost(inp,dt){
   if(!T2.on)return;const L=T2.L;
   if(T2.run){inp.move.x=0;inp.move.y=1;inp.sprint=true;}else inp.sprint=L.y>.9&&Math.abs(L.x)<.5;
-  if(T2.mid&&T2.R.id>=0){const R=T2.R,m=Math.hypot(R.x,R.y);if(m>.72){const k=(m-.72)/.28*(T2.ads?.5:1)*dt;T2.lk.dx+=R.x/m*2.3*k;T2.lk.dy-=R.y/m*1.25*k;T2.stat.rate=(T2.stat.rate||0)+1;}}   /* стік відхилено до краю — огляд їде сам, палець можна не переносити */
+  if(T2.mid&&SALT_FEAT.t2rate===true&&T2.R.id>=0){const R=T2.R,m=Math.hypot(R.x,R.y);if(m>.72){const k=(m-.72)/.28*(T2.ads?.5:1)*dt;T2.lk.dx+=R.x/m*2.3*k;T2.lk.dy-=R.y/m*1.25*k;T2.stat.rate=(T2.stat.rate||0)+1;}}   /* стік відхилено до краю — огляд їде сам, палець можна не переносити */
   const sn=inp.sensitivity||1;inp.look.dx+=T2.lk.dx*sn;inp.look.dy+=T2.lk.dy*sn;T2.lk.dx=0;T2.lk.dy=0;
   inp.ads=T2.ads;inp.crouch=T2.crouch;if(!T2.auto)inp.fire=false;if(T2.fire)inp.fire=true;
 }
