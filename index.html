@@ -13298,6 +13298,7 @@ function saltChunkBuildings(kit,t,X0,Z0,X1,Z1,full,ch){
     const type=(zi>=2||(A>900&&h<12))?'ind':(A<190&&h<9.5)?'house':'block';
     let wallN=!full?'concrete':type==='ind'?'corrugated_roof':type==='house'?HOUSE_W[hsh&3]:BLOCK_W[hsh&3];
     const SPC=typeof specOf==='function'?specOf(b):null,isCh=!!(SPC&&SPC.kind==='church');
+    let HOL=null;if(type==='ind'&&full&&!ru&&!SPC&&typeof shed2Pick==='function')try{HOL=shed2Pick(b,ch,h,by,A,X0,Z0,X1,Z1);}catch(e){HOL=null;saltFeatFail('shed2',e);}b.s2=HOL?1:0;   /* цех із мапи — порожнистий, зі входом і нутрощами (shed2.js) */
     let TX=null;if(typeof btexPick==='function'&&SALT_FEAT.btex!==false&&(type==='block'||type==='house')&&!ru)try{TX=isCh?'cw':btexPick(b,h,A,full,type);if(TX&&full&&type==='block')wallN=TX[0]==='k'&&TX!=='ky'?'brick':'concrete_painted';}catch(e){TX=null;}
     const HIP=!!(TX&&full&&!ru&&!isCh&&type==='block'&&SALT_FEAT.bld2!==false&&/^(og|oo|kb|ks|ky)$/.test(TX)&&h<17&&n<=6&&(hsh&2));   // хрущовки й стара забудова — під вальмовим дахом (bld2)   // фасадна текстура кодом (btex.js): панель, хрущовка, стара забудова
     let roofN=!full?'concrete':type==='ind'?'corrugated_roof':type==='house'?HOUSE_R[h2]:(hsh>>2&1?'corrugated_roof':'concrete_dirty');
@@ -13309,7 +13310,7 @@ function saltChunkBuildings(kit,t,X0,Z0,X1,Z1,full,ch){
     const lp=pts.map(p=>({x:p.x-ox,z:p.z-oz}));
     for(let k=0;k<n;k++){
       const ax=lp[k].x,az=lp[k].z,bx=lp[k+1].x,bz=lp[k+1].z,len=Math.hypot(bx-ax,bz-az);
-      if(len<.05)continue;
+      if(len<.05||HOL)continue;
       const nx=(bz-az)/len*sg,nz=-(bx-ax)/len*sg,ux=(bx-ax)/len,uz=(bz-az)/len,mx=(ax+bx)/2,mz=(az+bz)/2;
       if(k11){try{k11Wall(quad,B,k11,ax,az,bx,bz,len,h,nx,nz,sg);continue;}catch(e){k11=null;}}
       if(sg<0)quad(wall,ax,-3,az,bx,-3,bz,bx,h,bz,ax,h,az,nx,0,nz,len/3,(h+3)/3);
@@ -13403,7 +13404,7 @@ function saltChunkBuildings(kit,t,X0,Z0,X1,Z1,full,ch){
       {const q=rp(sc+hl*.5);if(fine&&((hsh+i)%3===0))(SALT.smokeAt||(SALT.smokeAt=[])).push({x:q[0]-uz*Wd*.14,y:by+h+rh*1.3+.5,z:q[2]+ux*Wd*.14,ck:ch,col:0xb8b4ac,a:.28,sz:.6,rise:1.6,life:5});   // з димаря тягне димок
         obox(brick,q[0]-uz*Wd*.14,h+rh*.75,q[2]+ux*Wd*.14,ux,uz,-uz,ux,.5,rh*.9+.6,.5);obox(trim,q[0]-uz*Wd*.14,h+rh*1.2+.32,q[2]+ux*Wd*.14,ux,uz,-uz,ux,.62,.08,.62);}
       roofTop=h+rh;
-    }else try{                                                     // плаский дах
+    }else if(!HOL)try{                                             // плаский дах
       const tv=triPoly(pts);
       for(let k=0;k<tv.length;k+=9){
         const a=[tv[k]-ox,tv[k+2]-oz],c=[tv[k+3]-ox,tv[k+5]-oz],d=[tv[k+6]-ox,tv[k+8]-oz];
@@ -13412,7 +13413,8 @@ function saltChunkBuildings(kit,t,X0,Z0,X1,Z1,full,ch){
         for(const q of P){roof.p.push(q[0],h,q[1]);roof.n.push(0,1,0);roof.u.push(q[0]/4,q[1]/4);}
       }
     }catch(e){}
-    if(typeof bld2Building==='function'&&full&&!ru)try{bld2Building({B:B,quad:quad,obox:obox,triUp:triUp,t:t,b:b,cx:cx,cz:cz,h:h,type:type,lp:lp,hsh:hsh,fine:fine,full:full,ch:ch,by:by,yo:by,SP:SPC});}catch(e){saltFeatFail('bld2',e);}   // храми, ліхтарі цехів, димарі, резервуари, веранди (bld2.js)
+    if(HOL)try{shed2Build(HOL,{B:B,obox:obox,quad:quad,t:t,ch:ch});}catch(e){saltFeatFail('shed2',e);}
+    if(typeof bld2Building==='function'&&full&&!ru&&!HOL)try{bld2Building({B:B,quad:quad,obox:obox,triUp:triUp,t:t,b:b,cx:cx,cz:cz,h:h,type:type,lp:lp,hsh:hsh,fine:fine,full:full,ch:ch,by:by,yo:by,SP:SPC});}catch(e){saltFeatFail('bld2',e);}   // храми, ліхтарі цехів, димарі, резервуари, веранди (bld2.js)
     lift();
     if(!isNear){                                                   // далека або зруйнована будівля теж закриває огляд і кулі: грубі смуги 4 м (раніше колайдерів не мала — крізь неї бачили й стріляли)
       const x0=cx-b.hw,x1=cx+b.hw,STEP=4,n=lp.length-1;
@@ -13420,7 +13422,7 @@ function saltChunkBuildings(kit,t,X0,Z0,X1,Z1,full,ch){
         for(let k=0;k<n;k++){const a=lp[k],c=lp[k+1];if((a.x>xc)!==(c.x>xc))zs.push(a.z+(xc-a.x)/(c.x-a.x)*(c.z-a.z));}
         zs.sort((p,q)=>p-q);for(let k=0;k+1<zs.length;k+=2)if(zs[k+1]-zs[k]>.3)t.physics.addBox([x,by-3,zs[k]],[xm,by+h,zs[k+1]],{surface:'concrete',noNav:!full,tag:'bld'});}
       continue;}
-    if(type!=='house'&&!HIP&&!isCh){                                 // дах: кондиціонери, вентшахти, антена; на цеху — ряд витяжок
+    if(type!=='house'&&!HIP&&!isCh&&!HOL){                           // дах: кондиціонери, вентшахти, антена; на цеху — ряд витяжок
       const nR=Math.min(type==='ind'?9:6,1+((b.hw*b.hd)/60|0));let q=hsh*31+i;
       const rr=()=>{q=(q*16807+11)%2147483647;return q/2147483647;};
       for(let c=0;c<nR;c++){
@@ -13442,7 +13444,8 @@ function saltChunkBuildings(kit,t,X0,Z0,X1,Z1,full,ch){
         if((a.x>xc)!==(c.x>xc))zs.push(a.z+(xc-a.x)/(c.x-a.x)*(c.z-a.z));
       }
       zs.sort((p,q)=>p-q);
-      for(let k=0;k+1<zs.length;k+=2)if(zs[k+1]-zs[k]>.3)t.physics.addBox([x,by-3,zs[k]],[xm,by+roofTop*(type==='house'?.85:1),zs[k+1]],{surface:'concrete',tag:'bld'});
+      for(let k=0;k+1<zs.length;k+=2)if(zs[k+1]-zs[k]>.3){if(HOL){t.physics.addBox([x,by-3,zs[k]],[xm,by+HOL.f,zs[k+1]],{surface:'concrete'});t.physics.addBox([x,by+HOL.eave,zs[k]],[xm,by+h+.05,zs[k+1]],{surface:'metal',tag:'bld'});}   /* порожнистий цех: підлога й горище, стіни ставить shed2 */
+        else t.physics.addBox([x,by-3,zs[k]],[xm,by+roofTop*(type==='house'?.85:1),zs[k+1]],{surface:'concrete',tag:'bld'});}
     }
     lift();
   }
@@ -13561,6 +13564,7 @@ function saltChunkDecor(ch){
   }else objs.forEach(o=>ch.objs.push(o));
   for(let q=t0;q<SALT.taken.length;q++)SALT.taken[q].ck=ch;
   try{ch.hs=saltChunkHs(ch.ix,ch.iz);}catch(e){}
+  if(typeof tree2Chunk==='function')try{tree2Chunk(ch);}catch(e){saltFeatFail('tree2',e);}                                    // дерева й кущі ділянки — у список знищуваних, збережений стан — назад (tree2.js)
   if(ch.r2bad)ch.dv=-1;                                               // новий будівник доріг упав посеред ділянки — її перебудує старий
 }
 function saltDropChunk(ch){
@@ -14069,6 +14073,7 @@ function saltDecor(kit,t,X0,Z0,ch){
       if(yard(xy[0],xy[1],SALT._yy=(rnd()<.5?0:Math.PI/2))){yards++;(SALT.pois||(SALT.pois=[])).push({x:xy[0]+7,z:xy[1]+7,kind:'yard',ck:ch,cx:xy[0],cz:xy[1],yaw:SALT._yy});}
     }
     if(typeof siteBuild==='function'&&SALT_FEAT.sites!==false)try{siteBuild({put:put,rnd:rnd,free:free,busy:busy,cellsOf:cellsOf,cellXY:cellXY,pick:pick,roadEdge:roadEdge,rdPieces:rdPieces,ch:ch,kit:kit,t:t,T:T,X0:X0,Z0:Z0,ind:ind,open:open,res:res,taken:taken,cnt:cnt});}catch(e){saltFeatFail('sites',e);}   // майданчики Saltline — до розсипу, щоб їм дісталося рівне вільне місце (sites.js)
+    if(typeof shed2Decor==='function')try{shed2Decor({kit:kit,t:t,ch:ch});}catch(e){saltFeatFail('shed2',e);}                                   // стелажі, тара, навантажувач, схрон у порожнистих цехах (shed2.js)
     /* блокпости на дорогах: шикана з бетонних блоків, мішки, будка, шлагбаум, конуси, прожектор */
     let posts=0;
     for(let k=0;k<8&&posts<1&&rdPieces.length>=3&&rnd()<(SALT_RULES.posts||0);k++){
@@ -14653,8 +14658,8 @@ function saltCarProto(t,kind,colr){
     for(const sd of [-1,1]){box('glass',.04,.12,.34,L/2-.02,belt(.97)-.1,sd*(W/2-.3));box('lampF',.02,.05,.08,L/2-.03,belt(.97)-.08,sd*(W/2-.42));
       box('lampR',.03,.06,.3,-L/2+.02,belt(-.97)-.04,sd*(W/2-.26));box('lampO',.03,.04,.06,L/2-.06,belt(.97)-.2,sd*(W/2-.12));}
     {const sx=van?.5:.05,sh=van?1.05:.62;for(const zs of [-1,1]){box('dark',.5,.12,.48,L*sx*.5,sh,zs*W*.22);box('dark',.12,.55,.48,L*sx*.5-.25,sh+.3,zs*W*.22);}   // сидіння
-      box('dark',.3,.12,W*.86,L*(van?.62:.28),belt(van?.62:.28)-.08,0);                                                              // торпедо
-      {const g=new T.TorusGeometry(.17,.022,6,18);g.rotateY(Math.PI/2);g.rotateZ(.5);g.translate(L*(van?.58:.24),belt(van?.58:.24)+.04,W*.22);parts.push(['dark',g]);}
+      box('dark',.3,.12,W*.86,L*(van?.31:.28),belt(van?.62:.56)-.08,0);                                                              // торпедо (у фургона стояло на L·0,62 — за носом машини, темна плита висіла перед кузовом)
+      {const g=new T.TorusGeometry(.17,.022,6,18);g.rotateY(Math.PI/2);g.rotateZ(.5);g.translate(L*(van?.29:.24),belt(van?.58:.48)+.04,W*.22);parts.push(['dark',g]);}
       if(!van)box('dark',.5,.12,W*.8,-L*.28,sh,0);}
     for(const zs of [-.25,.2]){const u=van?.8:.47,g=new T.BoxGeometry(.015,.015,.5);g.rotateX(.25);g.translate(u*L/2,roof(u)-(roof(u)-belt(u))*.92,zs*W);parts.push(['dark',g]);}   // двірники
     {const g=new T.CylinderGeometry(.035,.035,.22,10);g.rotateZ(Math.PI/2);g.translate(-L/2-.04,.3,W*.28);parts.push(['rim',g]);}
@@ -15121,6 +15126,9 @@ function saltLifeStep(t,dt){
   if(typeof swimStep==='function')try{swimStep(G,dt);}catch(e){saltFeatFail('swim',e);}
   if(typeof ai2Step==='function')try{ai2Step(G,dt);}catch(e){saltFeatFail('ai2',e);}
   if(typeof ai3Step==='function')try{ai3Step(G,dt);}catch(e){saltFeatFail('ai3',e);}
+  if(typeof tree2Step==='function'&&SALT_FEAT.tree2!==false)try{tree2Init(G);tree2Step(G,dt);}catch(e){saltFeatFail('tree2',e);}
+  if(typeof shed2Step==='function')try{shed2Step(G,dt);}catch(e){saltFeatFail('shed2',e);}
+  if(typeof fix2Step==='function')try{fix2Step(G,dt);}catch(e){saltFeatFail('fix2',e);}
   if(typeof mvehStep==='function')try{mvehStep(G,dt);}catch(e){saltFeatFail('mveh',e);}
   if(typeof anim2Step==='function')try{anim2Step(G,dt);}catch(e){saltFeatFail('anim2',e);}
   if(typeof psStep==='function')try{psStep(G,dt);}catch(e){saltFeatFail('psnd',e);}
@@ -16174,7 +16182,7 @@ function saltViaOf(road,x,z){
 
 /* ===== бойові системи: виявлення / захват / супровід цілі, режими бачення, РЕБ, пускові й ракети, колони на дорогах, ніші у вікнах, ходові завдання ===== */
 /* прапорці доповнень: window.MYFPV_FEATURES={proto:false,...} або SALT_RULES.features. Модуль, що впав, вимикається сам із повідомленням про справжню помилку. */
-const SALT_FEAT=Object.assign({war:true,strike:true,loot:true,proto:true,world2:true,sat:true,heat:true,sfx:true,vfx:true,bvh:true,bots:true,botsSquad:true,botsCiv:true,botsTraffic:true,feel:true,roads2:true,grav:true,sat2:true,detail:true,tex:true,geo:true,traffic2:true,walk2:true,solid:true,frac:true,trees2:true,facade2:true,ik:true,susp:true,mobile:true,mg:true,pfd:true,blood:true,nrk:true,nobld:true,ramp:true,calm:true,hitfit:true,civ2:true,perf:true,autoq:true,far:true,fixture:true,gen2:true,fields:true,lsm:true,reeds:true,yards:true,ruins:true,trench:true,smoke2:true,lep:true,flares:true,tac:true,sqcmd:true,vehfpv:true,mines:true,snd2:true,hunter:true,civ3:true,tmap:true,camp:true,kit10:true,kit10baked:true,cabin:true,kit11:true,pigeons:true,kit12:true,mobfoot:true,music2:true,push:true,crash:true,sites:true,touch2:true,armhi:true,swim:true,seams:true,bld2:true,bridge2:true,ftouch:true,psnd:true,voice2:true,cap2:true,rjoin:true,mveh:true,anim2:true,sat3:true,surf:true,btex:true,t2mid:true,ai3:true,ai2:true,civ4:true,net2:true,title2:true,arms2:true,drive:true,supply:true},(typeof SALT_RULES!=='undefined'&&SALT_RULES.features)||{},window.MYFPV_FEATURES||{});
+const SALT_FEAT=Object.assign({war:true,strike:true,loot:true,proto:true,world2:true,sat:true,heat:true,sfx:true,vfx:true,bvh:true,bots:true,botsSquad:true,botsCiv:true,botsTraffic:true,feel:true,roads2:true,grav:true,sat2:true,detail:true,tex:true,geo:true,traffic2:true,walk2:true,solid:true,frac:true,trees2:true,facade2:true,ik:true,susp:true,mobile:true,mg:true,pfd:true,blood:true,nrk:true,nobld:true,ramp:true,calm:true,hitfit:true,civ2:true,perf:true,autoq:true,far:true,fixture:true,gen2:true,fields:true,lsm:true,reeds:true,yards:true,ruins:true,trench:true,smoke2:true,lep:true,flares:true,tac:true,sqcmd:true,vehfpv:true,mines:true,snd2:true,hunter:true,civ3:true,tmap:true,camp:true,kit10:true,kit10baked:true,cabin:true,kit11:true,pigeons:true,kit12:true,mobfoot:true,music2:true,push:true,crash:true,sites:true,touch2:true,armhi:true,swim:true,seams:true,bld2:true,car2:true,tree2:true,shed2:true,fix2:true,bridge2:true,ftouch:true,psnd:true,voice2:true,cap2:true,rjoin:true,mveh:true,anim2:true,sat3:true,surf:true,btex:true,t2mid:true,ai3:true,ai2:true,civ4:true,net2:true,title2:true,arms2:true,drive:true,supply:true},(typeof SALT_RULES!=='undefined'&&SALT_RULES.features)||{},window.MYFPV_FEATURES||{});
 /* вимкнути модулі з адреси сторінки: ?off=roads2,vfx — щоб порівняти «до» і «після» на тій самій точці */
 try{const m=/[?&]off=([\w,]+)/.exec(location.search);if(m)m[1].split(',').forEach(k=>{if(k in SALT_FEAT)SALT_FEAT[k]=false;});}catch(e){}
 function saltFeatFail(name,e){if(SALT_FEAT[name]===false)return;SALT_FEAT[name]=false;const msg=String(e&&e.message||e).slice(0,120);console.error('module '+name+':',e);if(name==='vfx')try{vfxDispose();}catch(_){}try{saltFlyMsg('модуль «'+name+'» вимкнено: '+msg);}catch(_){}}
@@ -23820,6 +23828,418 @@ function bld2Chunk(X,X0,Z0,X1,Z1){
       bld2Box(X,p[0]-26,y-1,p[1]-26,p[0]+26,y+15,p[1]+26);BLD2.stat.ges++;continue;}
   }
 }
+
+/* ===== цивільні автівки: кріплення бамперів, дрібні деталі, салон крізь скло, сліди війни (прапорець SALT_FEAT.car2) =====
+   Правило: лише ДОДАЄМО. Будівники машин (saltCarProto, saltCar, k10bBuild, k11Static) лишаються як були — після них кличеться шар деталей.
+   0) у кодового фургона торпедо й кермо стояли за носом машини (L·0,62 замість L·0,31) — темна плита «висіла перед авто»; виправлено в saltCarProto;
+   1) зразок «малюка» (fiat) мав бампери окремою оболонкою за 5–8 см від кузова, без кронштейнів — додано кронштейни й темну панель між ними;
+   2) кодовий седан і фургон: рамки фар і номерів (без написів), ковпаки й обідки дисків, дзеркала зі склом, хромований пояс, бризковики, салон тканиною
+      (сидіння, підголівники, дверні карти, консоль) — усе злито в кілька сіток, щоб не множити виклики малювання;
+   3) частина припаркованих машин — зі слідами війни: биті шибки, кульові отвори, іржа й пил, спущене колесо; ще частина — вигорілі остови. */
+const CAR2={stat:{fix:0,det:0,shot:0,wreck:0,fiatW:0},P:{wreck:.08,shot:.26},tex:{}};
+function car2Merge(T,list){
+  const p=[],n=[],u=[];for(const g0 of list){const g=g0.index?g0.toNonIndexed():g0;if(!g.attributes.normal)g.computeVertexNormals();const P=g.attributes.position,N=g.attributes.normal,U=g.attributes.uv;
+    for(let i=0;i<P.count;i++){p.push(P.getX(i),P.getY(i),P.getZ(i));n.push(N.getX(i),N.getY(i),N.getZ(i));if(U)u.push(U.getX(i),U.getY(i));else u.push(P.getX(i)*.5,P.getY(i)*.5);}}
+  const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(p,3));g.setAttribute('normal',new T.Float32BufferAttribute(n,3));g.setAttribute('uv',new T.Float32BufferAttribute(u,2));g.computeBoundingSphere();return g;
+}
+/* ── шар деталей до кодового легковика й фургона ── */
+function car2Detail(t,kind,C){
+  const T=t.THREE,CM=SALT.res.carM,van=kind==='van',L=C.size[0],W=C.size[2],HB=van?1.05:.84,HR=C.size[1];
+  const lerp=(a,b,k)=>a+(b-a)*Math.max(0,Math.min(1,k)),sm=k=>{k=Math.max(0,Math.min(1,k));return k*k*(3-2*k);};
+  const belt=u=>van?lerp(HB,HB-.12,sm((u-.72)/.28))-.18*sm((-.93-u)/.07):HB-.1*sm((u-.5)/.5)-.14*sm((u-.9)/.1)-.07*sm((-.55-u)/.45)-.14*sm((-.92-u)/.08);
+  const roof=u=>{const a=van?[-.97,-.9,.38,.74]:[-.78,-.42,.12,.5];return u<a[0]||u>a[3]?belt(u):u<a[1]?lerp(belt(u),HR,sm((u-a[0])/(a[1]-a[0]))):u>a[2]?lerp(HR,belt(u),sm((u-a[2])/(a[3]-a[2]))):HR;};
+  const wid=u=>W/2*(1-.16*Math.pow(Math.abs(u),5));
+  const B={},WB=[[],[],[],[]],put=(m,g)=>{(B[m]||(B[m]=[])).push(g);};
+  const box=(m,w,h,d,px,py,pz,rz)=>{const g=new T.BoxGeometry(w,h,d);if(rz)g.rotateZ(rz);g.translate(px,py,pz);put(m,g);};
+  const cyl=(m,r,w,px,py,pz,ax,seg)=>{const g=new T.CylinderGeometry(r,r,w,seg||12);if(ax==='x')g.rotateZ(Math.PI/2);else if(ax==='z')g.rotateX(Math.PI/2);g.translate(px,py,pz);put(m,g);};
+  if(!CM.seat)CM.seat=new T.MeshStandardMaterial({color:0x5f594c,roughness:.92,metalness:0});
+  const yl=belt(.97)-.1,yr=belt(-.97)-.04,xn=L/2,xt=-L/2;
+  for(const sd of [-1,1]){const zl=sd*(W/2-.3);
+    box('rim',.03,.016,.37,xn-.004,yl+.07,zl);box('rim',.03,.016,.37,xn-.004,yl-.07,zl);box('rim',.03,.15,.016,xn-.004,yl,zl+.18);box('rim',.03,.15,.016,xn-.004,yl,zl-.18);   // рамка фари
+    cyl('rim',.047,.02,xn-.045,yl,zl-sd*.06,'x',14);cyl('rim',.04,.02,xn-.045,yl,zl+sd*.08,'x',14);                                                                      // відбивачі під склом
+    const zr=sd*(W/2-.26);box('dark',.03,.016,.33,xt-.004,yr+.04,zr);box('dark',.03,.016,.33,xt-.004,yr-.04,zr);box('lampO',.032,.05,.07,xt-.002,yr,zr+sd*.11);box('rim',.032,.05,.05,xt-.002,yr,zr-sd*.12);   // задній ліхтар: рамка, поворот, задній хід
+    box('lampO',.05,.026,.014,L*.36,belt(.72)-.13,sd*(wid(.72)+.004));                                                                                                // повторювач повороту
+    box('rim',.012,.058,.118,L*.19-.048,belt(.4)+.03,sd*(W/2+.02));box('dark',.05,.03,.07,L*.19+.01,belt(.4)+.01,sd*(W/2-.03));                                         // скло дзеркала й ніжка
+    for(const u of van?[.2,-.62]:[.32,-.18])box('dark',.2,.06,.012,u*L/2,belt(u)-.1,sd*(wid(u)+.003));                                                                 // ніша під ручкою
+    box('rim',L*(van?.62:.5),.018,.014,-L*.03,belt(0)-.012,sd*(W/2+.001));                                                                                             // хромований пояс під склом
+    box('dark',L*(van?.62:.5),.02,.02,-L*.03,belt(0)+.004,sd*(W/2-.012));                                                                                              // ущільнювач скла
+    box('dark',.3,.14,.05,xn-.2,.36,sd*(W*.44));box('dark',.3,.14,.05,xt+.2,.38,sd*(W*.44));                                                                           // боковини бамперів: тягнуться до арок
+    box('rim',.05,.1,.06,xn+.03,.37,sd*W*.2);box('rim',.05,.1,.06,xt-.03,.39,sd*W*.2);                                                                                 // ікла бамперів
+    box('dark',.02,.17,.22,-L*.3-(van?.36:.32)-.08,.21,sd*(W/2-.14));                                                                                                  // бризковики
+    box('seat',L*(van?.3:.46),HB-.5,.03,van?L*.3:L*.02,(HB+.44)/2,sd*(W/2-.15));                                                                                        // дверні карти
+    box('dark',L*(van?.26:.4),.04,.06,van?L*.3:L*.02,HB-.2,sd*(W/2-.18));}                                                                                              // підлокітники
+  for(const s of [[xn+.022,.4,1],[xt-.022,.48,-1]]){box('dark',.03,.016,.54,s[0],s[1]+.068,0);box('dark',.03,.016,.54,s[0],s[1]-.068,0);box('dark',.03,.15,.016,s[0],s[1],.265);box('dark',.03,.15,.016,s[0],s[1],-.265);}   // рамки номерів (без написів)
+  box('rim',.03,.02,.05,xt-.02,.57,.12);box('rim',.03,.02,.05,xt-.02,.57,-.12);                                                                                        // ліхтарики номера
+  box('dark',.08,.09,W*.66,xn-.08,.27,0);cyl('rim',.014,.07,xn+.02,.3,-W*.3,'x',8);                                                                                     // фартух під бампером, буксирне вушко
+  cyl('dark',.075,.008,-L*.34,belt(-.68)-.2,wid(-.68)+.002,'z',14);cyl('rim',.03,.012,-L*.34,belt(-.68)-.2,wid(-.68)+.004,'z',10);                                      // лючок бака
+  for(const zs of [-.25,.2]){const u=van?.8:.47;cyl('dark',.016,.03,u*L/2+.04,belt(u)+.005,zs*W+.2,'y',8);box('dark',.012,.012,.26,u*L/2+.02,belt(u)+.03,zs*W+.1);}        // осі й важелі двірників
+  /* салон: тканина на сидіннях, підголівники, консоль, важіль, дзеркало, козирки */
+  {const sx=van?.5:.05,sh=van?1.05:.62,fx=L*sx*.5;
+    for(const zs of [-1,1]){const z=zs*W*.22;box('seat',.5,.07,.46,fx+.01,sh+.075,z);box('seat',.07,.5,.46,fx-.165,sh+.33,z,-.09);box('seat',.09,.16,.24,fx-.2,sh+.7,z);
+      cyl('rim',.008,.1,fx-.2,sh+.6,z-.06,'y',6);cyl('rim',.008,.1,fx-.2,sh+.6,z+.06,'y',6);}                                                                                // стійки підголівника
+    box('dark',.62,.2,.18,fx+.12,sh-.02,0);cyl('rim',.012,.2,fx+.26,sh+.16,0,'y',6);cyl('dark',.03,.04,fx+.26,sh+.27,0,'y',8);box('dark',.3,.03,.04,fx-.06,sh+.1,0,.35);    // консоль, важіль, ручник
+    box('dark',.02,.06,.2,van?L*.17:L*.05,HR-.14,0);box('dark',.14,.06,.3,L*(van?.31:.28)-.05,belt(van?.62:.56)-.005,W*.22);                                              // дзеркало заднього виду, козирок приладів
+    if(!van){box('seat',.5,.07,W*.76,-L*.28+.01,sh+.075,0);box('seat',.07,.34,W*.74,-L*.28-.13,sh+.24,0,.22);box('dark',.3,.03,W*.74,-L*.28-.36,belt(-.7)-.03,0);}}       // задній диван і полиця
+  if(van){box('dark',.04,HR-HB-.2,W*.8,L*.14,(HB+HR)/2-.08,0);box('seat',L*.5,.03,W*.78,-L*.2,.42,0);}                                                                 // перегородка й підлога вантажного відсіку
+  C.wc.forEach((c,wi)=>{const wr=c[1],sd=Math.sign(c[2]),a=WB[wi],add=g=>a.push(g);
+    {const g=new T.TorusGeometry(wr*.585,.012,6,26);g.translate(c[0],wr,c[2]+sd*.106);add(g);}                                                                         // обідок диска
+    {const g=new T.CylinderGeometry(wr*.17,wr*.2,.03,14);g.rotateX(Math.PI/2);g.translate(c[0],wr,c[2]+sd*.13);add(g);}                                                 // ковпак маточини
+    {const g=new T.CylinderGeometry(.006,.006,.04,5);g.rotateX(Math.PI/2);g.translate(c[0]+wr*.5,wr,c[2]+sd*.11);add(g);}});                                            // ніпель
+  const out=[];for(const m in B)out.push([m,car2Merge(T,B[m])]);WB.forEach((a,wi)=>{if(a.length)out.push(['rim',car2Merge(T,a),wi]);});
+  return out;
+}
+/* ── текстури слідів війни: бите скло й потерта фарба ── */
+function car2Tex(T,k){
+  if(CAR2.tex[k])return CAR2.tex[k];const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');let q=k==='gl'?4177:9311;const r=()=>{q=(q*16807)%2147483647;return q/2147483647;};
+  if(k==='gl'){x.fillStyle='rgba(168,186,182,.5)';x.fillRect(0,0,256,256);
+    for(let h=0;h<7;h++){const cx=r()*256,cy=r()*256,R=10+r()*20;x.strokeStyle='rgba(236,242,238,.85)';
+      for(let w=-1;w<=1;w++)for(let v=-1;v<=1;v++){const ox=cx+w*256,oy=cy+v*256;x.lineWidth=1;for(let a=0;a<11;a++){const an=a/11*6.283+r(),ln=R*(1.6+r()*2.4);x.beginPath();x.moveTo(ox,oy);x.lineTo(ox+Math.cos(an)*ln*.5+r()*4,oy+Math.sin(an)*ln*.5+r()*4);x.lineTo(ox+Math.cos(an+.1)*ln,oy+Math.sin(an+.1)*ln);x.stroke();}
+        for(let g=1;g<4;g++){x.beginPath();x.arc(ox,oy,R*g*.55,0,6.283);x.stroke();}}
+      if(h<4){x.globalCompositeOperation='destination-out';for(let w=-1;w<=1;w++)for(let v=-1;v<=1;v++){x.beginPath();const ox=cx+w*256,oy=cy+v*256;for(let a=0;a<9;a++){const an=a/9*6.283,rr=R*(.5+((a*7+h*3)%5)*.13);x[a?'lineTo':'moveTo'](ox+Math.cos(an)*rr,oy+Math.sin(an)*rr);}x.closePath();x.fill();}x.globalCompositeOperation='source-over';}}}
+  else{x.fillStyle='#fff';x.fillRect(0,0,256,256);
+    const gd=x.createLinearGradient(0,256,0,150);gd.addColorStop(0,'rgba(120,104,84,.75)');gd.addColorStop(1,'rgba(120,104,84,0)');x.fillStyle=gd;x.fillRect(0,0,256,256);                 // пил на низу кузова (v росте вгору, полотно перевернуте)
+    for(let h=0;h<34;h++){const cx=r()*256,cy=r()*256,R=3+r()*r()*20,g=x.createRadialGradient(cx,cy,0,cx,cy,R);g.addColorStop(0,'rgba(92,48,24,.95)');g.addColorStop(.6,'rgba(128,70,34,.7)');g.addColorStop(1,'rgba(128,70,34,0)');x.fillStyle=g;
+      for(let w=-1;w<=1;w++)for(let v=-1;v<=1;v++){x.save();x.translate(cx+w*256,cy+v*256);x.scale(1+r()*.01,.6+((h*5)%7)*.1);x.translate(-cx,-cy);x.fillRect(cx-R,cy-R,R*2,R*2);x.restore();}}
+    for(let h=0;h<260;h++){x.fillStyle='rgba(60,44,30,'+(.1+r()*.25)+')';x.fillRect(r()*256,r()*256,1+r()*2,1+r()*2);}}
+  const tx=new T.CanvasTexture(c);tx.wrapS=tx.wrapT=T.RepeatWrapping;try{tx.colorSpace=T.SRGBColorSpace;}catch(e){}return CAR2.tex[k]=tx;
+}
+function car2Mats(T,colr){
+  const CM=SALT.res.carM;if(!CM.gb)CM.gb=new T.MeshStandardMaterial({map:car2Tex(T,'gl'),transparent:true,roughness:.25,metalness:.1,side:T.DoubleSide,depthWrite:false});
+  if(!CM.pw)CM.pw={};if(!CM.pw[colr])CM.pw[colr]=new T.MeshStandardMaterial({color:colr,map:car2Tex(T,'pw'),metalness:.25,roughness:.72});
+  if(!CM.hole)CM.hole=new T.MeshStandardMaterial({color:0x08090a,roughness:1});return CM;
+}
+function car2Hash(x,z,k){const s=Math.sin(x*12.9898+z*78.233+(k||0)*37.719)*43758.5453;return s-Math.floor(s);}
+/* сліди бою на вже зібраній припаркованій машині (група ще не злита з ділянкою) */
+function car2Shot(t,g,C,kind,colr,x,z){
+  const T=t.THREE,CM=car2Mats(T,colr),van=kind==='van',L=C.size[0],W=C.size[2],HB=van?1.05:.84;let q=1+((car2Hash(x,z,3)*1e6)|0);const r=()=>{q=(q*16807)%2147483647;return q/2147483647;};
+  const glass=r()<.8,rust=r()<.7;
+  g.children.forEach(m=>{if(!m.isMesh)return;if(glass&&m.material===CM.glass&&m.geometry.attributes.position.count>200)m.material=CM.gb;else if(rust&&m.material===CM.paint[colr])m.material=CM.pw[colr];});
+  const sd=r()<.5?1:-1,n=4+((r()*7)|0),H=[],R=[];
+  for(let i=0;i<n;i++){const u=-.72+r()*1.4,y=.47+r()*(HB-.56),zz=sd*(W/2*(1-.16*Math.pow(Math.abs(u),5))+.002),rr=.014+r()*.012;
+    let a=new T.CylinderGeometry(rr,rr,.006,8);a.rotateX(Math.PI/2);a.translate(u*L/2,y,zz+sd*.003);H.push(a);a=new T.CylinderGeometry(rr*1.9,rr*1.9,.004,9);a.rotateX(Math.PI/2);a.translate(u*L/2,y,zz);R.push(a);}
+  if(r()<.5)for(let i=0;i<3;i++){const zz=(r()-.5)*W*.7,y=HB+.12+r()*.3,u=van?.6:.36,a=new T.CylinderGeometry(.02,.02,.3,7);a.rotateZ(Math.PI/2);a.translate(u*L/2+.1,y,zz);H.push(a);}   // пробоїни в лобовому
+  const mh=new T.Mesh(car2Merge(T,H),CM.hole),mr=new T.Mesh(car2Merge(T,R),CM.rim);mh.receiveShadow=mr.receiveShadow=true;g.add(mh);g.add(mr);
+  if(r()<.6){const fs=r()<.5?1:-1,ff=r()<.5?1:-1;g.rotateX(fs*.038);g.rotateZ(-ff*.016);g.position.y-=.035;}                                                           // спущене колесо: машина осіла на кут
+  CAR2.stat.shot++;
+}
+function car2Init(G){
+  if(CAR2.init)return;CAR2.init=true;
+  if(typeof saltCarProto==='function'){const o=saltCarProto;saltCarProto=function(t,kind,colr){const C=o.apply(this,arguments);
+      if(C&&!C.c2&&SALT_FEAT.car2!==false){C.c2=1;try{const ex=car2Detail(t,kind,C);for(const p of ex)C.parts.push(p);CAR2.stat.det++;}catch(e){saltFeatFail('car2',e);}}return C;};}
+  if(typeof saltCar==='function'){const o=saltCar;saltCar=function(kit,t,kind,colr,x,z,yaw){const ch=SALT.curCh,n0=ch&&ch.dest?ch.dest.length:0,r=o.apply(this,arguments);
+      if(r&&ch&&ch.dest&&ch.dest.length===n0+1&&SALT_FEAT.car2!==false&&!CAR2.clean)try{const e=ch.dest[n0],g=e.o,h=car2Hash(x,z,0),C=SALT.res['car-'+kind];
+        if(g&&C&&h<CAR2.P.wreck){const MS=SALT.res.misc||{},CM=SALT.res.carM,T=t.THREE,kill=[];                                                                       // вигорілий остов: без скла й фар, іржа й сажа
+          g.children.forEach((m,i)=>{const p=C.parts[i];if(!p||p[0]==='glass'||p[0]==='lampF'||p[0]==='lampR'||p[0]==='lampO'||p[0]==='seat'||p[0]==='plate')kill.push(m);else m.material=p[0]==='tire'?(MS.burn||CM.tire):(MS.rust||CM.tire);});
+          kill.forEach(m=>g.remove(m));g.position.y-=.1;g.rotateX((car2Hash(x,z,1)-.5)*.1);e.hp=1e9;e.wreck=null;e.c2w=1;CAR2.stat.wreck++;}
+        else if(g&&C&&h<CAR2.P.wreck+CAR2.P.shot)car2Shot(t,g,C,kind,colr,x,z);}catch(e){saltFeatFail('car2',e);}
+      return r;};}
+  /* зразок «малюка»: бампери на кронштейнах */
+  if(typeof k10bBuild==='function'){const o=k10bBuild;k10bBuild=function(name,hue){const g=o.apply(this,arguments);
+      if(name==='fiat'&&g&&SALT_FEAT.car2!==false)try{const T=SALT.G.THREE;if(!CAR2.fg){const B=[],bx=(w,h,d,x,y,z)=>{const q=new T.BoxGeometry(w,h,d);q.translate(x,y,z);B.push(q);};
+            bx(.13,.08,.84,1.4,.345,0);bx(.11,.08,.92,-1.45,.312,0);for(const s of [-1,1]){bx(.2,.05,.06,1.38,.35,s*.3);bx(.18,.05,.06,-1.43,.315,s*.34);}
+            CAR2.fg=car2Merge(T,B);CAR2.fm=new T.MeshStandardMaterial({color:0x121314,roughness:.85,metalness:.2});}
+          const m=new T.Mesh(CAR2.fg,CAR2.fm);m.castShadow=true;m.receiveShadow=true;g.add(m);CAR2.stat.fix++;}catch(e){saltFeatFail('car2',e);}
+      return g;};}
+  if(typeof k11Static==='function'){const o=k11Static;k11Static=function(ch,name,x,z,yaw){const g=o.apply(this,arguments);
+      if(name==='fiat'&&g&&SALT_FEAT.car2!==false&&!CAR2.clean&&car2Hash(x,z,5)<.12)try{const MS=SALT.res.misc||{};if(MS.rust){g.traverse(m=>{if(m.isMesh)m.material=MS.rust;});g.rotation.z+=.05;g.position.y-=.05;CAR2.stat.fiatW++;}}catch(e){saltFeatFail('car2',e);}
+      return g;};}
+}
+try{car2Init();}catch(e){console.error('car2',e);}
+
+/* ===== знищення дерев і кущів (прапорець SALT_FEAT.tree2) =====
+   Стрілецька зброя: перші влучання — листя осипається (дерево лишається голим), далі — зламаний погорілий стовбур.
+   Вибух (скид, РПГ, граната, ракета, FPV, крило, бак машини): одразу погорілий зрізаний стовбур; трохи далі від вибуху — з дерева лише здуває листя.
+   Стан тримається до кінця вильоту: ділянку можуть вивантажити й зібрати знову — дерево лишиться таким, яким його зробив бій (ключ — світові координати).
+   Стовбур і далі зупиняє кулі й бійця: колайдер не зникає, а вкорочується до висоти уламка. Після перезавантаження сторінки все відростає.
+   Лише додаємо: дерева ділянки будує старий код, тут — список дерев і кущів ділянки та заміна вигляду. */
+const TREE2={map:new Map(),list:new Set(),P:[],fall:null,stat:{shed:0,bare:0,broke:0,stump:0,bush:0,re:0,shots:0},HIT:{bare:2,broke:3},res:null,bt:0};
+function tree2Key(x,z){return Math.round((SALT.ox+x)*2)+'_'+Math.round((SALT.oz+z)*2);}
+function tree2Res(T){
+  if(TREE2.res)return TREE2.res;let q=5381;const r=()=>{q=(q*16807)%2147483647;return q/2147483647;};
+  const tr=new T.CylinderGeometry(.74,1,1,9,4);{const P=tr.attributes.position;for(let i=0;i<P.count;i++){const y=P.getY(i),k=1+(r()-.5)*.16+(y<-.3?.28*(-.3-y)/.2:0);P.setX(i,P.getX(i)*k);P.setZ(i,P.getZ(i)*k);}tr.translate(0,.5,0);tr.computeVertexNormals();}
+  const sp=[];for(let k=0;k<8;k++){const a=k/8*6.283+r()*.5,h=.7+r()*1.5,g=new T.ConeGeometry(.2+r()*.16,h,4);g.translate(0,h/2-.1,0);g.rotateZ((r()-.5)*.5);g.rotateX((r()-.5)*.5);g.translate(Math.cos(a)*.5,0,Math.sin(a)*.5);sp.push(g);}
+  const lg=new T.CylinderGeometry(.6,1,1,8,1);lg.rotateZ(Math.PI/2);
+  const br=[];for(let k=0;k<3;k++){const g=new T.CylinderGeometry(.16,.3,1.6+r(),5);g.translate(0,.8,0);g.rotateZ(.9+r()*.5);g.rotateY(k*2.1+r());g.translate(0,.25+k*.2,0);br.push(g);}
+  const tw=[];for(let k=0;k<9;k++){const a=k/9*6.283+r(),h=.5+r()*.6,g=new T.CylinderGeometry(.008,.022,h,4);g.translate(0,h/2,0);g.rotateZ(.25+r()*.6);g.rotateY(a);g.translate(Math.cos(a)*.12,0,Math.sin(a)*.12);tw.push(g);}
+  const sc=new T.CircleGeometry(1,18);sc.rotateX(-Math.PI/2);
+  const mg=typeof car2Merge==='function'?car2Merge:(T2,l)=>l[0];
+  return TREE2.res={trunk:tr,splint:mg(T,sp),log:lg,limb:mg(T,br),twig:mg(T,tw),scorch:sc,
+    mChar:new T.MeshStandardMaterial({color:0x17130f,roughness:1,metalness:0}),mWood:new T.MeshStandardMaterial({color:0x4a3524,roughness:.95}),mTwig:new T.MeshStandardMaterial({color:0x4b3d2c,roughness:1}),
+    mScorch:new T.MeshStandardMaterial({color:0x0b0a09,roughness:1,transparent:true,opacity:.7,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}),
+    Z:new T.Matrix4().makeScale(0,0,0),M:new T.Matrix4(),v:new T.Vector3(),q:new T.Quaternion(),s:new T.Vector3(),c:new T.Color()};
+}
+/* після декору ділянки: список її дерев (за колайдерами з міткою tree) і кущів (за інстансами), відновлення збереженого стану */
+function tree2Chunk(ch){
+  if(SALT_FEAT.tree2===false||!ch||!ch.boxes)return;const T=(SALT.G||SALT.t).THREE,R=tree2Res(T),TR=SALT.res.tree,L=ch.t2||(ch.t2=[]);
+  for(const b of ch.boxes){if(b.tag!=='tree'||!b.tr||b.t2)continue;const h=b.tr[3]||8,x=(b.min.x+b.max.x)/2,z=(b.min.z+b.max.z)/2;
+    const it={k:'t',x:x,z:z,y:b.min.y+1,r:(b.max.x-b.min.x)/2,h:h,bx:b,bk:b.tr[0],lf:b.tr[1],i:b.tr[2],ch:ch,st:0,n:0,o:[]};b.t2=it;L.push(it);TREE2.list.add(it);}
+  if(TR&&TR.bush)for(const o of ch.objs){if(!o.isInstancedMesh||o.geometry!==TR.bush||o.t2)continue;o.t2=1;
+    for(let i=0;i<o.count;i++){o.getMatrixAt(i,R.M);R.M.decompose(R.v,R.q,R.s);if(R.s.x<.05)continue;const it={k:'b',x:R.v.x,z:R.v.z,y:R.v.y,s:R.s.x,bm:o,i:i,ch:ch,st:0,n:0,o:[]};L.push(it);TREE2.list.add(it);}}
+  if(TREE2.map.size)for(const it of L){if(it.st)continue;const st=TREE2.map.get(tree2Key(it.x,it.z));if(st){tree2Set(it,st,true);TREE2.stat.re++;}}
+}
+function tree2Drop(ch){if(!ch||!ch.t2)return;const G=SALT.G;for(const it of ch.t2){TREE2.list.delete(it);for(const o of it.o)try{G.scene.remove(o);}catch(e){}it.o.length=0;it.gone=true;}ch.t2=null;}
+function tree2Mesh(it,geo,mat,x,y,z,sx,sy,sz,ry,rz){const G=SALT.G,m=new G.THREE.Mesh(geo,mat);m.position.set(x,y,z);m.scale.set(sx,sy,sz);if(ry)m.rotation.y=ry;if(rz)m.rotation.z=rz;m.castShadow=mat!==TREE2.res.mScorch;m.receiveShadow=true;m.userData.noMerge=true;m.name='tree2';G.scene.add(m);it.o.push(m);return m;}
+function tree2Box(it,H){
+  const P=SALT.G.physics,b=it.bx;if(!b)return;try{P.removeBox(b);}catch(e){}const bs=it.ch&&it.ch.boxes,i=bs?bs.indexOf(b):-1;
+  const nb=P.addBox([it.x-it.r,it.y-1,it.z-it.r],[it.x+it.r,it.y+H,it.z+it.r],{surface:'wood',tag:'tree'});nb.t2=it;nb.tr=null;it.bx=nb;if(i>=0)bs[i]=nb;else if(bs)bs.push(nb);
+}
+function tree2Veil(it){try{const k=(Math.floor(it.x/VEIL.cs)+32768)*65536+(Math.floor(it.z/VEIL.cs)+32768),l=VEIL.m.get(k);if(l){const n=l.filter(v=>Math.hypot(v.x-it.x,v.z-it.z)>.3);if(n.length)VEIL.m.set(k,n);else VEIL.m.delete(k);}}catch(e){}}
+/* стан: 1 — без листя, 2 — зламаний погорілий стовбур, 3 — погорілий зрізаний стовбур (для куща: 1 — голі гілки, 3 — обвуглені) */
+function tree2Set(it,st,silent,at){
+  if(it.gone||it.st>=st)return;const G=SALT.G,T=G.THREE,R=tree2Res(T),was=it.st;it.st=st;TREE2.map.set(tree2Key(it.x,it.z),st);
+  const hs=(it.x*7.13+it.z*3.71)%6.283;
+  if(it.k==='b'){
+    try{it.bm.getColorAt(it.i,R.c);}catch(e){R.c.setHex(0x7d9450);}
+    R.Z.setPosition(it.x,it.y-60,it.z);it.bm.setMatrixAt(it.i,R.Z);it.bm.instanceMatrix.needsUpdate=true;for(const o of it.o)G.scene.remove(o);it.o.length=0;
+    tree2Mesh(it,R.twig,st>=3?R.mChar:R.mTwig,it.x,it.y,it.z,it.s*1.5,it.s*(st>=3?.8:1.2),it.s*1.5,hs);
+    if(st>=3)tree2Mesh(it,R.scorch,R.mScorch,it.x,it.y+.07,it.z,it.s*1.1,1,it.s*1.1,hs);
+    if(!silent){if(!was)tree2Leaves(it.x,it.y+it.s*.5,it.z,it.s*.6,st>=3?6:14,R.c,st>=3);TREE2.stat.bush++;}
+    return;}
+  if(it.lf&&was<1){try{it.lf.getColorAt(it.i,R.c);}catch(e){R.c.setHex(0x7d9450);}
+    R.Z.setPosition(it.x,it.y-60,it.z);it.lf.setMatrixAt(it.i,R.Z);it.lf.instanceMatrix.needsUpdate=true;tree2Veil(it);
+    if(!silent)tree2Leaves(it.x,it.y+it.h*.66,it.z,it.h*.3,st>=3?16:st===2?30:46,R.c,st>=3);}
+  if(st===1){if(!silent)TREE2.stat.bare++;return;}
+  R.Z.setPosition(it.x,it.y-60,it.z);it.bk.setMatrixAt(it.i,R.Z);it.bk.instanceMatrix.needsUpdate=true;for(const o of it.o)G.scene.remove(o);it.o.length=0;
+  const r=Math.max(.2,it.r*1.65),gy=it.y-.15;let dx=Math.cos(hs),dz=Math.sin(hs);if(at){const l=Math.hypot(it.x-at.x,it.z-at.z);if(l>.2){dx=(it.x-at.x)/l;dz=(it.z-at.z)/l;}}
+  if(st===2){const H=Math.max(1.6,Math.min(4.6,it.h*.34));
+    tree2Mesh(it,R.trunk,R.mChar,it.x,gy,it.z,r,H+.15,r,hs);tree2Mesh(it,R.splint,R.mWood,it.x,gy+H+.1,it.z,r*.9,r*2.4,r*.9,hs);tree2Mesh(it,R.limb,R.mChar,it.x,gy+H*.45,it.z,r*1.1,r*1.5,r*1.1,hs+1);
+    const len=Math.max(2.5,it.h*.42),lx=it.x+dx*(len*.5+r+.4),lz=it.z+dz*(len*.5+r+.4);let ly=it.y;try{ly=saltY(lx,lz);}catch(e){}
+    tree2Mesh(it,R.log,R.mChar,lx,ly+r*.7,lz,len,r*.75,r*.75,-Math.atan2(dz,dx));                                                              // верхівка лежить поруч, верхом від вибуху чи стрільця
+    tree2Mesh(it,R.limb,R.mChar,it.x+dx*(len+r),ly+.05,it.z+dz*(len+r),r*1.4,r*1.2,r*1.4,hs+2,1.2);
+    tree2Box(it,H);if(!silent){TREE2.stat.broke++;tree2Fx(it,H,dx,dz,false);}}
+  else{const H=Math.max(.7,Math.min(1.3,it.h*.11));
+    tree2Mesh(it,R.trunk,R.mChar,it.x,gy,it.z,r*1.05,H+.15,r*1.05,hs,0);tree2Mesh(it,R.splint,R.mChar,it.x,gy+H+.02,it.z,r*.8,r*.7,r*.8,hs);
+    tree2Mesh(it,R.scorch,R.mScorch,it.x,it.y+.08,it.z,1.3+it.h*.06,1,1.3+it.h*.06,hs);
+    tree2Box(it,H);if(!silent){TREE2.stat.stump++;tree2Fx(it,H,dx,dz,true);}}
+}
+function tree2Fx(it,H,dx,dz,big){
+  const G=SALT.G;try{if(typeof crashDebris==='function')crashDebris(G,it.x,it.y+H*.6,it.z,dx,dz,big?7:4,big?(SALT.droneOnly?3:6):4,0x1c1712,[.09,.07,.7]);}catch(e){}
+  try{G.fx.smoke(new G.THREE.Vector3(it.x,it.y+H,it.z),{size:1.1+it.h*.08,life:big?3.4:2.2,rise:1.2,count:big?3:2,color:0x2a2622,alpha:.55});}catch(e){}
+  if(!big)try{sfx('ruin',null,.5,1.45);}catch(e){}
+}
+/* листя, що осипається: один інстанс-меш на всю гру */
+function tree2Leaves(x,y,z,rad,n,col,burnt){
+  const G=SALT.G,T=G.THREE,N=SALT.droneOnly||SALT.lite?110:260;
+  if(!TREE2.fall){const g=new T.PlaneGeometry(.15,.1),mt=new T.MeshStandardMaterial({color:0xffffff,roughness:.9,side:T.DoubleSide}),m=new T.InstancedMesh(g,mt,N);m.frustumCulled=false;m.count=0;m.userData.noMerge=true;m.name='tree2-leaves';
+    m.setColorAt(0,new T.Color(0x7d9450));m.instanceColor.needsUpdate=true;G.scene.add(m);TREE2.fall=m;TREE2.N=N;TREE2.e=new T.Euler();}
+  let gy=y-4;try{gy=saltY(x,z);}catch(e){}n=Math.min(n,SALT.droneOnly?Math.ceil(n*.5):n);
+  for(let k=0;k<n;k++){if(TREE2.P.length>=TREE2.N)TREE2.P.shift();const a=Math.random()*6.283,rr=Math.cbrt(Math.random())*rad,e=(Math.random()-.5)*2;
+    TREE2.P.push({x:x+Math.cos(a)*rr*Math.sqrt(1-e*e),y:y+e*rr*.9,z:z+Math.sin(a)*rr*Math.sqrt(1-e*e),vx:Math.cos(a)*(.4+Math.random()),vz:Math.sin(a)*(.4+Math.random()),vy:.4+Math.random()*1.2,ph:Math.random()*6.283,w:2+Math.random()*4,gy:gy+.03,t:0,
+      r:burnt?.1:col.r*.75,g:burnt?.09:col.g*.75,b:burnt?.07:col.b*.75,s:.7+Math.random()*.8});}
+  TREE2.stat.shed++;
+}
+function tree2Step(G,dt){
+  const m=TREE2.fall,P=TREE2.P;if(!m||(!P.length&&!m.count))return;const R=TREE2.res,E=TREE2.e;let n=0;
+  for(let i=0;i<P.length;i++){const p=P[i];p.t+=dt;if(p.t>14)continue;
+    if(p.y>p.gy){p.vy=Math.max(-1.5,p.vy-3.2*dt);p.ph+=p.w*dt;p.x+=(p.vx+Math.sin(p.ph)*.7)*dt;p.z+=(p.vz+Math.cos(p.ph*.8)*.7)*dt;p.y+=p.vy*dt;p.vx*=1-dt*.9;p.vz*=1-dt*.9;if(p.y<=p.gy){p.y=p.gy;p.t=Math.max(p.t,6);}}   // на землі лежить ще кілька секунд
+    P[n]=p;const fl=p.y>p.gy;E.set(fl?p.ph:-1.5708,p.ph*.7,fl?p.ph*1.3:0);R.q.setFromEuler(E);const k=p.t>12?Math.max(0,(14-p.t)/2):1;R.M.compose(R.v.set(p.x,p.y,p.z),R.q,R.s.set(p.s*k,p.s*k,p.s*k));m.setMatrixAt(n,R.M);m.setColorAt(n,R.c.setRGB(p.r,p.g,p.b));n++;}
+  P.length=n;m.count=n;m.instanceMatrix.needsUpdate=true;if(m.instanceColor)m.instanceColor.needsUpdate=true;
+}
+/* влучання зі стрілецької зброї */
+function tree2Hit(it,at){
+  if(it.gone||it.st>=2&&it.k==='t'||it.st>=1&&it.k==='b')return;it.n++;const R=TREE2.res;
+  if(it.k==='b'){if(it.n>=TREE2.HIT.bare)tree2Set(it,1,false,at);else{try{it.bm.getColorAt(it.i,R.c);}catch(e){R.c.setHex(0x7d9450);}tree2Leaves(it.x,it.y+it.s*.5,it.z,it.s*.55,6,R.c);}return;}
+  if(it.st===0){if(it.n>=TREE2.HIT.bare){it.n=0;tree2Set(it,1,false,at);}else{try{it.lf.getColorAt(it.i,R.c);}catch(e){R.c.setHex(0x7d9450);}tree2Leaves(it.x,it.y+it.h*.66,it.z,it.h*.3,14,R.c);}}
+  else if(it.n>=TREE2.HIT.broke)tree2Set(it,2,false,at);
+  else try{if(typeof crashDebris==='function')crashDebris(SALT.G,it.x,it.y+1.2,it.z,0,0,2,2,0x4a3524,[.05,.04,.3]);}catch(e){}
+}
+/* постріл гравця: промінь проти крон, стовбурів і кущів — ближче за стіну, в яку пішла куля */
+function tree2Shot(G){
+  if(SALT_FEAT.tree2===false||!TREE2.list.size)return;const T=G.THREE,cam=G.camera,o=TREE2._o||(TREE2._o=new T.Vector3()),d=TREE2._d||(TREE2._d=new T.Vector3());cam.getWorldPosition(o);cam.getWorldDirection(d);
+  let lim=170;try{const h=G.physics.raycast(o,d,170);if(h&&h.point){lim=Math.hypot(h.point.x-o.x,h.point.y-o.y,h.point.z-o.z)+.25;if(h.box&&h.box.t2)lim+=.4;}}catch(e){}
+  let best=null,bt=lim;const dh=d.x*d.x+d.z*d.z;
+  for(const it of TREE2.list){const ex=it.x-o.x,ez=it.z-o.z,along=ex*d.x+ez*d.z;if(along<0||along>bt+12)continue;
+    if(it.k==='t'){if(it.st>=2)continue;
+      if(dh>1e-6){const t=along/dh;if(t>0&&t<bt){const px=o.x+d.x*t-it.x,pz=o.z+d.z*t-it.z,py=o.y+d.y*t;if(px*px+pz*pz<(it.r+.14)*(it.r+.14)&&py>it.y-.5&&py<it.y+it.h*.55){best=it;bt=t;continue;}}}
+      if(it.st===0){const cy=it.y+it.h*.66,rr=it.h*.3,ey=cy-o.y,t=ex*d.x+ey*d.y+ez*d.z;if(t>0&&t<bt){const qx=ex-d.x*t,qy=ey-d.y*t,qz=ez-d.z*t;if(qx*qx+qy*qy+qz*qz<rr*rr){best=it;bt=t;}}}}
+    else if(it.st===0){const cy=it.y+it.s*.5,rr=it.s*.6,ey=cy-o.y,t=ex*d.x+ey*d.y+ez*d.z;if(t>0&&t<bt){const qx=ex-d.x*t,qy=ey-d.y*t,qz=ez-d.z*t;if(qx*qx+qy*qy+qz*qz<rr*rr){best=it;bt=t;}}}}
+  if(best){TREE2.stat.shots++;tree2Hit(best,o);}
+}
+/* вибух: поруч — зрізаний погорілий стовбур, далі — здуває листя */
+function tree2Blast(at,rad){
+  if(SALT_FEAT.tree2===false||!at||!TREE2.list.size)return;const R=Math.max(2.4,Math.min(9,rad)),R2=R*1.9,L=[];
+  for(const it of TREE2.list){const d=Math.hypot(it.x-at.x,it.z-at.z);if(d>R2||Math.abs(it.y-at.y)>R2+it.h||0)continue;L.push([it,d]);}
+  for(const q of L){const it=q[0];if(q[1]<=R)tree2Set(it,3,false,at);else if(it.st===0)tree2Set(it,1,false,at);}
+}
+function tree2Init(G){
+  if(TREE2.init)return;TREE2.init=true;
+  try{G.events.on('weapon:fire',()=>{try{if(!SALT.fly.on&&!(typeof ARM!=='undefined'&&ARM.sel))tree2Shot(G);}catch(e){saltFeatFail('tree2',e);}});}catch(e){}
+  try{G.events.on('impact',e=>{try{if(e&&e.from!=='player'&&e.box&&e.box.t2&&SALT_FEAT.tree2!==false)tree2Hit(e.box.t2,e.point);}catch(_){}});}catch(e){}
+  try{G.events.on('explosion',e=>{try{if(e&&e.pos)tree2Blast(e.pos,(e.radius||e.r||5)*.55);}catch(_){}});}catch(e){}
+  if(typeof saltBlast==='function'){const o=saltBlast;saltBlast=function(at,rad){const r=o.apply(this,arguments);try{tree2Blast(at,(rad||5)*.6);}catch(e){saltFeatFail('tree2',e);}return r;};}
+  if(typeof saltOn==='function')saltOn('chunkDisposed',ch=>tree2Drop(ch));
+}
+
+/* ===== склади й цехи з мапи — зсередини, як склад Saltline (прапорець SALT_FEAT.shed2) =====
+   Промислова будівля з мапи була монолітом із намальованими воротами. Тепер прямокутний цех помірного розміру — порожнистий:
+   стіни з профнастилу на бетонному цоколі, двосхилий дах на фермах, підлога, ворота з рулонним полотном і бічні двері; усередині —
+   стелажі, палети, ящики, навантажувач, лампи. Ворота бувають відчинені, привідчинені (полотно на 2,2 м) і зачинені (вхід — бічними дверима).
+   У частині складів стоїть схрон (E — обшукати), частину тримає ворог: двоє всередині обличчям до воріт, решта біля воріт.
+   Умови: контур близький до прямокутника, 14–56 × 9–30 м, висота 5–16 м, не більше двох на ділянку; під будівлею рівне місце або майданчик,
+   перепад до 2,4 м (тоді під будівлею рівняється майданчик). Інакше (і за будь-якої помилки) будівля лишається монолітом, як була. Склад Saltline (saltShedPlace) не змінюється:
+   йому лише тримається вільним місце перед обома воротами. */
+const SHED2={stat:{hol:0,pad:0,rej:0,loot:0,sq:0,props:0,gate:[0,0,0]},done:new Map(),live:[],t:0,max:2};
+function shed2Hash(b,k){const s=Math.sin(b.cx*.713+b.cz*1.291+k*17.17)*43758.5453;return s-Math.floor(s);}
+/* чи годиться будівля; повертає опис цеху в локальних координатах світу гри */
+function shed2Pick(b,ch,h,by,A,X0,Z0,X1,Z1){
+  if(SALT_FEAT.shed2===false||!ch||!b.pts||h<5||h>16)return null;if((ch.s2||[]).length>=SHED2.max)return null;
+  const pts=b.pts,n=pts.length-1,ox=SALT.ox,oz=SALT.oz;if(n<4||n>10)return null;
+  let bk=0,bl=0;for(let k=0;k<n;k++){const l=Math.hypot(pts[k+1].x-pts[k].x,pts[k+1].z-pts[k].z);if(l>bl){bl=l;bk=k;}}if(bl<9)return null;
+  const ux=(pts[bk+1].x-pts[bk].x)/bl,uz=(pts[bk+1].z-pts[bk].z)/bl,vx=-uz,vz=ux;
+  let s0=1e9,s1=-1e9,t0=1e9,t1=-1e9;for(let k=0;k<n;k++){const dx=pts[k].x-b.cx,dz=pts[k].z-b.cz,s=dx*ux+dz*uz,t=dx*vx+dz*vz;if(s<s0)s0=s;if(s>s1)s1=s;if(t<t0)t0=t;if(t>t1)t1=t;}
+  let L=s1-s0,W=t1-t0;const sc=(s0+s1)/2,tc=(t0+t1)/2,cx=b.cx-ox+ux*sc+vx*tc,cz=b.cz-oz+uz*sc+vz*tc;
+  if(A/(L*W)<.92){SHED2.stat.rej++;return null;}
+  let D={ux:ux,uz:uz,vx:vx,vz:vz,cx:cx,cz:cz,L:L,W:W};if(W>L)D={ux:vx,uz:vz,vx:-ux,vz:-uz,cx:cx,cz:cz,L:W,W:L};L=D.L;W=D.W;
+  if(L<14||L>56||W<9||W>30){SHED2.stat.rej++;return null;}
+  const P=(s,t)=>[D.cx+D.ux*s+D.vx*t,D.cz+D.uz*s+D.vz*t];
+  let lo=1e9,hi=-1e9;for(const q of [[0,0],[-1,-1],[1,-1],[-1,1],[1,1],[0,1],[0,-1],[1,0],[-1,0]]){const p=P(q[0]*L/2,q[1]*W/2),y=saltH(p[0],p[1]);if(y<lo)lo=y;if(y>hi)hi=y;}
+  const ex=Math.abs(D.ux)*L/2+Math.abs(D.vx)*W/2,ez=Math.abs(D.uz)*L/2+Math.abs(D.vz)*W/2;let pad=false;
+  if(hi-lo>.3){if(hi-lo>2.4){SHED2.stat.rej++;SHED2.stat.steep=(SHED2.stat.steep||0)+1;return null;}pad=true;}   /* майданчик може виходити за межу ділянки: сусідні перебудуються самі, коли побачать іншу висоту на межі (saltChunkHsDiff) */
+  /* ворота — на довгій стіні, перед якою вільно; з двох — ближча до дороги */
+  let gs=0,gb=Infinity;for(const sg of [1,-1]){const p=P(0,sg*(W/2+5));let ok=true;try{ok=saltFree(p[0],p[1],2.2)&&landAt(ox+p[0],oz+p[1])!==6;}catch(e){}if(!ok)continue;
+    let d=50+sg;try{if(typeof g2RoadDist==='function'){const r=g2RoadDist(p[0],p[1]);if(r&&r.d===r.d&&r.d<400)d=Math.max(0,r.d);}}catch(e){}if(d<gb){gb=d;gs=sg;}}
+  if(!gs){SHED2.stat.rej++;SHED2.stat.nogate=(SHED2.stat.nogate||0)+1;return null;}
+  if(pad){(SALT.pads||(SALT.pads=[])).push({x:D.cx,z:D.cz,ex:ex+1.5,ez:ez+1.5,y:by,f:6,ck:ch});SHED2.stat.pad++;}
+  const eave=h-Math.min(2,Math.max(.9,W*.09)),gw=Math.min(5,L-6),gh=Math.min(4.6,eave-.5),r1=shed2Hash(b,1),r2=shed2Hash(b,2);
+  Object.assign(D,{h:h,eave:eave,by:by,f:.08,gs:gs,gw:gw,gh:gh,go:(r1-.5)*(L-gw-6)*.7,st:r2<.45?0:r2<.75?1:2,ds:shed2Hash(b,3)<.5?1:-1,dt:(shed2Hash(b,4)-.5)*(W-4)*.6,
+    key:Math.round(b.cx)+'_'+Math.round(b.cz),loot:shed2Hash(b,5)<.5,en:shed2Hash(b,6)<.4,sd:1+((shed2Hash(b,7)*1e6)|0),ch:ch});
+  try{for(let d=1.5;d<=9;d+=2.5)for(const o2 of [-2,0,2]){const a=P(D.go+o2,gs*(W/2+d));SALT.taken.push({x:a[0],z:a[1],r:2.4,ck:ch});}const dd=P(D.ds*(L/2+2),D.dt);SALT.taken.push({x:dd[0],z:dd[1],r:1.8,ck:ch});}catch(e){}   /* перед воротами й дверима нічого не росте й не стоїть */
+  (ch.s2||(ch.s2=[])).push(D);SHED2.stat.hol++;SHED2.stat.gate[D.st]++;return D;
+}
+/* геометрія цеху в кошики будівельника будинків (висоти — від основи будівлі) і колайдери стін */
+function shed2Build(D,X){
+  const B=X.B,obox=X.obox,ph=X.t.physics,L=D.L,W=D.W,HL=L/2,HW=W/2,f=D.f,ev=D.eave,h=D.h,by=D.by,ux=D.ux,uz=D.uz,vx=D.vx,vz=D.vz;
+  const P=(s,t)=>[D.cx+ux*s+vx*t,D.cz+uz*s+vz*t];
+  const corr=B('corrugated_roof'),conc=B('concrete_painted'),iron=B('steel_dark'),galv=B('steel_galv'),haz=B('hazard_stripes'),lamp=B('__lamp'),flr=B('floor_epoxy'),grey=B('paint_grey');
+  const TH=.24;
+  /* колайдер уздовж відрізка стіни: рівна стіна — одна коробка, коса — ланцюжок */
+  const col=(a,b,y0,y1,th)=>{const dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz),r=(th||TH)/2+.03;if(len<.05||y1-y0<.05)return;
+    if(Math.abs(dx)<.03*len||Math.abs(dz)<.03*len){ph.addBox([Math.min(a[0],b[0])-r,by+y0,Math.min(a[1],b[1])-r],[Math.max(a[0],b[0])+r,by+y1,Math.max(a[1],b[1])+r],{surface:'metal',tag:'bld'});return;}
+    const e=Math.min(.22,len*.3)/len,n=Math.max(1,Math.ceil(len*(1-2*e)/.42));for(let i=0;i<=n;i++){const k=e+(1-2*e)*i/n,x=a[0]+dx*k,z=a[1]+dz*k;ph.addBox([x-.26,by+y0,z-.26],[x+.26,by+y1,z+.26],{surface:'metal',tag:'bld'});}};
+  /* шматок довгої стіни (уздовж u, на t=sg·HW) і короткої (уздовж v, на s=sg·HL): цоколь 1,2 м + профнастил */
+  const wallU=(sg,sa,sb,y0,y1,noCol)=>{if(sb-sa<.05||y1-y0<.05)return;const t=sg*(HW-TH/2),c=P((sa+sb)/2,t),ym=Math.min(y1,1.2);
+    if(y0<1.2)obox(conc,c[0],(y0+ym)/2,c[1],ux,uz,vx*sg,vz*sg,sb-sa,ym-y0,TH+.04);if(y1>1.2){const yl=Math.max(y0,1.2);obox(corr,c[0],(yl+y1)/2,c[1],ux,uz,vx*sg,vz*sg,sb-sa,y1-yl,TH);}
+    if(!noCol)col(P(sa,t),P(sb,t),y0-(y0<1?1:0),y1);};
+  const wallV=(sg,ta,tb,y0,y1)=>{if(tb-ta<.05||y1-y0<.05)return;const s=sg*(HL-TH/2),c=P(s,(ta+tb)/2),ym=Math.min(y1,1.2);
+    if(y0<1.2)obox(conc,c[0],(y0+ym)/2,c[1],vx,vz,ux*sg,uz*sg,tb-ta,ym-y0,TH+.04);if(y1>1.2){const yl=Math.max(y0,1.2);obox(corr,c[0],(yl+y1)/2,c[1],vx,vz,ux*sg,uz*sg,tb-ta,y1-yl,TH);}
+    col(P(s,ta),P(s,tb),y0-(y0<1?1:0),y1);};
+  const gs=D.gs,g0=D.go-D.gw/2,g1=D.go+D.gw/2,gh=D.gh;
+  wallU(-gs,-HL,HL,0,ev);wallU(gs,-HL,g0,0,ev);wallU(gs,g1,HL,0,ev);wallU(gs,g0,g1,gh,ev);                       // глуха довга стіна; стіна з воротами: простінки й перемичка
+  const ds=D.ds,d0=D.dt-.7,d1=D.dt+.7,dh=2.15;
+  wallV(-ds,-HW,HW,0,ev);wallV(ds,-HW,d0,0,ev);wallV(ds,d1,HW,0,ev);wallV(ds,d0,d1,dh,ev);                       // торці: глухий і з дверима
+  /* фронтони й дах: гребінь уздовж довгої осі */
+  const tri=(bk,a,b,c)=>{const nx=(b[1]-a[1])*(c[2]-a[2])-(b[2]-a[2])*(c[1]-a[1]),ny=(b[2]-a[2])*(c[0]-a[0])-(b[0]-a[0])*(c[2]-a[2]),nz=(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]),l=Math.hypot(nx,ny,nz)||1;
+    bk.p.push(a[0],a[1],a[2],b[0],b[1],b[2],c[0],c[1],c[2]);for(let i=0;i<3;i++)bk.n.push(nx/l,ny/l,nz/l);bk.u.push(0,0,2,0,1,1);};
+  const both=(bk,a,b,c)=>{tri(bk,a,b,c);tri(bk,a,c,b);};
+  for(const sg of [-1,1]){const a=P(sg*HL,-HW),b=P(sg*HL,HW),c=P(sg*HL,0);both(corr,[a[0],ev,a[1]],[b[0],ev,b[1]],[c[0],h,c[1]]);}
+  const OV=.35;for(const sg of [-1,1]){const a=P(-HL-OV,sg*(HW+OV)),b=P(HL+OV,sg*(HW+OV)),c=P(HL+OV,0),d=P(-HL-OV,0),ye=ev-OV*(h-ev)/HW;
+    both(corr,[a[0],ye,a[1]],[b[0],ye,b[1]],[c[0],h,c[1]]);both(corr,[a[0],ye,a[1]],[c[0],h,c[1]],[d[0],h,d[1]]);}
+  {const c=P(0,0);obox(galv,c[0],h+.03,c[1],ux,uz,vx,vz,L+OV*2+.1,.06,.5);}                                                                     // коник
+  /* підлога */
+  {const a=P(-HL+TH,-HW+TH),b=P(HL-TH,-HW+TH),c=P(HL-TH,HW-TH),d=P(-HL+TH,HW-TH);both(flr,[a[0],f,a[1]],[b[0],f,b[1]],[c[0],f,c[1]]);both(flr,[a[0],f,a[1]],[c[0],f,c[1]],[d[0],f,d[1]]);}
+  /* каркас: колони попід довгими стінами, ферми, прогони, лампи */
+  const nb=Math.max(2,Math.round(L/5.2)),lights=[];
+  for(let i=0;i<=nb;i++){const s=-HL+.3+(L-.6)*i/nb;
+    for(const sg of [-1,1]){if(sg===gs&&s>g0-.3&&s<g1+.3)continue;const p=P(s,sg*(HW-TH-.1));obox(iron,p[0],ev/2,p[1],ux,uz,vx,vz,.16,ev,.2);}
+    {const c=P(s,0);obox(iron,c[0],ev-.12,c[1],vx,vz,ux,uz,W-.5,.16,.12);                                                                       // нижній пояс ферми
+      for(const sg of [-1,1]){const m=P(s,sg*HW/2),ang=Math.atan2(h-ev,HW),cs=Math.cos(ang),sn=Math.sin(ang);                                   // верхній пояс уздовж схилу — східцями з трьох брусків
+        for(let q=0;q<3;q++){const k=(q+.5)/3,pp=P(s,sg*HW*(1-k));obox(iron,pp[0],ev+(h-ev)*k-.14,pp[1],vx,vz,ux,uz,HW/3+.05,.12,.1);}
+        obox(iron,m[0],ev+(h-ev)*.25-.1,m[1],ux,uz,vx,vz,.08,(h-ev)*.5+.1,.08);}
+      const cc=P(s,0);obox(iron,cc[0],(ev+h)/2-.12,cc[1],ux,uz,vx,vz,.08,h-ev,.08);
+      if(i>0&&i<nb||nb<3){const ly=Math.min(ev-.5,5.6);obox(iron,cc[0],(ly+ev)/2,cc[1],ux,uz,vx,vz,.03,ev-ly,.03);obox(galv,cc[0],ly-.02,cc[1],ux,uz,vx,vz,.6,.12,.6);obox(lamp,cc[0],ly-.1,cc[1],ux,uz,vx,vz,.44,.04,.44);lights.push([cc[0],ly,cc[1]]);}}}
+  for(const sg of [-1,1])for(const k of [.33,.66]){const c=P(0,sg*HW*k);obox(galv,c[0],ev+(h-ev)*(1-k)-.06,c[1],ux,uz,vx,vz,L-.5,.08,.08);}                // прогони
+  /* ворота: рама, відбійники, короб рулона, полотно за станом, зʼїзд */
+  {const t=gs*(HW-TH/2),c=P(D.go,t),nx=vx*gs,nz=vz*gs;
+    for(const sd of [-1,1]){const p=P(D.go+sd*(D.gw/2+.1),t);obox(iron,p[0],gh/2+f/2,p[1],ux,uz,nx,nz,.2,gh,TH+.14);const q=P(D.go+sd*(D.gw/2+.55),gs*(HW+.45));obox(haz,q[0],.5,q[1],ux,uz,nx,nz,.16,1,.16);}
+    obox(iron,c[0],gh+.1,c[1],ux,uz,nx,nz,D.gw+.4,.2,TH+.14);{const p=P(D.go,gs*(HW-TH-.3));obox(galv,p[0],gh+.42,p[1],ux,uz,nx,nz,D.gw+.3,.56,.56);}
+    const bot=D.st===0?gh-.4:D.st===1?2.2:f;obox(galv,c[0],(bot+gh)/2,c[1],ux,uz,nx,nz,D.gw-.04,gh-bot,.06);
+    for(let y=bot+.2;y<gh&&D.st>0;y+=.36)obox(galv,c[0]+nx*.04,y,c[1]+nz*.04,ux,uz,nx,nz,D.gw-.06,.04,.03);
+    obox(haz,c[0],bot+.05,c[1],ux,uz,nx,nz,D.gw-.04,.1,.09);
+    if(D.st>0)col(P(g0,t),P(g1,t),bot-(D.st===2?1:0),gh,.1);
+    {const p=P(D.go,gs*(HW+1.6));obox(conc,p[0],f/2-.02,p[1],ux,uz,nx,nz,D.gw+1.6,f+.04,3.2);}
+    {const p=P(D.go,gs*(HW+.5));obox(iron,p[0],gh+.9,p[1],ux,uz,nx,nz,.5,.1,.6);obox(lamp,p[0],gh+.83,p[1],ux,uz,nx,nz,.34,.05,.2);}}
+  /* бічні двері: коробка, відчинена стулка, ґанок */
+  {const s=ds*(HL-TH/2),c=P(s,D.dt),nx=ux*ds,nz=uz*ds;
+    obox(iron,c[0],dh+.05,c[1],vx,vz,nx,nz,1.5,.1,TH+.1);for(const sd of [-1,1]){const p=P(s,D.dt+sd*.73);obox(iron,p[0],dh/2+f/2,p[1],vx,vz,nx,nz,.06,dh,TH+.1);}
+    const a=1.25,hx=vx*Math.cos(a)+nx*Math.sin(a),hz=vz*Math.cos(a)+nz*Math.sin(a),hp=P(ds*(HL+.02),D.dt-.7);obox(grey,hp[0]+hx*.67,dh/2+f/2,hp[1]+hz*.67,hx,hz,-hz,hx,1.34,dh-.06,.05);
+    const st=P(ds*(HL+.6),D.dt);obox(conc,st[0],f/2-.02,st[1],vx,vz,nx,nz,1.8,f+.04,1.2);}
+  D.lights=lights;D.floorY=by+f;
+}
+/* нутрощі цеху: реквізит рушія (фаза декору ділянки) */
+function shed2Decor(C){
+  const ch=C.ch;if(!ch||!ch.s2||SALT_FEAT.shed2===false)return;const kit=C.kit,t=C.t;
+  for(const D of ch.s2){if(D.dec||!D.floorY)continue;D.dec=true;let q=D.sd;const r=()=>{q=(q*16807)%2147483647;return q/2147483647;};
+    const HL=D.L/2,HW=D.W/2,y=D.floorY,P=(s,tt)=>[D.cx+D.ux*s+D.vx*tt,D.cz+D.uz*s+D.vz*tt],yawU=Math.atan2(-D.uz,D.ux);
+    const used=[],place=(name,s,tt,yaw,opts,pad,dy)=>{pad=pad||1;if(Math.abs(s)>HL-pad-.3||Math.abs(tt)>HW-pad-.3)return null;
+      if(Math.abs(s-D.go)<D.gw/2+1.2&&D.gs*tt>-1.5)return null;                                                                                 // проїзд від воріт до середини — вільний
+      if(D.ds*s>HL-3.4&&Math.abs(tt-D.dt)<1.6)return null;                                                                                      // і прохід від дверей
+      for(const u of used)if(Math.hypot(u[0]-s,u[1]-tt)<u[2]+pad)return null;const p=P(s,tt);
+      try{const b0=t.physics.boxes.length,o=kit.place(name,p[0],p[1],yaw,Object.assign({seed:1+((r()*9999)|0)},opts||{}),y+(dy||0),{dynamic:true});used.push([s,tt,pad]);SHED2.stat.props++;
+        if(o&&typeof SALT_DEST_HP!=='undefined'&&SALT_DEST_HP[name]&&o.parent===kit.dynRoot&&typeof o.userData.update!=='function'&&!(name==='barrel'&&opts&&opts.color==='red')){kit.dynRoot.remove(o);saltDestAdd(ch,o,t.physics.boxes.slice(b0),name);}
+        return o;}catch(e){return null;}};
+    for(let s=-HL+2.2;s<HL-1.6;s+=2.9)place('shelf_rack',s,-D.gs*(HW-.9),yawU,{},1.25);                                                           // стелажі попід глухою стіною
+    if(D.W>15)for(let s=-HL+4;s<HL-4;s+=2.9)if(Math.abs(s-D.go)>D.gw/2+2.4)place('shelf_rack',s,-D.gs*(HW*.3),yawU,{},1.25);                       // другий ряд — у широкому цеху
+    place('forklift',D.go+(D.gw/2+2.2)*(r()<.5?1:-1),D.gs*(HW-3.2),yawU+r()*6.283,{},1.6);
+    const clut=['pallet_stack','crate_stack','crate_wood','cardboard_boxes','ibc_tote','barrel','barrel','toolbox_cart','gas_cylinders','tarp_cargo','tire_stack','pallet','jerry_can','cable_reel'];
+    const nC=Math.min(16,5+((D.L*D.W)/40|0));for(let k=0,m=0;k<nC*4&&m<nC;k++){const nm=clut[(r()*clut.length)|0],big=nm==='tarp_cargo'||nm==='pallet_stack'||nm==='crate_stack'||nm==='ibc_tote';
+      if(place(nm,(r()*2-1)*(HL-1.6),(r()*2-1)*(HW-1.6),((r()*4)|0)*Math.PI/2+yawU+(r()-.5)*.3,nm==='barrel'?{color:['blue','red','yellow','green'][(r()*4)|0]}:{},big?1.15:.7))m++;}
+    if(D.loot&&typeof supPlace==='function'&&!SALT.droneOnly)try{const s=-D.ds*(HL-1.6),tt=D.gs*(HW-1.5),p=P(s,tt),b=supPlace(SALT.G,p[0],p[1],yawU+1.57,ch);b.y=y;b.g.position.y=y;b.s2=D.key;if(SHED2.done.get('L'+D.key)){b.used=true;}SHED2.stat.loot++;D.box=b;}catch(e){}
+    D.live=true;SHED2.live.push(D);
+  }
+}
+/* ворог у складі: зʼявляється, коли гравець підходить; удруге той самий склад не заселяється */
+function shed2Step(G,dt){
+  if(SALT_FEAT.shed2===false)return;SHED2.t-=dt;if(SHED2.t>0)return;SHED2.t=1.1;
+  if(SHED2.live.length)SHED2.live=SHED2.live.filter(D=>{const ok=D.ch&&SALT.chunks.get(saltChunkKey(D.ch.ix,D.ch.iz))===D.ch;if(!ok)D.live=false;return ok;});
+  for(const D of SHED2.live){if(D.box&&D.box.used)SHED2.done.set('L'+D.key,1);}
+  if(SALT.droneOnly&&!SALT.mobFoot||!G.player.alive||(typeof SALT_RULES!=='undefined'&&SALT_RULES.enemies===0))return;const P=G.player.pos;
+  for(const D of SHED2.live){if(!D.en||SHED2.done.get('E'+D.key))continue;const d=Math.hypot(D.cx-P.x,D.cz-P.z);if(d<40||d>115)continue;
+    SHED2.done.set('E'+D.key,1);const HW=D.W/2,Q=(s,tt)=>[D.cx+D.ux*s+D.vx*tt,D.cz+D.uz*s+D.vz*tt],nx=D.vx*D.gs,nz=D.vz*D.gs;let n=0;
+    try{for(const sd of [-1,1]){const p=Q(D.go+sd*(D.gw/2-1),-D.gs*(HW*.25)),b=saltBotMake(G,'enemy',p[0],p[1]);b.fixed={x:p[0],y:D.floorY,z:p[1],nx:nx,nz:nz,wide:true};b.role='guard';b.yaw=Math.atan2(nx,nz);b.pos.set(p[0],D.floorY,p[1]);b.aim=0;b.cdn=2+Math.random()*2;n++;}
+      for(let k=0;k<2;k++){const p=Q(D.go+(k?1:-1)*(D.gw/2+2.5),D.gs*(HW+2.5+k)),b=saltBotMake(G,'enemy',p[0],p[1]);b.home.set(p[0],0,p[1]);b.flank=(Math.random()-.5)*12;n++;}}catch(e){saltFeatFail('shed2',e);}
+    SHED2.stat.sq+=n?1:0;break;}
+}
+/* моноліт більше не виштовхує з порожнистого цеху */
+function shed2Init(){
+  if(SHED2.init)return;SHED2.init=true;
+  if(typeof saltInBld==='function'){const o=saltInBld;saltInBld=function(x,z){const b=o(x,z);return b&&b.s2?null:b;};}
+  /* склад Saltline: перед воротами (довга стіна й торець) нічого не ставимо */
+  if(typeof saltShedPlace==='function'){const o=saltShedPlace;saltShedPlace=function(kit,t,x,z,q,ch){const ok=o.apply(this,arguments);
+      if(ok&&SALT_FEAT.shed2!==false)try{const yaw=q*Math.PI/2,c=Math.round(Math.cos(yaw)),sn=Math.round(Math.sin(yaw)),W=(lx,lz)=>[x+(lx+2)*c+(lz+19.5)*sn,z-(lx+2)*sn+(lz+19.5)*c];
+        for(let d=1.5;d<=10.5;d+=3)for(const o2 of [-2.2,0,2.2]){const a=W(-3.5+o2,-11+d);SALT.taken.push({x:a[0],z:a[1],r:2.6,ck:ch});const b=W(12+d,-19.5+o2);SALT.taken.push({x:b[0],z:b[1],r:2.6,ck:ch});}}catch(e){}
+      return ok;};}
+}
+try{shed2Init();}catch(e){console.error('shed2',e);}
+
+/* ===== дрібні виправлення руху (прапорець SALT_FEAT.fix2) =====
+   1) Плавання — лише там, де є дзеркало води. Раніше вистачало класу «вода» з мапи в точці: боєць «плив» у вузькій сухій канаві, де дзеркала немає,
+      і на дорозі, що йде дамбою чи через воду без моста. Тепер swimWet додатково вимагає: не на проїзній частині; у сітці 6 м, якою малюється дзеркало,
+      тут справді є водяна клітинка; намальована земля лежить нижче дзеркала. Обгортка: вимкнений прапорець — стара перевірка.
+   2) Біг із гранатою: спринт на 15 % швидший, ніж зі зброєю, і не більше — пройдений за кадр шлях обрізається до цієї межі (тактичний ривок і підкат враховано). */
+const FIX2={stat:{road:0,dry:0,high:0,real:0,clamp:0,rmax:0,n:0},lp:null,lt:0,base:0,K:1.15};
+function swim2Real(x,z){
+  let br=false;try{if(typeof BRIDGE!=='undefined'&&BRIDGE.n){const vf=BRIDGE.viaFor;BRIDGE.viaFor=null;saltH(x,z);BRIDGE.viaFor=vf;br=BRIDGE.k>0;}}catch(e){}   /* під мостом вода справжня — міст не чіпаємо */
+  if(!br)try{if(typeof g2RoadDist==='function'){const r=g2RoadDist(x,z);if(r&&r.d<0&&r.k!=='path'){FIX2.stat.road++;return false;}}}catch(e){}
+  const C=6,ox=SALT.ox,oz=SALT.oz,W=(i,j)=>landAt(ox+(i+.5)*C,oz+(j+.5)*C)===6;
+  if(!W(Math.floor(x/C),Math.floor(z/C))){const i0=Math.floor(x/C-.5),j0=Math.floor(z/C-.5);let n=0;for(let a=0;a<2;a++)for(let b=0;b<2;b++)if(W(i0+a,j0+b))n++;if(n<2){FIX2.stat.dry++;return false;}}
+  try{const CH=SALT.CH,c=SALT.chunks.get(Math.floor(x/CH)+'|'+Math.floor(z/CH));if(c&&c.gy&&saltY(x,z)>saltWaterLevel(x,z)-.2){FIX2.stat.high++;return false;}}catch(e){}
+  FIX2.stat.real++;return true;
+}
+function fix2Init(){
+  if(FIX2.init)return;FIX2.init=true;
+  if(typeof swimWet==='function'){const o=swimWet;swimWet=function(x,z){if(!o(x,z))return false;if(typeof SALT_FEAT!=='undefined'&&SALT_FEAT.fix2===false)return true;try{return swim2Real(x,z);}catch(e){return true;}};}
+}
+function fix2Step(G,dt){
+  if(SALT_FEAT.fix2===false)return;const P=G.player,mv=LIFE.mv,tn=P.tuning;if(!tn)return;if(!FIX2.base)FIX2.base=tn.sprint;
+  const gren=typeof ARM!=='undefined'&&ARM.sel==='gren',foot=P.alive&&!SALT.fly.on&&!(typeof DRV!=='undefined'&&DRV.on)&&!(typeof MG!=='undefined'&&MG.on)&&!(typeof SWIM!=='undefined'&&SWIM.on);
+  tn.sprint=FIX2.base*(gren&&foot?FIX2.K:1);
+  const now=G.time&&G.time.t!=null?G.time.t:LIFE.t,lp=FIX2.lp||(FIX2.lp=P.pos.clone()),dte=now-FIX2.lt;FIX2.lt=now;
+  if(gren&&foot&&!FIX2.skip&&dte>0&&dte<.25&&!(mv&&mv.mantle)){const dx=P.pos.x-lp.x,dz=P.pos.z-lp.z,d=Math.hypot(dx,dz);
+    if(d>1e-4&&d<4){const vmax=FIX2.base*FIX2.K+(mv&&mv.tacT>0?2.4:0)+(mv&&mv.slideT>0?7.5:0),lim=vmax*dte*1.03+.004,r=d/(FIX2.base*dte);FIX2.stat.n++;if(r>FIX2.stat.rmax)FIX2.stat.rmax=+r.toFixed(2);
+      if(d>lim){const k=lim/d;P.pos.x=lp.x+dx*k;P.pos.z=lp.z+dz*k;FIX2.stat.clamp++;}}}
+  FIX2.skip=!(gren&&foot);lp.copy(P.pos);
+}
+try{fix2Init();}catch(e){console.error('fix2',e);}
 
 /* ═══════════ ПІХОТИНЕЦЬ ВІД ПЕРШОЇ ОСОБИ ═══════════
    craft==='foot': гравець — боєць на землі. Стан гравця лишається в `drone` (позиція = центр мас,
