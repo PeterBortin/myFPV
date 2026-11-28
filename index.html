@@ -1805,6 +1805,7 @@ try{performance.setResourceTimingBufferSize(8000);}catch(e){}   /* фіксту�
 /* ═════ головний екран «Розвідка з висоти» (title3: клас tt3 на <html>; поверх ui-salt і «планшета» tt2) ═════ */
 html.tt3 #title{--tt3-pad:clamp(16px,3.4vw,56px);--tt3-a:#ffb347;--tt3f:saturate(.42) sepia(.3) hue-rotate(-8deg) contrast(1.18) brightness(.72);background:#0b0d0f!important;}
 html.tt3 #title.tt3-tpv{--tt3f:url(#tt3-thermal) contrast(1.06);}
+html.tt3 #title.tt3-osm:not(.tt3-tpv){--tt3f:invert(1) hue-rotate(180deg) saturate(.35) sepia(.28) contrast(1.06) brightness(.78);}   /* 1139: запасна мапа OSM — темна, у палітрі */
 html.tt3 #title #tt2-top,html.tt3 #title #tt2-stat,html.tt3 #title #tt2-grid,html.tt3 #title #tt2-rings,html.tt3 #title #tt2-x,html.tt3 #title #tt2-scan,html.tt3 #title #tt2-cor,
 html.tt3 #title #tt-pin,html.tt3 #title #tt-veil,html.tt3 #title .ui-legend,html.tt3 #title .ui-bars,html.tt3 #title #tt-bar::before{display:none!important;}
 html.tt3 #title #tt-tiles{filter:var(--tt3f)!important;will-change:transform;transform-origin:50% 50%;}
@@ -1920,6 +1921,10 @@ html.tt3 #title #tt-go{font:700 22px/1 'Ubuntu',sans-serif!important;letter-spac
 @keyframes tt3flash{0%{opacity:0}18%{opacity:.85}100%{opacity:0}}
 html.tt3 #title.tt3-diving #tt-tiles{animation:tt3dive 1.8s cubic-bezier(.55,0,.8,.25) forwards!important;}
 html.tt3 #title.tt3-dived #tt-tiles{transform:translate(var(--dx),var(--dy)) scale(4)!important;animation:none!important;}
+html.tt3 #title #tt3-hd{position:absolute;inset:0;pointer-events:none;overflow:hidden;opacity:0;filter:var(--tt3f);transition:opacity .6s ease-out;}   /* 1139: різкі плитки наприкінці пірнання */
+html.tt3 #title #tt3-hd img{position:absolute;left:0;top:0;width:256px;height:256px;opacity:0;transition:opacity .35s;-webkit-user-drag:none;}
+html.tt3 #title #tt3-hd img.ok{opacity:1;}
+html.tt3 #title.tt3-dived #tt3-hd{opacity:1;}
 @keyframes tt3dive{from{transform:translate(0,0) scale(1)}to{transform:translate(var(--dx),var(--dy)) scale(4)}}
 .tt3-diving #tt3-x,.tt3-diving #tt3-lock,.tt3-diving #tt3-lab{transition:transform 1.8s cubic-bezier(.55,0,.8,.25)!important;}
 .tt3-diving .tt3-v,.tt3-diving .tt3-mk,.tt3-diving #tt3-drn,.tt3-diving #tt3-cl,.tt3-dived .tt3-v,.tt3-dived .tt3-mk,.tt3-dived #tt3-drn,.tt3-dived #tt3-cl{opacity:0!important;transition:opacity .3s;}
@@ -14048,6 +14053,7 @@ function saltEnter(fresh){
     const s=document.createElement('script');s.src='assets/saltline.js';
     s.onload=()=>{try{saltWxPre();window.__SALT_BOOT().then(saltReady,saltFail);}catch(e){saltFail(e);}};
     s.onerror=()=>saltFail('script');
+    saltNoTxt();                                                                                                       // 1139: без написів на текстурах реквізиту рушія
     document.body.appendChild(s);
   }else if(SALT.state===2){window.__SALT_PAUSE=false;try{SALT.G.audio.setPaused(false);}catch(e){}}
   try{if(actx&&dGain)dGain.gain.setTargetAtTime(0,actx.currentTime,.1);}catch(e){}
@@ -14336,7 +14342,10 @@ function saltDecor(kit,t,X0,Z0,ch){
           const sdn=rnd()<.5?1:-1,o=r.w/2+(rl.off||3),x=pc.mx-r.uz*sdn*o,z=pc.mz+r.ux*sdn*o;
           if(roadEdge(x,z,r.id)<1.2)continue;
           const nm=rl.items[(rnd()*rl.items.length)|0];
-          put(nm,x,z,nm==='x_bus_stop'?Math.atan2(r.uz*sdn,-r.ux*sdn):Math.atan2(-r.uz*sdn,-r.ux*sdn)+Math.PI/2,{},0,2,6);}   // 1138b: зупинка — лавою (локальна +z) до дороги, довгим боком уздовж; раніше стояла боком до вулиці
+          /* 1138b/1139: «перед» моделей — локальна +z (перевірено кадрами з чотирьох боків). Зупинка, смітник, стовпчик, конус — передом до дороги,
+             довгим боком уздовж; знак — табличкою до зустрічного руху (правосторонній). Стара формула давала кут, що залежав від напрямку вулиці. */
+          const yF=Math.atan2(r.uz*sdn,-r.ux*sdn),yS=Math.atan2(-r.ux*sdn,-r.uz*sdn);
+          put(nm,x,z,nm==='sign_post'?yS:/^(x_bus_stop|dumpster|bollard_post|traffic_cone)$/.test(nm)?yF:Math.atan2(-r.uz*sdn,-r.ux*sdn)+Math.PI/2,{},0,2,6);}
         continue;}
       let cells=null;
       if(rl.shore){cells=[];for(let i=0;i<N;i++)for(let j=0;j<N;j++)if(at(i,j)!==6&&(at(i+1,j)===6||at(i-1,j)===6||at(i,j+1)===6||at(i,j-1)===6))cells.push([i,j]);}
@@ -14519,6 +14528,7 @@ function saltDecor(kit,t,X0,Z0,ch){
       bx(.34,.6,.34,1.3,.3,0,irn);
       const gy=saltY(x,z);g.position.set(x,gy,z);g.rotation.y=yaw;kit.dynRoot.add(g);
       t.physics.addBox([x-.9,gy-.5,z-.9],[x+.9,gy+.8,z+.9],{surface:'wood'});taken.push({x:x,z:z});bn++;
+      if(typeof civ5BenchAdd==='function')try{civ5BenchAdd(x,gy,z,yaw,ch);}catch(_){}                                // 1139: цивільні сідають і сюди
     }
 
   }
@@ -16651,10 +16661,23 @@ function saltViaOf(road,x,z){
 
 /* ===== бойові системи: виявлення / захват / супровід цілі, режими бачення, РЕБ, пускові й ракети, колони на дорогах, ніші у вікнах, ходові завдання ===== */
 /* прапорці доповнень: window.MYFPV_FEATURES={proto:false,...} або SALT_RULES.features. Модуль, що впав, вимикається сам із повідомленням про справжню помилку. */
-const SALT_FEAT=Object.assign({mil1:true,mil2:true,war:true,strike:true,loot:true,proto:true,world2:true,sat:true,heat:true,sfx:true,vfx:true,bvh:true,bots:true,botsSquad:true,botsCiv:true,botsTraffic:true,feel:true,roads2:true,grav:true,sat2:true,detail:true,tex:true,geo:true,traffic2:true,walk2:true,solid:true,frac:true,trees2:true,facade2:true,ik:true,susp:true,mobile:true,mg:true,pfd:true,blood:true,nrk:true,nobld:true,ramp:true,calm:true,hitfit:true,civ2:true,perf:true,autoq:true,far:true,fixture:true,gen2:true,fields:true,lsm:true,reeds:true,yards:true,ruins:true,trench:true,smoke2:true,lep:true,flares:true,tac:true,sqcmd:true,vehfpv:true,mines:true,snd2:true,hunter:true,civ3:true,tmap:true,camp:true,kit10:true,kit10baked:true,cabin:true,kit11:true,pigeons:true,kit12:true,mobfoot:true,music2:true,push:true,crash:true,sites:true,touch2:true,armhi:true,swim:true,seams:true,bld2:true,car2:true,tree2:true,shed2:true,fix2:true,shahed:true,dog2:true,chicken:true,drv2:true,atmo:true,bridge2:true,ftouch:true,psnd:true,voice2:true,cap2:true,rjoin:true,mveh:true,anim2:true,sat3:true,surf:true,btex:true,t2mid:true,ai3:true,ai2:true,civ4:true,net2:true,title2:true,arms2:true,drive:true,supply:true,title3:true,civ5:true,gore:true},(typeof SALT_RULES!=='undefined'&&SALT_RULES.features)||{},window.MYFPV_FEATURES||{});
+const SALT_FEAT=Object.assign({mil1:true,mil2:true,war:true,strike:true,loot:true,proto:true,world2:true,sat:true,heat:true,sfx:true,vfx:true,bvh:true,bots:true,botsSquad:true,botsCiv:true,botsTraffic:true,feel:true,roads2:true,grav:true,sat2:true,detail:true,tex:true,geo:true,traffic2:true,walk2:true,solid:true,frac:true,trees2:true,facade2:true,ik:true,susp:true,mobile:true,mg:true,pfd:true,blood:true,nrk:true,nobld:true,ramp:true,calm:true,hitfit:true,civ2:true,perf:true,autoq:true,far:true,fixture:true,gen2:true,fields:true,lsm:true,reeds:true,yards:true,ruins:true,trench:true,smoke2:true,lep:true,flares:true,tac:true,sqcmd:true,vehfpv:true,mines:true,snd2:true,hunter:true,civ3:true,tmap:true,camp:true,kit10:true,kit10baked:true,cabin:true,kit11:true,pigeons:true,kit12:true,mobfoot:true,music2:true,push:true,crash:true,sites:true,touch2:true,armhi:true,swim:true,seams:true,bld2:true,car2:true,tree2:true,shed2:true,fix2:true,shahed:true,dog2:true,chicken:true,drv2:true,atmo:true,bridge2:true,ftouch:true,psnd:true,voice2:true,cap2:true,rjoin:true,mveh:true,anim2:true,sat3:true,surf:true,btex:true,t2mid:true,ai3:true,ai2:true,civ4:true,net2:true,title2:true,arms2:true,drive:true,supply:true,title3:true,civ5:true,gore:true,notxt:true},(typeof SALT_RULES!=='undefined'&&SALT_RULES.features)||{},window.MYFPV_FEATURES||{});
 /* вимкнути модулі з адреси сторінки: ?off=roads2,vfx — щоб порівняти «до» і «після» на тій самій точці */
 try{const m=/[?&]off=([\w,]+)/.exec(location.search);if(m)m[1].split(',').forEach(k=>{if(k in SALT_FEAT)SALT_FEAT[k]=false;});}catch(e){}
 function saltFeatFail(name,e){if(SALT_FEAT[name]===false)return;SALT_FEAT[name]=false;const msg=String(e&&e.message||e).slice(0,120);console.error('module '+name+':',e);if(name==='vfx')try{vfxDispose();}catch(_){}try{saltFlyMsg('модуль «'+name+'» вимкнено: '+msg);}catch(_){}}
+/* 1139: правило «без написів на моделях». Рушій (assets/saltline.js) малює текст на текстурах реквізиту: логотипи й трафарети
+   контейнерів, ящиків, смітників, наліпки на зброї. Тут цей текст не малюється. Рішення — раз на полотно: якщо перший fillText на
+   ньому кличе безпосередньо код рушія, на цьому полотні написів не буде; полотна гри (приціл, мапа, HUD) не чіпаються, навіть коли
+   їх малюють із циклу рушія. Решта графіки (смуги, стрілки, кола) лишається. Вимкнути: ?off=notxt */
+function saltNoTxt(){
+  if(SALT_FEAT.notxt===false||saltNoTxt.on||typeof CanvasRenderingContext2D==='undefined')return;saltNoTxt.on=1;
+  try{const P=CanvasRenderingContext2D.prototype,of=P.fillText,W=new WeakMap();
+    P.fillText=function(){const c=this.canvas;let v=c?W.get(c):false;
+      if(v===undefined){v=false;if(SALT_FEAT.notxt!==false)try{const fr=String(new Error().stack||'').split('\n').slice(1,4).filter(l=>!/fillText/.test(l))[0]||'';v=/saltline\.js/.test(fr);}catch(e){}
+        W.set(c,v);if(v)SALT.noTxtN=(SALT.noTxtN||0)+1;}
+      if(v)return;return of.apply(this,arguments);};
+  }catch(e){saltFeatFail('notxt',e);}
+}
 const WAR={sites:[],cols:[],veh:[],msl:[],niches:[],tg:[],tgT:0,t:0,spT:3,vis:0,jam:0,jamT:0,lock:null,lockLost:0,task:null,taskT:14,done:0,raidT:70,keys:{},seen:new WeakMap(),warn:{}};
 const WAR_LBL={nrk:'НРК',inf:'піхота',sniper:'снайпер',opr:'оператор дронів',drone:'дрон',hound:'робопес',truck:'вантажівка',apc:'БТР',tank:'танк',pu:'пускова',ew:'РЕБ',msl:'ракета',boat:'катер',armor:'техніка'};
 const WAR_VIS=['звичайний','тепловізор','нічний'];
@@ -23407,7 +23430,8 @@ function civ5Route(b,c,tx,tz,fx,fz){
 }
 function civ5GoP(b,c,spd,dt){
   const pp=c.pp;if(!pp||!pp.length)return true;const q=pp[Math.min(c.pi,pp.length-1)],last=c.pi>=pp.length-1;
-  const ar=civ5Go(b,c,q.x,q.z,spd,dt,q.free&&Math.hypot(q.x-b.pos.x,q.z-b.pos.z)<1.9);if(last)return ar;if(ar||Math.hypot(q.x-b.pos.x,q.z-b.pos.z)<.8)c.pi++;return false;
+  /* 1139: маршрутові з findPath віримо, як і решта ботів (walkTo) — без перевірки кожного кроку */
+  const ar=civ5Go(b,c,q.x,q.z,spd,dt,true);if(last)return ar;if(ar||Math.hypot(q.x-b.pos.x,q.z-b.pos.z)<.8)c.pi++;return false;
 }
 function civ5Sync(b){try{if(b.yk&&b.yk.veh){b.yk.veh.position.set(b.pos.x,0,b.pos.z);b.yk.veh.velocity.set(0,0,0);}}catch(e){}}
 function civ5Face(b,ty,dt,k){const dy=((ty-b.yaw+Math.PI*3)%(Math.PI*2))-Math.PI;b.yaw+=dy*Math.min(1,dt*(k||4));}
@@ -23442,13 +23466,14 @@ function civ5Sky(b){
 }
 /* лавки зупинок: лава шукається за геометрією (дошка на висоті ~0,5 м), лицем — від скла до дороги */
 function civ5Seats(){
-  CIV5.seats=CIV5.seats.filter(s=>s.e&&!s.e.dead&&DEST.list.indexOf(s.e)>=0);
+  const DS=new Set(DEST.list),CH=SALT.chunks;                                                                        // 1139: множина замість indexOf на кожне місце
+  CIV5.seats=CIV5.seats.filter(s=>s.e&&!s.e.dead&&(s.cb?!!(CH&&s.e.ck&&CH.get(saltChunkKey(s.e.ck.ix,s.e.ck.iz))===s.e.ck):DS.has(s.e)));   // лавка двору — поки жива її ділянка
   for(const e of DEST.list){if(e.name!=='x_bus_stop'||e.dead||e.c5s||!e.ranges||!e.bb)continue;e.c5s=1;
     /* 1138b: орієнтація з самої форми — верх сидіння (нормаль угору на висоті 0,44–0,6 м) дає довгу вісь лави (головні компоненти),
        планки спинки (0,7–1 м) кажуть, де зад; без спинки — бік ближче до проїзної частини; останнє — до середини габариту */
-    const y0=e.bb.min.y,S=[],K=[];
+    const y0=e.bb.min.y,S=[],K=[];let sy=0;
     for(const r of e.ranges){if(!r.mesh)continue;const g=r.mesh.geometry,A=g.attributes.position,N=g.attributes.normal;
-      for(let i=r.s;i<r.s+r.c;i++){const y=A.getY(i)-y0;if(y>.44&&y<.6&&(!N||N.getY(i)>.85))S.push(A.getX(i),A.getZ(i));else if(y>.7&&y<1.02)K.push(A.getX(i),A.getZ(i));}}
+      for(let i=r.s;i<r.s+r.c;i++){const y=A.getY(i)-y0;if(y>.44&&y<.6&&(!N||N.getY(i)>.85)){S.push(A.getX(i),A.getZ(i));sy+=y;}else if(y>.7&&y<1.02)K.push(A.getX(i),A.getZ(i));}}
     const n=S.length/2;if(n<6)continue;let bx=0,bz=0;for(let i=0;i<S.length;i+=2){bx+=S[i];bz+=S[i+1];}bx/=n;bz/=n;
     let xx=0,zz=0,xz=0;for(let i=0;i<S.length;i+=2){const dx=S[i]-bx,dz=S[i+1]-bz;xx+=dx*dx;zz+=dz*dz;xz+=dx*dz;}
     const th=.5*Math.atan2(2*xz,xx-zz),ax=Math.cos(th),az=Math.sin(th);let fx=-az,fz=ax,sg=0;
@@ -23457,7 +23482,12 @@ function civ5Seats(){
     if(!sg)sg=((e.c.x-bx)*fx+(e.c.z-bz)*fz)>=0?1:-1;
     fx*=sg;fz*=sg;let lo=1e9,hi=-1e9;for(let i=0;i<S.length;i+=2){const t=(S[i]-bx)*ax+(S[i+1]-bz)*az;if(t<lo)lo=t;if(t>hi)hi=t;}
     const mid=(hi+lo)/2,cx=bx+ax*mid,cz=bz+az*mid;e.c5f={x:fx,z:fz,bx:cx,bz:cz,len:hi-lo,how:K.length>=8?'back':'road'};
-    for(const o of (hi-lo>2.2?[-.62,.62]:[0]))CIV5.seats.push({x:cx+ax*o+fx*.46,z:cz+az*o+fz*.46,fx:fx,fz:fz,yaw:Math.atan2(fx,fz),e:e,used:null});}
+    const syW=y0+sy/n;for(const o of (hi-lo>2.2?[-.62,.62]:[0]))CIV5.seats.push({x:cx+ax*o+fx*.46,z:cz+az*o+fz*.46,fx:fx,fz:fz,yaw:Math.atan2(fx,fz),sy:syW,e:e,used:null});}
+}
+/* 1139: лавки в парках і дворах (будує наповнювач ділянки): перед — локальна +z, сидіння 1,7 м на висоті 0,48 м; місця — дві */
+function civ5BenchAdd(x,y,z,yaw,ch){
+  if(SALT_FEAT.civ5===false)return;const e={dead:0,ck:ch},fx=Math.sin(yaw),fz=Math.cos(yaw),ax=Math.cos(yaw),az=-Math.sin(yaw);
+  for(const k of [-.4,.4])CIV5.seats.push({x:x+ax*k+fx*.46,z:z+az*k+fz*.46,fx:fx,fz:fz,yaw:yaw,sy:y+.48,e:e,cb:1,used:null});
 }
 function civ5Seat(b){let best=null,bd=40;for(const s of CIV5.seats){if(s.used&&s.used.alive&&s.used.c5&&s.used.c5.seat===s)continue;const d=Math.hypot(s.x-b.pos.x,s.z-b.pos.z);if(d<bd){bd=d;best=s;}}return best;}
 /* стани, що вже тривають; true — людиною кермує цей модуль */
@@ -23483,9 +23513,10 @@ function civ5State(b,c,dt){
       if(civ5GoP(b,c,1.25*c.spd,dt)){c.st='sit';c.t=0;c.dur=14+c.R()*24;}else if(c.blk>1.5||c.t>40){civ5End(b,c,10);return false;}return true;}
     case 'sit':{const s=c.seat;b.sp=0;c.v=0;if(!s||s.e.dead){civ5End(b,c);return false;}b.pos.x+=(s.x-b.pos.x)*Math.min(1,dt*4);b.pos.z+=(s.z-b.pos.z)*Math.min(1,dt*4);civ5Face(b,s.yaw,dt,5);c.pose='sit';
       if(c.t>c.dur){c.st='stand';c.t=0;}return true;}
-    case 'stand':{b.sp=0;c.pose='';if(c.t>.7){civ5End(b,c,20+c.R()*20);return false;}return true;}
+    case 'stand':{c.pose='';const s=c.seat;if(s&&c.t>.5){if(civ5Go(b,c,s.x+s.fx*1.2,s.z+s.fz*1.2,.8*c.spd,dt,true)||c.t>2.6){civ5End(b,c,20+c.R()*20);return false;}return true;}   // 1139: встав — крок від лави
+      b.sp=0;if(!s&&c.t>.7){civ5End(b,c,20+c.R()*20);return false;}return true;}
     case 'wall-go':{const w=c.wl;if(civ5GoP(b,c,1.1*c.spd,dt)){c.st='wall';c.t=0;c.dur=6+c.R()*8;}else if(c.blk>1.5||c.t>25){civ5End(b,c);return false;}return true;}
-    case 'wall':{b.sp=0;c.v=0;const w=c.wl;civ5Face(b,Math.atan2(w.b.cx-SALT.ox-b.pos.x,w.b.cz-SALT.oz-b.pos.z),dt,3);c.pose='window';if(c.t>c.dur){civ5End(b,c,14+c.R()*16);return false;}return true;}
+    case 'wall':{b.sp=0;c.v=0;const w=c.wl;civ5Face(b,c.wf!=null?c.wf:Math.atan2(w.b.cx-SALT.ox-b.pos.x,w.b.cz-SALT.oz-b.pos.z),dt,3);/* лицем до стіни по нормалі */c.pose='window';if(c.t>c.dur){civ5End(b,c,14+c.R()*16);return false;}return true;}
     case 'look':{b.sp=0;c.v=0;c.pose='look';if(c.t>c.dur){civ5End(b,c,10+c.R()*12);return false;}return true;}
     case 'sky':{b.sp=0;c.v=0;const p=civ5Sky(b);if(p)c.sk=p;c.pose=c.point?'point':'sky';if(c.sk)civ5Face(b,Math.atan2(c.sk.x-b.pos.x,c.sk.z-b.pos.z),dt,2.5);
       if(c.t>c.dur||!p&&c.t>1){civ5End(b,c,6);c.skyCd=22;return false;}return true;}
@@ -23528,7 +23559,9 @@ function civ5Own(b,dt){
   if((c.cd-=dt)<=0){c.cd=4+c.R()*6;if(typeof CIV2!=='undefined'&&CIV2.danger)return false;const r=c.R();
     if(r<.3){const s=civ5Seat(b);if(s&&civ5Route(b,c,s.x+s.fx*1.3,s.z+s.fz*1.3,s.x,s.z)){s.used=b;c.seat=s;c.st='seat-go';c.t=0;CIV5.stat.bench++;return civ5State(b,c,dt);}}
     if(r>=.3&&r<.4&&now-c.born>25){const d=civ5DoorNear(b.pos.x,b.pos.z,18);if(d&&civ5Route(b,c,d.x,d.z)){c.door=d;c.st='door-go';c.t=0;return civ5State(b,c,dt);}}
-    if(r>=.4&&r<.52){let w=null;try{w=typeof civ2Wall==='function'?civ2Wall(b.pos.x,b.pos.z,12):null;}catch(e){}if(w&&w.b&&w.d>1&&civ5Route(b,c,w.x,w.z)){c.wl=w;c.st='wall-go';c.t=0;CIV5.stat.wall++;return civ5State(b,c,dt);}}
+    if(r>=.4&&r<.52){let w=null;try{w=typeof civ2Wall==='function'?civ2Wall(b.pos.x,b.pos.z,12):null;}catch(e){}if(w&&w.b&&w.d>1){let ok=false;for(const pad of [1.3,1.9]){let a=null;try{a=nobldOut(w.b,b.pos.x,b.pos.z,pad);}catch(e){}   // 1139: точка за 0,45 м від стіни поза сіткою —
+        if(a&&civ5Route(b,c,a[0],a[1],w.x,w.z)){c.wf=Math.atan2(w.x-a[0],w.z-a[1]);ok=true;break;}}                                 // маршрут до точки далі, останній крок вільний
+      if(ok){c.wl=w;c.st='wall-go';c.t=0;CIV5.stat.wall++;return civ5State(b,c,dt);}}}
     if(r>=.52&&r<.64){c.st='look';c.t=0;c.dur=2.2+c.R()*2.2;CIV5.stat.look++;return civ5State(b,c,dt);}}
   return false;
 }
@@ -23566,7 +23599,8 @@ function civ5Pose(m,dt,b){
       c.bag.rotation.set(-R.up.rotation.x*.6,0,0);c.bag.visible=c.pose!=='sit'&&c.pose!=='point';}
     if(k>.01&&!c4){
       if(c.pose==='sit'){                                                       // сидить: таз на лаві, стегна вперед, гомілки вниз, руки на колінах
-        m.hips.position.y+=(.63-m.hips.position.y)*k;m.hips.position.z+=(-.43-m.hips.position.z)*k;m.hips.rotation.x*=1-k;
+        const hy=c.seat&&c.seat.sy!=null?Math.max(.42,Math.min(.8,c.seat.sy-b.pos.y+.08)):.63;                    // 1139: таз — на висоті саме цього сидіння
+        m.hips.position.y+=(hy-m.hips.position.y)*k;m.hips.position.z+=(-.43-m.hips.position.z)*k;m.hips.rotation.x*=1-k;
         for(const g of [m.legL,m.legR]){mix(g.th,-1.5,0,g.sd*.06);mix(g.sh,1.48,0,0);mix(g.ft,.05,0,0);}
         m.spine.rotation.x+=(-.12-m.spine.rotation.x)*k;mix(L.up,-.42,0,.1);mix(R.up,-.42,0,-.1);if(L.lo){mix(L.lo,-.95,0,0);mix(R.lo,-.95,0,0);}}
       else if(c.pose==='runcover'||c.pose==='cower'){mix(L.up,-2.25,0,-.52);mix(R.up,-2.25,0,.52);if(L.lo){mix(L.lo,-2.05,0,0);mix(R.lo,-2.05,0,0);}m.head.rotation.x+=.4*k;m.spine.rotation.x+=(c.pose==='cower'?.35:.25)*k;}
@@ -23651,9 +23685,25 @@ function gorePart(geos,c,vel,spin,r){
   const cap=new T.Mesh(R.goreCapG,R.goreCap);cap.scale.setScalar(r*.78);cap.userData.gore=1;grp.add(cap);
   grp.userData.noMerge=true;SALT.G.scene.add(grp);
   const P={o:grp,geos:geos,dec:0};
-  if(typeof gravAdd==='function'&&SALT_FEAT.grav!==false)gravAdd(grp,{v:vel,r:Math.max(.04,r*.8),k:.26,w:spin,life:40,onRest:()=>{if(P.dec++<1)try{bloodDecal(grp.position.x,grp.position.z,.1+Math.random()*.12,false);}catch(e){}}});
+  if(typeof gravAdd==='function'&&SALT_FEAT.grav!==false)P.gb=gravAdd(grp,{v:vel,r:Math.max(.04,r*.8),k:.26,w:spin,life:40,onRest:()=>{if(P.dec++<1)try{bloodDecal(grp.position.x,grp.position.z,.1+Math.random()*.12,false);}catch(e){}try{goreSettle(P);}catch(e){}}});
   else grp.position.y=Math.max(grp.position.y-.3,saltH(c.x,c.z)+r);
   GORE.parts.push(P);goreTrim();return grp;
+}
+/* 1139: шматок ліг — перевертається на найширший бік (найкоротша вісь — вертикально, найменшим поворотом) і стає на опору,
+   а не встромлюється в землю: на стенді до цього 30 з 39 шматків сиділи в ґрунті до 0,43 м */
+function goreSettle(P){
+  const T=SALT.G.THREE,g=P.o;if(!g||!g.parent)return;
+  if(P.lb===undefined){const b=new T.Box3(),cg=SALT.res.goreCapG;for(const m of g.children){const q=m.geometry;if(!q||q===cg)continue;if(!q.boundingBox)q.computeBoundingBox();b.union(q.boundingBox);}P.lb=b.isEmpty()?null:b.getSize(new T.Vector3());}
+  if(!P.lb)return;const s=P.lb,a=s.x<=s.y&&s.x<=s.z?new T.Vector3(1,0,0):s.y<=s.z?new T.Vector3(0,1,0):new T.Vector3(0,0,1);
+  const d=a.applyQuaternion(g.quaternion).normalize(),qa=new T.Quaternion().setFromUnitVectors(d,new T.Vector3(0,d.y>=0?1:-1,0));
+  P.q0=g.quaternion.clone();P.q1=new T.Quaternion().multiplyQuaternions(qa,g.quaternion);P.st=0;
+}
+function goreSettleStep(dt){
+  const T=SALT.G.THREE;for(const P of GORE.parts){if(!P.q1)continue;const g=P.o;if(!g.parent){P.q1=null;continue;}
+    P.st=Math.min(1,P.st+dt/.24);const k=P.st*P.st*(3-2*P.st);g.quaternion.copy(P.q0).slerp(P.q1,k);g.updateMatrixWorld(true);
+    const bb=(GORE.bb||(GORE.bb=new T.Box3())).setFromObject(g),cx=(bb.min.x+bb.max.x)/2,cz=(bb.min.z+bb.max.z)/2,sup=gravSupport(cx,cz,bb.min.y+.3);
+    g.position.y+=sup-.012-bb.min.y;if(P.gb)P.gb.r=Math.max(.02,g.position.y-sup);                                   // тяжіння знає нову висоту центру — не будить шматок
+    if(P.st>=1)P.q1=null;}
 }
 function goreTrim(){
   const lim=SALT.lite||SALT.droneOnly?16:GORE.max;
@@ -23705,7 +23755,7 @@ function goreGib(b,at,dir,big){
 function goreDrop(m,at){
   const T=SALT.G.THREE,r=m.rifle;r.updateMatrixWorld(true);const c=new T.Vector3();r.getWorldPosition(c);const geos=goreMeshGeo(r,true,c);if(!geos.length)return;
   const grp=new T.Group();grp.position.copy(c);for(const q of geos){const a=new T.Mesh(q.geo,q.mat);a.castShadow=true;grp.add(a);}grp.userData.noMerge=true;SALT.G.scene.add(grp);r.visible=false;
-  GORE.parts.push({o:grp,geos:geos});if(typeof gravAdd==='function')gravAdd(grp,{v:new T.Vector3((c.x-at.x)*2,2.5,(c.z-at.z)*2),r:.05,k:.3,w:new T.Vector3((Math.random()-.5)*8,0,(Math.random()-.5)*8),life:40});
+  const P={o:grp,geos:geos};GORE.parts.push(P);if(typeof gravAdd==='function')P.gb=gravAdd(grp,{v:new T.Vector3((c.x-at.x)*2,2.5,(c.z-at.z)*2),r:.05,k:.3,w:new T.Vector3((Math.random()-.5)*8,0,(Math.random()-.5)*8),life:40,onRest:()=>{try{goreSettle(P);}catch(e){}}});   // 1139: лягає плазом, не встромлюється
 }
 /* влучання в тіло: куди саме — за капсулами кісток у поточній позі */
 const _gv={};
@@ -23757,7 +23807,7 @@ function goreInit(G){
     catch(e){saltFeatFail('gore',e);}return hit;};
   if(typeof saltBlast==='function'){const o=saltBlast;saltBlast=function(at,rad){const r=o.apply(this,arguments);try{goreBlast(at,rad,arguments[2]);}catch(e){saltFeatFail('gore',e);}return r;};}
 }
-function goreStep(G,dt){if(SALT_FEAT.gore===false)return;goreInit(G);if((GORE.tT=(GORE.tT||0)-dt)<=0){GORE.tT=2;goreTrim();}}
+function goreStep(G,dt){if(SALT_FEAT.gore===false)return;goreInit(G);try{goreSettleStep(dt);}catch(e){}if((GORE.tT=(GORE.tT||0)-dt)<=0){GORE.tT=2;goreTrim();}}
 
 /* ===== поведінка ботів, другий шар (прапорець SALT_FEAT.ai3) =====
    Надбудова над bots.js, tactics.js, ai2.js, civ4.js — нічого з них не замінює, перехоплює бійця лише на час дії.
@@ -28457,13 +28507,18 @@ function loop(){
 var TT={la:50.4501,lo:30.5234,z:12,cx:0,cy:0,tiles:{},el:null};
 function ttProj(la,lo,z){var s=256*Math.pow(2,z),sn=Math.sin(la*Math.PI/180);return [(lo+180)/360*s,(.5-Math.log((1+sn)/(1-sn))/(4*Math.PI))*s];}
 function ttUnproj(x,y,z){var s=256*Math.pow(2,z),n=Math.PI-2*Math.PI*y/s;return [180/Math.PI*Math.atan(.5*(Math.exp(n)-Math.exp(-n))),x/s*360-180];}
+/* 1139: запасне джерело — після 6 збоїв уся мапа йде з OSM (і підпис джерела теж) */
+function ttTileFail(){var u=this._osm;this.onerror=null;if(!u||this.src===u)return;this.src=u;TT.srcFail=(TT.srcFail||0)+1;
+  if(TT.srcFail>=6&&TT.src){TT.src=null;try{if(typeof tt3SrcFail==='function')tt3SrcFail();}catch(e){}}}
 function ttDraw(){
   var m=document.getElementById('tt-map');if(!m)return;
   var w=m.clientWidth,h=m.clientHeight,z=TT.z,n=Math.pow(2,z),x0=TT.cx-w/2,y0=TT.cy-h/2,T=document.getElementById('tt-tiles'),seen={};
   for(var tx=Math.floor(x0/256);tx<=Math.floor((x0+w)/256);tx++)for(var ty=Math.floor(y0/256);ty<=Math.floor((y0+h)/256);ty++){
     if(ty<0||ty>=n)continue;
     var k=z+'/'+tx+'/'+ty,im=TT.tiles[k];seen[k]=1;
-    if(!im){im=new Image();im.decoding='async';im.src=TT.src?TT.src.replace('{z}',z).replace('{x}',((tx%n)+n)%n).replace('{y}',ty):'https://tile.openstreetmap.org/'+z+'/'+(((tx%n)+n)%n)+'/'+ty+'.png';TT.tiles[k]=im;T.appendChild(im);}   // TT.src — шаблон тайлів (title3: знімок Esri)
+    if(!im){im=new Image();im.decoding='async';var osm='https://tile.openstreetmap.org/'+z+'/'+(((tx%n)+n)%n)+'/'+ty+'.png';
+      if(TT.src){im._osm=osm;im.onerror=ttTileFail;}                                                                  // 1139: плитка знімка не прийшла — та сама плитка з OSM
+      im.src=TT.src?TT.src.replace('{z}',z).replace('{x}',((tx%n)+n)%n).replace('{y}',ty):osm;TT.tiles[k]=im;T.appendChild(im);}   // TT.src — шаблон тайлів (title3: знімок Esri)
     im.style.transform='translate('+Math.round(tx*256-x0)+'px,'+Math.round(ty*256-y0)+'px)';
   }
   for(var q in TT.tiles)if(!seen[q]){T.removeChild(TT.tiles[q]);delete TT.tiles[q];}
@@ -28747,6 +28802,7 @@ function tt3Init(){
   return true;
 }
 /* збій: прибрати свій шар і повернути «планшет» */
+function tt3SrcFail(){var cr=document.getElementById('tt-credit');if(cr)cr.textContent='© OpenStreetMap';if(TT3.on)document.getElementById('title').classList.add('tt3-osm');}
 function tt3Off(){
   TT3.on=false;try{cancelAnimationFrame(TT3.raf);}catch(e){}document.documentElement.classList.remove('tt3');
   ['tt3-fx','tt3-veil','tt3-tel','tt3-dive'].forEach(function(id){var e=document.getElementById(id);if(e&&e.parentNode)e.parentNode.removeChild(e);});
@@ -28865,11 +28921,23 @@ function tt3Loop(now){
 }
 /* «У бій»: пірнання на точку (CSS-анімація на компоненті тайлів — не гальмує, навіть коли гра вже вантажиться) */
 function tt3Pass(){var go=document.getElementById('tt-go');TT3.pass=true;try{if(go)go.click();}finally{TT3.pass=false;}}
+/* 1139: різкий кінець пірнання — під час польоту вантажаться плитки на 2 рівні ближче (рівно ×4, як і політ) навколо точки;
+   наприкінці шар проявляється поверх збільшеного, кожна плитка — щойно прийшла */
+function tt3Hd(w,h){
+  var T=document.getElementById('tt-tiles'),z=+TT.z,ti=document.getElementById('title');if(ti)ti.setAttribute('data-hd','z'+TT.z+':'+(typeof TT.z));if(!T||z%1)return;var z2=z+2;if(z2>18)return;
+  var d=document.getElementById('tt3-hd');if(d)d.innerHTML='';else{d=document.createElement('div');d.id='tt3-hd';T.parentNode.insertBefore(d,T.nextSibling);}
+  var p=ttProj(TT.la,TT.lo,z2),n=Math.pow(2,z2),x0=p[0]-w/2,y0=p[1]-h/2,k=0;if(ti)ti.setAttribute('data-hd','ok'+z2);
+  for(var tx=Math.floor(x0/256);tx<=Math.floor((x0+w)/256);tx++)for(var ty=Math.floor(y0/256);ty<=Math.floor((y0+h)/256);ty++){
+    if(ty<0||ty>=n)continue;var xs=((tx%n)+n)%n,osm='https://tile.openstreetmap.org/'+z2+'/'+xs+'/'+ty+'.png',im=new Image();im.decoding='async';
+    if(TT.src){im._osm=osm;im.onerror=ttTileFail;}im.onload=function(){this.className='ok';};
+    im.src=TT.src?TT.src.replace('{z}',z2).replace('{x}',xs).replace('{y}',ty):osm;
+    im.style.transform='translate('+Math.round(tx*256-x0)+'px,'+Math.round(ty*256-y0)+'px)';d.appendChild(im);if(++k>=90)return;}
+}
 function tt3Dive(){
   if(TT3.dive)return;var t=document.getElementById('title'),m=document.getElementById('tt-map'),T=document.getElementById('tt-tiles');
   if(!t||!m||!T||tt3Calm()){tt3Pass();return;}
   var w=m.clientWidth,h=m.clientHeight,p=ttProj(TT.la,TT.lo,TT.z),px=p[0]-(TT.cx-w/2),py=p[1]-(TT.cy-h/2);
-  TT3.dive=performance.now();TT3.alt0=tt3Alt();
+  TT3.dive=performance.now();TT3.alt0=tt3Alt();try{tt3Hd(w,h);}catch(e){}
   T.style.transformOrigin=px.toFixed(1)+'px '+py.toFixed(1)+'px';T.style.setProperty('--dx',(w/2-px).toFixed(1)+'px');T.style.setProperty('--dy',(h/2-py).toFixed(1)+'px');
   t.classList.add('tt3-diving');
   var c='translate('+Math.round(w/2)+'px,'+Math.round(h/2)+'px)';['tt3-x','tt3-lock','tt3-lab'].forEach(function(id){var e=TT3.el[id];if(e)e.style.transform=c;});
