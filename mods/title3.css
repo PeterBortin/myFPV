@@ -1,6 +1,7 @@
 /* ═════ головний екран «Розвідка з висоти» (title3: клас tt3 на <html>; поверх ui-salt і «планшета» tt2) ═════ */
 html.tt3 #title{--tt3-pad:clamp(16px,3.4vw,56px);--tt3-a:#ffb347;--tt3f:saturate(.42) sepia(.3) hue-rotate(-8deg) contrast(1.18) brightness(.72);background:#0b0d0f!important;}
 html.tt3 #title.tt3-tpv{--tt3f:url(#tt3-thermal) contrast(1.06);}
+html.tt3 #title.tt3-osm:not(.tt3-tpv){--tt3f:invert(1) hue-rotate(180deg) saturate(.35) sepia(.28) contrast(1.06) brightness(.78);}   /* 1139: запасна мапа OSM — темна, у палітрі */
 html.tt3 #title #tt2-top,html.tt3 #title #tt2-stat,html.tt3 #title #tt2-grid,html.tt3 #title #tt2-rings,html.tt3 #title #tt2-x,html.tt3 #title #tt2-scan,html.tt3 #title #tt2-cor,
 html.tt3 #title #tt-pin,html.tt3 #title #tt-veil,html.tt3 #title .ui-legend,html.tt3 #title .ui-bars,html.tt3 #title #tt-bar::before{display:none!important;}
 html.tt3 #title #tt-tiles{filter:var(--tt3f)!important;will-change:transform;transform-origin:50% 50%;}
@@ -116,6 +117,10 @@ html.tt3 #title #tt-go{font:700 22px/1 'Ubuntu',sans-serif!important;letter-spac
 @keyframes tt3flash{0%{opacity:0}18%{opacity:.85}100%{opacity:0}}
 html.tt3 #title.tt3-diving #tt-tiles{animation:tt3dive 1.8s cubic-bezier(.55,0,.8,.25) forwards!important;}
 html.tt3 #title.tt3-dived #tt-tiles{transform:translate(var(--dx),var(--dy)) scale(4)!important;animation:none!important;}
+html.tt3 #title #tt3-hd{position:absolute;inset:0;pointer-events:none;overflow:hidden;opacity:0;filter:var(--tt3f);transition:opacity .6s ease-out;}   /* 1139: різкі плитки наприкінці пірнання */
+html.tt3 #title #tt3-hd img{position:absolute;left:0;top:0;width:256px;height:256px;opacity:0;transition:opacity .35s;-webkit-user-drag:none;}
+html.tt3 #title #tt3-hd img.ok{opacity:1;}
+html.tt3 #title.tt3-dived #tt3-hd{opacity:1;}
 @keyframes tt3dive{from{transform:translate(0,0) scale(1)}to{transform:translate(var(--dx),var(--dy)) scale(4)}}
 .tt3-diving #tt3-x,.tt3-diving #tt3-lock,.tt3-diving #tt3-lab{transition:transform 1.8s cubic-bezier(.55,0,.8,.25)!important;}
 .tt3-diving .tt3-v,.tt3-diving .tt3-mk,.tt3-diving #tt3-drn,.tt3-diving #tt3-cl,.tt3-dived .tt3-v,.tt3-dived .tt3-mk,.tt3-dived #tt3-drn,.tt3-dived #tt3-cl{opacity:0!important;transition:opacity .3s;}

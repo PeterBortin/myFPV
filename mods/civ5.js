@@ -72,7 +72,8 @@ function civ5Route(b,c,tx,tz,fx,fz){
 }
 function civ5GoP(b,c,spd,dt){
   const pp=c.pp;if(!pp||!pp.length)return true;const q=pp[Math.min(c.pi,pp.length-1)],last=c.pi>=pp.length-1;
-  const ar=civ5Go(b,c,q.x,q.z,spd,dt,q.free&&Math.hypot(q.x-b.pos.x,q.z-b.pos.z)<1.9);if(last)return ar;if(ar||Math.hypot(q.x-b.pos.x,q.z-b.pos.z)<.8)c.pi++;return false;
+  /* 1139: маршрутові з findPath віримо, як і решта ботів (walkTo) — без перевірки кожного кроку */
+  const ar=civ5Go(b,c,q.x,q.z,spd,dt,true);if(last)return ar;if(ar||Math.hypot(q.x-b.pos.x,q.z-b.pos.z)<.8)c.pi++;return false;
 }
 function civ5Sync(b){try{if(b.yk&&b.yk.veh){b.yk.veh.position.set(b.pos.x,0,b.pos.z);b.yk.veh.velocity.set(0,0,0);}}catch(e){}}
 function civ5Face(b,ty,dt,k){const dy=((ty-b.yaw+Math.PI*3)%(Math.PI*2))-Math.PI;b.yaw+=dy*Math.min(1,dt*(k||4));}
@@ -107,13 +108,14 @@ function civ5Sky(b){
 }
 /* лавки зупинок: лава шукається за геометрією (дошка на висоті ~0,5 м), лицем — від скла до дороги */
 function civ5Seats(){
-  CIV5.seats=CIV5.seats.filter(s=>s.e&&!s.e.dead&&DEST.list.indexOf(s.e)>=0);
+  const DS=new Set(DEST.list),CH=SALT.chunks;                                                                        // 1139: множина замість indexOf на кожне місце
+  CIV5.seats=CIV5.seats.filter(s=>s.e&&!s.e.dead&&(s.cb?!!(CH&&s.e.ck&&CH.get(saltChunkKey(s.e.ck.ix,s.e.ck.iz))===s.e.ck):DS.has(s.e)));   // лавка двору — поки жива її ділянка
   for(const e of DEST.list){if(e.name!=='x_bus_stop'||e.dead||e.c5s||!e.ranges||!e.bb)continue;e.c5s=1;
     /* 1138b: орієнтація з самої форми — верх сидіння (нормаль угору на висоті 0,44–0,6 м) дає довгу вісь лави (головні компоненти),
        планки спинки (0,7–1 м) кажуть, де зад; без спинки — бік ближче до проїзної частини; останнє — до середини габариту */
-    const y0=e.bb.min.y,S=[],K=[];
+    const y0=e.bb.min.y,S=[],K=[];let sy=0;
     for(const r of e.ranges){if(!r.mesh)continue;const g=r.mesh.geometry,A=g.attributes.position,N=g.attributes.normal;
-      for(let i=r.s;i<r.s+r.c;i++){const y=A.getY(i)-y0;if(y>.44&&y<.6&&(!N||N.getY(i)>.85))S.push(A.getX(i),A.getZ(i));else if(y>.7&&y<1.02)K.push(A.getX(i),A.getZ(i));}}
+      for(let i=r.s;i<r.s+r.c;i++){const y=A.getY(i)-y0;if(y>.44&&y<.6&&(!N||N.getY(i)>.85)){S.push(A.getX(i),A.getZ(i));sy+=y;}else if(y>.7&&y<1.02)K.push(A.getX(i),A.getZ(i));}}
     const n=S.length/2;if(n<6)continue;let bx=0,bz=0;for(let i=0;i<S.length;i+=2){bx+=S[i];bz+=S[i+1];}bx/=n;bz/=n;
     let xx=0,zz=0,xz=0;for(let i=0;i<S.length;i+=2){const dx=S[i]-bx,dz=S[i+1]-bz;xx+=dx*dx;zz+=dz*dz;xz+=dx*dz;}
     const th=.5*Math.atan2(2*xz,xx-zz),ax=Math.cos(th),az=Math.sin(th);let fx=-az,fz=ax,sg=0;
@@ -122,7 +124,12 @@ function civ5Seats(){
     if(!sg)sg=((e.c.x-bx)*fx+(e.c.z-bz)*fz)>=0?1:-1;
     fx*=sg;fz*=sg;let lo=1e9,hi=-1e9;for(let i=0;i<S.length;i+=2){const t=(S[i]-bx)*ax+(S[i+1]-bz)*az;if(t<lo)lo=t;if(t>hi)hi=t;}
     const mid=(hi+lo)/2,cx=bx+ax*mid,cz=bz+az*mid;e.c5f={x:fx,z:fz,bx:cx,bz:cz,len:hi-lo,how:K.length>=8?'back':'road'};
-    for(const o of (hi-lo>2.2?[-.62,.62]:[0]))CIV5.seats.push({x:cx+ax*o+fx*.46,z:cz+az*o+fz*.46,fx:fx,fz:fz,yaw:Math.atan2(fx,fz),e:e,used:null});}
+    const syW=y0+sy/n;for(const o of (hi-lo>2.2?[-.62,.62]:[0]))CIV5.seats.push({x:cx+ax*o+fx*.46,z:cz+az*o+fz*.46,fx:fx,fz:fz,yaw:Math.atan2(fx,fz),sy:syW,e:e,used:null});}
+}
+/* 1139: лавки в парках і дворах (будує наповнювач ділянки): перед — локальна +z, сидіння 1,7 м на висоті 0,48 м; місця — дві */
+function civ5BenchAdd(x,y,z,yaw,ch){
+  if(SALT_FEAT.civ5===false)return;const e={dead:0,ck:ch},fx=Math.sin(yaw),fz=Math.cos(yaw),ax=Math.cos(yaw),az=-Math.sin(yaw);
+  for(const k of [-.4,.4])CIV5.seats.push({x:x+ax*k+fx*.46,z:z+az*k+fz*.46,fx:fx,fz:fz,yaw:yaw,sy:y+.48,e:e,cb:1,used:null});
 }
 function civ5Seat(b){let best=null,bd=40;for(const s of CIV5.seats){if(s.used&&s.used.alive&&s.used.c5&&s.used.c5.seat===s)continue;const d=Math.hypot(s.x-b.pos.x,s.z-b.pos.z);if(d<bd){bd=d;best=s;}}return best;}
 /* стани, що вже тривають; true — людиною кермує цей модуль */
@@ -148,9 +155,10 @@ function civ5State(b,c,dt){
       if(civ5GoP(b,c,1.25*c.spd,dt)){c.st='sit';c.t=0;c.dur=14+c.R()*24;}else if(c.blk>1.5||c.t>40){civ5End(b,c,10);return false;}return true;}
     case 'sit':{const s=c.seat;b.sp=0;c.v=0;if(!s||s.e.dead){civ5End(b,c);return false;}b.pos.x+=(s.x-b.pos.x)*Math.min(1,dt*4);b.pos.z+=(s.z-b.pos.z)*Math.min(1,dt*4);civ5Face(b,s.yaw,dt,5);c.pose='sit';
       if(c.t>c.dur){c.st='stand';c.t=0;}return true;}
-    case 'stand':{b.sp=0;c.pose='';if(c.t>.7){civ5End(b,c,20+c.R()*20);return false;}return true;}
+    case 'stand':{c.pose='';const s=c.seat;if(s&&c.t>.5){if(civ5Go(b,c,s.x+s.fx*1.2,s.z+s.fz*1.2,.8*c.spd,dt,true)||c.t>2.6){civ5End(b,c,20+c.R()*20);return false;}return true;}   // 1139: встав — крок від лави
+      b.sp=0;if(!s&&c.t>.7){civ5End(b,c,20+c.R()*20);return false;}return true;}
     case 'wall-go':{const w=c.wl;if(civ5GoP(b,c,1.1*c.spd,dt)){c.st='wall';c.t=0;c.dur=6+c.R()*8;}else if(c.blk>1.5||c.t>25){civ5End(b,c);return false;}return true;}
-    case 'wall':{b.sp=0;c.v=0;const w=c.wl;civ5Face(b,Math.atan2(w.b.cx-SALT.ox-b.pos.x,w.b.cz-SALT.oz-b.pos.z),dt,3);c.pose='window';if(c.t>c.dur){civ5End(b,c,14+c.R()*16);return false;}return true;}
+    case 'wall':{b.sp=0;c.v=0;const w=c.wl;civ5Face(b,c.wf!=null?c.wf:Math.atan2(w.b.cx-SALT.ox-b.pos.x,w.b.cz-SALT.oz-b.pos.z),dt,3);/* лицем до стіни по нормалі */c.pose='window';if(c.t>c.dur){civ5End(b,c,14+c.R()*16);return false;}return true;}
     case 'look':{b.sp=0;c.v=0;c.pose='look';if(c.t>c.dur){civ5End(b,c,10+c.R()*12);return false;}return true;}
     case 'sky':{b.sp=0;c.v=0;const p=civ5Sky(b);if(p)c.sk=p;c.pose=c.point?'point':'sky';if(c.sk)civ5Face(b,Math.atan2(c.sk.x-b.pos.x,c.sk.z-b.pos.z),dt,2.5);
       if(c.t>c.dur||!p&&c.t>1){civ5End(b,c,6);c.skyCd=22;return false;}return true;}
@@ -193,7 +201,9 @@ function civ5Own(b,dt){
   if((c.cd-=dt)<=0){c.cd=4+c.R()*6;if(typeof CIV2!=='undefined'&&CIV2.danger)return false;const r=c.R();
     if(r<.3){const s=civ5Seat(b);if(s&&civ5Route(b,c,s.x+s.fx*1.3,s.z+s.fz*1.3,s.x,s.z)){s.used=b;c.seat=s;c.st='seat-go';c.t=0;CIV5.stat.bench++;return civ5State(b,c,dt);}}
     if(r>=.3&&r<.4&&now-c.born>25){const d=civ5DoorNear(b.pos.x,b.pos.z,18);if(d&&civ5Route(b,c,d.x,d.z)){c.door=d;c.st='door-go';c.t=0;return civ5State(b,c,dt);}}
-    if(r>=.4&&r<.52){let w=null;try{w=typeof civ2Wall==='function'?civ2Wall(b.pos.x,b.pos.z,12):null;}catch(e){}if(w&&w.b&&w.d>1&&civ5Route(b,c,w.x,w.z)){c.wl=w;c.st='wall-go';c.t=0;CIV5.stat.wall++;return civ5State(b,c,dt);}}
+    if(r>=.4&&r<.52){let w=null;try{w=typeof civ2Wall==='function'?civ2Wall(b.pos.x,b.pos.z,12):null;}catch(e){}if(w&&w.b&&w.d>1){let ok=false;for(const pad of [1.3,1.9]){let a=null;try{a=nobldOut(w.b,b.pos.x,b.pos.z,pad);}catch(e){}   // 1139: точка за 0,45 м від стіни поза сіткою —
+        if(a&&civ5Route(b,c,a[0],a[1],w.x,w.z)){c.wf=Math.atan2(w.x-a[0],w.z-a[1]);ok=true;break;}}                                 // маршрут до точки далі, останній крок вільний
+      if(ok){c.wl=w;c.st='wall-go';c.t=0;CIV5.stat.wall++;return civ5State(b,c,dt);}}}
     if(r>=.52&&r<.64){c.st='look';c.t=0;c.dur=2.2+c.R()*2.2;CIV5.stat.look++;return civ5State(b,c,dt);}}
   return false;
 }
@@ -231,7 +241,8 @@ function civ5Pose(m,dt,b){
       c.bag.rotation.set(-R.up.rotation.x*.6,0,0);c.bag.visible=c.pose!=='sit'&&c.pose!=='point';}
     if(k>.01&&!c4){
       if(c.pose==='sit'){                                                       // сидить: таз на лаві, стегна вперед, гомілки вниз, руки на колінах
-        m.hips.position.y+=(.63-m.hips.position.y)*k;m.hips.position.z+=(-.43-m.hips.position.z)*k;m.hips.rotation.x*=1-k;
+        const hy=c.seat&&c.seat.sy!=null?Math.max(.42,Math.min(.8,c.seat.sy-b.pos.y+.08)):.63;                    // 1139: таз — на висоті саме цього сидіння
+        m.hips.position.y+=(hy-m.hips.position.y)*k;m.hips.position.z+=(-.43-m.hips.position.z)*k;m.hips.rotation.x*=1-k;
         for(const g of [m.legL,m.legR]){mix(g.th,-1.5,0,g.sd*.06);mix(g.sh,1.48,0,0);mix(g.ft,.05,0,0);}
         m.spine.rotation.x+=(-.12-m.spine.rotation.x)*k;mix(L.up,-.42,0,.1);mix(R.up,-.42,0,-.1);if(L.lo){mix(L.lo,-.95,0,0);mix(R.lo,-.95,0,0);}}
       else if(c.pose==='runcover'||c.pose==='cower'){mix(L.up,-2.25,0,-.52);mix(R.up,-2.25,0,.52);if(L.lo){mix(L.lo,-2.05,0,0);mix(R.lo,-2.05,0,0);}m.head.rotation.x+=.4*k;m.spine.rotation.x+=(c.pose==='cower'?.35:.25)*k;}

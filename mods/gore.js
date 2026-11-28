@@ -55,9 +55,25 @@ function gorePart(geos,c,vel,spin,r){
   const cap=new T.Mesh(R.goreCapG,R.goreCap);cap.scale.setScalar(r*.78);cap.userData.gore=1;grp.add(cap);
   grp.userData.noMerge=true;SALT.G.scene.add(grp);
   const P={o:grp,geos:geos,dec:0};
-  if(typeof gravAdd==='function'&&SALT_FEAT.grav!==false)gravAdd(grp,{v:vel,r:Math.max(.04,r*.8),k:.26,w:spin,life:40,onRest:()=>{if(P.dec++<1)try{bloodDecal(grp.position.x,grp.position.z,.1+Math.random()*.12,false);}catch(e){}}});
+  if(typeof gravAdd==='function'&&SALT_FEAT.grav!==false)P.gb=gravAdd(grp,{v:vel,r:Math.max(.04,r*.8),k:.26,w:spin,life:40,onRest:()=>{if(P.dec++<1)try{bloodDecal(grp.position.x,grp.position.z,.1+Math.random()*.12,false);}catch(e){}try{goreSettle(P);}catch(e){}}});
   else grp.position.y=Math.max(grp.position.y-.3,saltH(c.x,c.z)+r);
   GORE.parts.push(P);goreTrim();return grp;
+}
+/* 1139: шматок ліг — перевертається на найширший бік (найкоротша вісь — вертикально, найменшим поворотом) і стає на опору,
+   а не встромлюється в землю: на стенді до цього 30 з 39 шматків сиділи в ґрунті до 0,43 м */
+function goreSettle(P){
+  const T=SALT.G.THREE,g=P.o;if(!g||!g.parent)return;
+  if(P.lb===undefined){const b=new T.Box3(),cg=SALT.res.goreCapG;for(const m of g.children){const q=m.geometry;if(!q||q===cg)continue;if(!q.boundingBox)q.computeBoundingBox();b.union(q.boundingBox);}P.lb=b.isEmpty()?null:b.getSize(new T.Vector3());}
+  if(!P.lb)return;const s=P.lb,a=s.x<=s.y&&s.x<=s.z?new T.Vector3(1,0,0):s.y<=s.z?new T.Vector3(0,1,0):new T.Vector3(0,0,1);
+  const d=a.applyQuaternion(g.quaternion).normalize(),qa=new T.Quaternion().setFromUnitVectors(d,new T.Vector3(0,d.y>=0?1:-1,0));
+  P.q0=g.quaternion.clone();P.q1=new T.Quaternion().multiplyQuaternions(qa,g.quaternion);P.st=0;
+}
+function goreSettleStep(dt){
+  const T=SALT.G.THREE;for(const P of GORE.parts){if(!P.q1)continue;const g=P.o;if(!g.parent){P.q1=null;continue;}
+    P.st=Math.min(1,P.st+dt/.24);const k=P.st*P.st*(3-2*P.st);g.quaternion.copy(P.q0).slerp(P.q1,k);g.updateMatrixWorld(true);
+    const bb=(GORE.bb||(GORE.bb=new T.Box3())).setFromObject(g),cx=(bb.min.x+bb.max.x)/2,cz=(bb.min.z+bb.max.z)/2,sup=gravSupport(cx,cz,bb.min.y+.3);
+    g.position.y+=sup-.012-bb.min.y;if(P.gb)P.gb.r=Math.max(.02,g.position.y-sup);                                   // тяжіння знає нову висоту центру — не будить шматок
+    if(P.st>=1)P.q1=null;}
 }
 function goreTrim(){
   const lim=SALT.lite||SALT.droneOnly?16:GORE.max;
@@ -109,7 +125,7 @@ function goreGib(b,at,dir,big){
 function goreDrop(m,at){
   const T=SALT.G.THREE,r=m.rifle;r.updateMatrixWorld(true);const c=new T.Vector3();r.getWorldPosition(c);const geos=goreMeshGeo(r,true,c);if(!geos.length)return;
   const grp=new T.Group();grp.position.copy(c);for(const q of geos){const a=new T.Mesh(q.geo,q.mat);a.castShadow=true;grp.add(a);}grp.userData.noMerge=true;SALT.G.scene.add(grp);r.visible=false;
-  GORE.parts.push({o:grp,geos:geos});if(typeof gravAdd==='function')gravAdd(grp,{v:new T.Vector3((c.x-at.x)*2,2.5,(c.z-at.z)*2),r:.05,k:.3,w:new T.Vector3((Math.random()-.5)*8,0,(Math.random()-.5)*8),life:40});
+  const P={o:grp,geos:geos};GORE.parts.push(P);if(typeof gravAdd==='function')P.gb=gravAdd(grp,{v:new T.Vector3((c.x-at.x)*2,2.5,(c.z-at.z)*2),r:.05,k:.3,w:new T.Vector3((Math.random()-.5)*8,0,(Math.random()-.5)*8),life:40,onRest:()=>{try{goreSettle(P);}catch(e){}}});   // 1139: лягає плазом, не встромлюється
 }
 /* влучання в тіло: куди саме — за капсулами кісток у поточній позі */
 const _gv={};
@@ -161,4 +177,4 @@ function goreInit(G){
     catch(e){saltFeatFail('gore',e);}return hit;};
   if(typeof saltBlast==='function'){const o=saltBlast;saltBlast=function(at,rad){const r=o.apply(this,arguments);try{goreBlast(at,rad,arguments[2]);}catch(e){saltFeatFail('gore',e);}return r;};}
 }
-function goreStep(G,dt){if(SALT_FEAT.gore===false)return;goreInit(G);if((GORE.tT=(GORE.tT||0)-dt)<=0){GORE.tT=2;goreTrim();}}
+function goreStep(G,dt){if(SALT_FEAT.gore===false)return;goreInit(G);try{goreSettleStep(dt);}catch(e){}if((GORE.tT=(GORE.tT||0)-dt)<=0){GORE.tT=2;goreTrim();}}
